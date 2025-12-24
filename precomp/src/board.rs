@@ -29,11 +29,11 @@ const MOVE_S  : &'static Move = &Move( 0, -1);
 const MOVE_SE : &'static Move = &Move( 1, -1);
 
 const MOVE_DUMMY    : &'static [&'static Move] = &[];
-const MOVE_LION     : &'static [&'static Move] = &[MOVE_NW, MOVE_N, MOVE_NE, MOVE_W, MOVE_E, MOVE_SW, MOVE_S, MOVE_SE];
-const MOVE_ELEPHANT : &'static [&'static Move] = &[MOVE_NW,         MOVE_NE,                 MOVE_SW,         MOVE_SE];
-const MOVE_GIRAFFE  : &'static [&'static Move] = &[         MOVE_N,          MOVE_W, MOVE_E,          MOVE_S         ];
+const MOVE_LION     : &'static [&'static Move] = &[];
+const MOVE_ELEPHANT : &'static [&'static Move] = &[MOVE_NW,         MOVE_NE];
+const MOVE_GIRAFFE  : &'static [&'static Move] = &[];
 const MOVE_CHICK    : &'static [&'static Move] = &[         MOVE_N                                                   ];
-const MOVE_HEN      : &'static [&'static Move] = &[MOVE_NW, MOVE_N, MOVE_NE, MOVE_W, MOVE_E,          MOVE_S         ];
+const MOVE_HEN      : &'static [&'static Move] = &[                          MOVE_W, MOVE_E];
 
 impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
