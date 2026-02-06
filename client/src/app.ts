@@ -11,7 +11,7 @@ async function fetch_gunzip(url: string) {
 }
 
 async function main() {
-    const res = await fetch("rules.txt");
+    const res = await fetch("rules.txt", { cache: "no-store" });
     const rules_txt = res.ok ? (await res.text()).trim() : 'val1n';
     const [abuf, kbuf, vbuf] = await Promise.all([
         fetch_gunzip("unpruned_ai.txt.gz"),
