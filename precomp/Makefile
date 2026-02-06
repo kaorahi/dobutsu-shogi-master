@@ -15,10 +15,18 @@ small: $(PRE)_unpruned_ai.txt.xz
 
 large: $(PRE)_vals.xz
 
-smalldocs: small
+smalldocs: small update_rules
+#	mkdir -p $(PUB)
+	cp $(PRE)_unpruned_ai.txt.gz $(PUB)/
+	rm -f $(PRE)_keys.gz $(PRE)_vals.gz $(PUB)/keys.gz $(PUB)/vals.gz
+	rm -f $(PRE)_keys.xz $(PRE)_vals.xz $(PUB)/keys.xz $(PUB)/vals.xz
 	make docs
 
-largedocs: large
+largedocs: large update_rules
+#	mkdir -p $(PUB)
+	cp $(PRE)_keys.xz $(PUB)/keys.xz
+	cp $(PRE)_vals.xz $(PUB)/vals.xz
+	rm -f $(PRE)_unpruned_ai.txt.gz $(PUB)/unpruned_ai.txt.gz
 	make docs
 
 docs: images
@@ -65,11 +73,8 @@ $(PRE)_3.txt: $(OUT)/3-extract $(PRE)_2.txt
 update_rules:
 	mkdir -p $(PUB); echo '$(RULES)' > $(PUB)/rules.txt
 
-$(PRE)_unpruned_ai.txt.gz: $(PRE)_3.txt update_rules
+$(PRE)_unpruned_ai.txt.gz: $(PRE)_3.txt
 	time ruby -ne 'BEGIN {k = false}; k and puts $$_.split(":")[0]; k = ($$_ !~ /^\s|^$$/) and print $$_.split(/\s+/)[0..1].join(" ")' $< | gzip > $@
-	mkdir -p $(PUB); cp $@ $(PUB)/
-	rm -f $(PRE)_keys.gz $(PRE)_vals.gz $(PUB)/keys.gz $(PUB)/vals.gz
-	rm -f $(PRE)_keys.xz $(PRE)_vals.xz $(PUB)/keys.xz $(PUB)/vals.xz
 
 $(PRE)_2_cooked.txt: $(PRE)_2.txt
 	time grep -v '[- ][0-3]$$' $< | time sort > $@
@@ -77,10 +82,7 @@ $(PRE)_2_cooked.txt: $(PRE)_2.txt
 $(PRE)_keys.xz: $(PRE)_2_cooked.txt
 #	time ruby -ne 'STDOUT.write([$$_.split[0].to_i(16)].pack("Q<"))' $< | $(XZ) > $@
 	time ruby -ne 'BEGIN {$$p=0}; $$x=$$_.split[0].to_i(16); STDOUT.write([$$x-$$p].pack("Q<")); $$p=$$x' $< | $(XZ) > $@
-	mkdir -p $(PUB); cp $@ $(PUB)/keys.xz
 
-$(PRE)_vals.xz: $(PRE)_2_cooked.txt $(PRE)_keys.xz update_rules
+$(PRE)_vals.xz: $(PRE)_2_cooked.txt $(PRE)_keys.xz
 #	time ruby -ne 'STDOUT.write([$$_.split[1].to_i].pack("C"))' $< | $(XZ) > $@
 	time ruby -ne 'STDOUT.write([$$_.split[1].to_i].pack("S"))' $< | $(XZ) > $@
-	mkdir -p $(PUB); cp $@ $(PUB)/vals.xz
-	rm -f $(PRE)_unpruned_ai.txt.gz $(PUB)/unpruned_ai.txt.gz
