@@ -5,6 +5,7 @@
   "scripts": {
     "pretest": "tsc",
     "test": "nyc --reporter=html --reporter=text mocha out/test",
+    "prebuild": "tsc",
     "build": "vite build --emptyOutDir",
     "lint": "tslint src/*.ts test/*.ts",
     "vim": "vim -p src/*.ts"
