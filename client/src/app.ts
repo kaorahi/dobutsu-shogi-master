@@ -21,7 +21,10 @@ async function main() {
     const ai_txt = new TextDecoder("utf-8").decode(abuf);
     const keys = new BigUint64Array(kbuf);
     const vals = new Uint8Array(vbuf);
-    new UI(new AI(rules_txt, ai_txt, keys, vals));
+    const ai = new AI(rules_txt, ai_txt, keys, vals);
+    const ui = new UI(ai);
+    (window as any).ai = ai;
+    (window as any).ui = ui;
 }
 
 main().catch(console.error);
