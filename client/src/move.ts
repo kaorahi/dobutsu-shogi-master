@@ -42,7 +42,7 @@ export namespace Move {
 }
 
 function basename(x: number, y: number, p: Piece, swap_side_p: boolean = false) {
-    const xor = (a, b) => !!a !== !!b;
+    const xor = (a: boolean, b: boolean): boolean => !!a !== !!b;
     let is_black = xor(Piece.mine_p(p), swap_side_p);
     let s = is_black ? "▲" : "△";
     s += "CBA"[x] + (4 - y);

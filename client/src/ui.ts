@@ -21,7 +21,7 @@ export class UI {
     ui_state: UIState;
 
     // (the previous state, player's (black) move, master's (white) move)*
-    history: [UIState, Move, Move][];
+    history: [UIState, Move | null | false, Move | null | false][];
 
     // a mutex to change the state
     locked: boolean;
@@ -31,7 +31,7 @@ export class UI {
     puzzle_depth = 5;
 
     is_white_turn(): boolean {
-        const xor = (a, b) => !!a !== !!b;
+        const xor = (a: boolean, b: boolean): boolean => !!a !== !!b;
         return xor(this.swap_side_p, $("#record").children().length % 2 !== 0);
     }
 
@@ -73,7 +73,7 @@ export class UI {
             this.set_random_board(this.puzzle_depth));
         $(".puzzle-button").each((_, b) => {
             const $b = $(b);
-            const d = Number($b.attr("id").match(/puzzle([0-9]+)/)[1]);
+            const d = Number($b.attr("id")?.match(/puzzle([0-9]+)/)?.[1] ?? -1);
             $b.click((e) =>
                 this.set_random_board(this.puzzle_depth = d));
         });
@@ -115,7 +115,7 @@ export class UI {
             const kind = Piece.kind(piece);
             if (kind === Piece.Empty) return;
             const kind_class = [
-                null, ".lion", ".elephant", ".giraffe",
+                "", ".lion", ".elephant", ".giraffe",
                 ".chick,.hen", ".chick,.hen",
             ][kind];
             const span = rest.filter(kind_class).first();
@@ -303,7 +303,9 @@ export class UI {
         });
     }
 
-    revflip_maybe(z, flag) {
+    revflip_maybe(z: Board, flag: boolean): Board;
+    revflip_maybe(z: Move, flag: boolean): Move;
+    revflip_maybe(z: Board | Move, flag: boolean): Board | Move {
         return flag ? z.revflip() : z
     }
 

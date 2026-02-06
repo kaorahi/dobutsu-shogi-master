@@ -173,7 +173,7 @@ export class Board {
         return b;
     }
 
-    dead_p(player_p: boolean): boolean {
+    dead_p(player_p: boolean = true): boolean {
         const lion = player_p ? Piece.Lion : Piece.opponent[Piece.Lion];
         for (let y = 0; y < 4; y++) {
             for (let x = 0; x < 3; x++) {

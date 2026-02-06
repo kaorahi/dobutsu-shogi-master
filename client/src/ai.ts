@@ -38,10 +38,12 @@ export class AI {
         const depth = this.lookup_depth(b);
         const target_depth = depth > 0 ? depth - 1 : depth;
         const nbs = b.next_boards();
+        if (nbs === Result.Lose) return [0, -1];
+        if (nbs === Result.Win) return [1, -1];
         const targets = nbs.filter(b2 =>
             this.lookup_depth(b2.reverse().normalize()) === target_depth);
         const nb = random_choice(targets);
-        return [depth, nbs.indexOf(nb)];
+        return [depth, nb ? nbs.indexOf(nb) : -1];
     }
 
     // Make a board in that the opponent's lion is captured
@@ -79,24 +81,27 @@ export class AI {
         const nr_nbs = nr_b.next_boards()
         // trivial cases
         if (nr_b.gameover_status() !== 0) return [0, nr_b];
+        if (nr_nbs === Result.Lose) return [0, nr_b];
         if (nr_nbs === Result.Win) return [1, this.calc_final_board(nr_b)];
         let [depth, idx] = this.lookup_db(nr_b);
         if (depth >= 0 && idx >= 0) return [depth, nr_nbs[idx]];
-        if (limit < 1) return [-1, random_choice(nr_nbs)];
+        if (limit < 1) return [-1, random_choice(nr_nbs) || nr_b];
         // iteration
-        const next_depth = b =>
+        const next_depth = (b: Board): number | undefined =>
               this.search_core(b.reverse().normalize(), limit - 1)?.[0];
         const ds = nr_nbs.map(next_depth);
-        const ps = ds.filter(d => d >= 0);
-        const pick = d => random_choice(nr_nbs.filter((b, k) => ds[k] === d))
+        const nump = (d: number | undefined): d is number => typeof d === 'number';
+        const ps = ds.filter((d): d is number => nump(d) && d >= 0);
+        const pick = (d: number): Board | undefined =>
+              random_choice(nr_nbs.filter((b, k) => ds[k] === d))
         // prefer the shortest winning move...
-        const winning_d = Math.min(...ps.filter(d => d % 2 === 0));
-        if (winning_d < Infinity) return [winning_d + 1, pick(winning_d)];
+        const winning_d = Math.min(...ps.filter(d => nump(d) && d % 2 === 0));
+        if (winning_d < Infinity) return [winning_d + 1, pick(winning_d) || nr_b];
         // ...or, uncertain moves
-        if (ds.indexOf(-1) >= 0) return [-1, pick(-1)];
+        if (ds.indexOf(-1) >= 0) return [-1, pick(-1) || nr_b];
         // ...or, the longest losing move
-        const losing_d = Math.max(...ps.filter(d => d % 2 !== 0));
-        if (losing_d > -Infinity) return [losing_d + 1, pick(losing_d)];
+        const losing_d = Math.max(...ps.filter(d => nump(d) && d % 2 !== 0));
+        if (losing_d > -Infinity) return [losing_d + 1, pick(losing_d) || nr_b];
         // no possible moves (for example, all pieces were captured)
         return [-1, nr_b];
     }
@@ -140,7 +145,7 @@ export class AI {
 
 /////////////////////////////////////
 
-function binary_search(arr, x) {
+function binary_search(arr: BigUint64Array, x: bigint): number {
     let lo = 0;
     let hi = arr.length; // [lo, hi)
     while (lo < hi) {
@@ -152,6 +157,6 @@ function binary_search(arr, x) {
     return (arr[lo] === x) ? lo : -1;
 }
 
-function random_choice(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
+function random_choice<T>(arr: readonly T[]): T | undefined {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
