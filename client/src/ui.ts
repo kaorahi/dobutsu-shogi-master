@@ -27,9 +27,7 @@ export class UI {
     locked: boolean;
 
     constructor(public ai: AI) {
-        this.ui_state = { board: Board.init(), depth: -1 };
-        this.history = [];
-        this.locked = false;
+        this.initialze_state();
 
         this.ui_state.board.update_rules(ai.rules);
         $("span#rules").text(ai.rules);
@@ -54,8 +52,45 @@ export class UI {
             });
         });
 
+        this.record_positions();
+        $("button#new-game").click((e) => this.restore_positions());
+
         $(".piece").draggable("enable");
         this.dragstop();
+    }
+
+    initialze_state() {
+        this.ui_state = { board: Board.init(), depth: -1 };
+        this.history = [];
+    }
+
+    record_positions() {
+        const self = this;
+        $("span.piece").each((_, p) => {
+            const $p = $(p);
+            $p.data("init", {
+                pos: self.get_position_from_cell($p.parent()),
+                classes: Object.fromEntries(
+                    ["master", "player", "promoted"].map(c => [c, $p.hasClass(c)])
+                ),
+            });
+        });
+    }
+
+    restore_positions() {
+        const self = this;
+        if (!self.enter()) return;
+        if (!window.confirm("はじめに戻す？")) return;
+        $("span.piece").each((_, p) => {
+            const $p = $(p);
+            const {pos, classes} = $p.data("init");
+            const orig_place = self.get_cell(...pos);
+            self.animate_piece($p, $p.parent(), orig_place, true);
+            Object.keys(classes).forEach(k => $p.toggleClass(k, classes[k]));
+        });
+        self.initialze_state();
+        $("ol#record").children().detach();
+        self.leave();
     }
 
 
