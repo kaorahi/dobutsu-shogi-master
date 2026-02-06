@@ -79,6 +79,13 @@ export class Normal {
         return true;
     }
 
+    revflip(): Normal {
+        return new Normal(
+            2 - this.x, 3 - this.y, 2 - this.nx, 3 - this.ny,
+            this.old_board.reverse().flip(), this.new_board.reverse().flip(),
+        );
+    }
+
     // return a record string
     toString(): string {
         let p = this.old_board.get(this.x, this.y);
@@ -147,6 +154,13 @@ export class Drop {
         if (query.nx !== undefined && this.nx !== query.nx) return false;
         if (query.ny !== undefined && this.ny !== query.ny) return false;
         return true;
+    }
+
+    revflip(): Drop {
+        return new Drop(
+            Piece.opponent[this.p], 2 - this.nx, 3 - this.ny,
+            this.old_board.reverse().flip(), this.new_board.reverse().flip(),
+        );
     }
 
     toString(): string {

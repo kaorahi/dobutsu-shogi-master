@@ -205,13 +205,17 @@ span.piece {
     background-color: #ffcccc;
     border-color: #993333;
   }
-  &.player:hover {
+  &.player.to-play:hover {
     background-color: #ffdddd;
     border-color: #ff9999;
   }
   &.master {
     background-color: #ccccff;
     border-color: #333399;
+  }
+  &.master.to-play:hover {
+    background-color: #ddddff;
+    border-color: #9999ff;
   }
   &.lion.player           { background-position:  0em -0em; }
   &.lion.master           { background-position: -4em -0em; }
@@ -278,6 +282,7 @@ span#player {
   background-repeat: no-repeat;
   background-position: 0em 0em;
   background-size: 8em;
+  transition: transform 0.2s ease;
   &.level1 { background-position:  0em -24em; }
   &.level2 { background-position: -4em -24em; }
   &.level3 { background-position:  0em -28em; }
@@ -286,4 +291,7 @@ span#player {
   &.level6 { background-position: -4em -32em; }
   &.win    { background-position:  0em -36em; }
   &.draw   { background-position: -4em -36em; }
+}
+span#player.opposite {
+  transform: rotate(180deg);
 }

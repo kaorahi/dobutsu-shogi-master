@@ -26,7 +26,12 @@ export class UI {
     // a mutex to change the state
     locked: boolean;
 
+    analysis_mode = false;
     puzzle_depth = 5;
+
+    is_white_turn(): boolean {
+        return $("#record").children().length % 2 !== 0;
+    }
 
     constructor(public ai: AI) {
         this.initialize_state();
@@ -57,6 +62,11 @@ export class UI {
 
         $("button#new-game").click((e) => this.restore_positions(false));
         $("button#swap").click((e) => this.restore_positions(true));
+        $("button#analysis-mode").click((e) => {
+            this.enter();
+            this.analysis_mode = true;
+            this.leave();
+        });
         $("button#puzzle").click((e) =>
             this.set_random_board(this.puzzle_depth));
         $(".puzzle-button").each((_, b) => {
@@ -66,7 +76,7 @@ export class UI {
                 this.set_random_board(this.puzzle_depth = d));
         });
         if (this.ai.supports_best_move_only())
-            $("button#swap, button#puzzle, .puzzle-button").hide();
+            $("button#swap, button#puzzle, .puzzle-button, button#analysis-mode").hide();
 
         $(".piece").draggable("enable");
         this.dragstop();
@@ -77,6 +87,7 @@ export class UI {
     }
 
     initialize_state() {
+        this.analysis_mode = false;
         this.ui_state = { board: Board.init(), depth: -1 };
         this.history = [];
         $("ol#record").children().detach();
@@ -124,7 +135,8 @@ export class UI {
     }
 
     update_depth() {
-        const white_board = this.ui_state.board.reverse();
+        const needs_swap = !this.is_white_turn();
+        const white_board = this.revflip_maybe(this.ui_state.board, needs_swap);
         this.ui_state.depth = this.ai.search(white_board)[0];
     }
 
@@ -196,15 +208,24 @@ export class UI {
     // Event handlers
 
     dragstart(piece: JQuery) {
-        if (piece.hasClass("master")) return;
+        const is_master_turn = this.analysis_mode && this.is_white_turn();
+        const turn = is_master_turn ? "master" : "player";
+        if (!piece.hasClass(turn)) return;
         if (this.ui_state.board.gameover_status() !== 0) return;
         // show droppable cells
         this.query_move(piece, {}, (move) => {
             let cell = this.get_cell(move.nx, move.ny);
             cell.droppable("enable");
             cell.addClass("possible");
-            let depth = this.ai.search(move.new_board)[0];
-            cell.children().first().text(depth < 0 ? "-" : depth ? depth - 1 : "×");
+            let r_nb = this.revflip_maybe(move.new_board, is_master_turn);
+            let depth = this.ai.search(r_nb)[0];
+            const depth_text =
+                  depth < 0 ? "-" :
+                  depth === 0 ? "!" :
+                  depth === 1 ? "x" :
+                  (typeof depth === 'number') ? depth + 1 :
+                  "?"
+            cell.children().first().text(depth_text);
         });
     }
 
@@ -227,14 +248,16 @@ export class UI {
     // execute the player's turn, decide and execute the master's turn
     do_turn(move: Move, piece: JQuery) {
         if (!this.enter()) return;
-        let nb = move.new_board;
+        let master_p = piece.hasClass("master");
+        let nb = move.new_board
+        let r_nb = this.revflip_maybe(nb, master_p);
         let gameover = nb.gameover_status();
-        let [depth, nnb] = (gameover === 0) ? this.ai.search(nb) : [null, null];
-        let nmove = nnb && Move.detect_move(nb, nnb);
+        let [depth, nnb] = (gameover === 0) ? this.ai.search(r_nb) : [-2, null];
+        let nmove = nnb && !this.analysis_mode && Move.detect_move(nb, nnb);
         this.history.push([this.ui_state, move, nmove]);
 
         this.do_move(move, piece);
-        if (!nmove) return this.leave({ board: nb, depth: -2 })
+        if (!nmove || this.analysis_mode) return this.leave({ board: nb, depth: depth})
         $("span.piece").delay(300).promise().done(() => {
             this.do_move(nmove);
             this.leave({ board: nmove.new_board, depth: depth - 1 });
@@ -272,8 +295,13 @@ export class UI {
         });
     }
 
+    revflip_maybe(z, flag) {
+        return flag ? z.revflip() : z
+    }
+
     // find a possible move that satisfies a given query
     query_move(piece: JQuery, query: any, cb: (move: Move) => void) {
+        const master_p = piece.hasClass("master");
         let cell = piece.parent();
         if (cell.hasClass("cell")) {
             // normal move
@@ -283,9 +311,12 @@ export class UI {
         }
         else {
             // drop
-            query.p = this.get_piece_id_from_piece(piece) ;
+            const p = this.get_piece_id_from_piece(piece);
+            query.p = master_p ? Piece.opponent[p] : p;
         }
-        for (let move of Move.possible_moves(this.ui_state.board, false)) {
+        const r_board = this.revflip_maybe(this.ui_state.board, master_p);
+        for (let r_move of Move.possible_moves(r_board, false)) {
+            const move = this.revflip_maybe(r_move, master_p);
             if (move.match_p(query)) cb(move);
         }
     }
@@ -309,6 +340,7 @@ export class UI {
         const gameover = this.ui_state.board.gameover_status();
         $("span#player").removeClass();
              if (gameover > 0) $("span#player").addClass("win");
+        else if (gameover < 0) $("span#player").addClass("level6");
         else if (d < 0) $("span#player").addClass("draw");
         else if (d % 2 !== 0) $("span#player").addClass("level1");
         else if (d >= 70) $("span#player").addClass("level1");
@@ -338,8 +370,13 @@ export class UI {
             if (d <= 10) $("#player").addClass("dying");
             $("span#about-image").removeClass("dead");
         }
+        $("span#master-text").text(this.analysis_mode ? "あなた" : "どうぶつしょうギ名人");
         $("span.piece").draggable("enable");
         $("span#master").removeClass("thinking");
+        const master_to_play = this.analysis_mode && this.is_white_turn();
+        $(".player").toggleClass("to-play", gameover === 0 && !master_to_play);
+        $(".master").toggleClass("to-play", gameover === 0 && master_to_play);
+        $("span#player").toggleClass("opposite", gameover === 0 && master_to_play);
         this.locked = false;
     }
 

@@ -106,6 +106,10 @@ export class Board {
         return new Board(cells, hands);
     }
 
+    revflip(): Board {
+        return this.reverse().flip();
+    }
+
     hash(mod: number) {
         let h = this.hands % mod;
         let s = shift4[12] % mod;
