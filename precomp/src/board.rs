@@ -186,8 +186,10 @@ impl Board {
             }
         }
         // if boards.is_empty() { return Result::Lose; }  // Stalemate
-        for x in 0..3 {
-            if self.get(x, 0) == LION.opponent() { return Result::Lose }
+        if rules().try_p {
+            for x in 0..3 {
+                if self.get(x, 0) == LION.opponent() { return Result::Lose }
+            }
         }
         for i in 0..boards.len() {
             boards[i] = boards[i].reverse().normalize()

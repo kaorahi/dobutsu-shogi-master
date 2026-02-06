@@ -34,6 +34,8 @@ let move = [
     [ [-1, 1], [0, 1], [1, 1], [-1, 0], [1, 0],           [0, -1],          [0, 0] ],
 ];
 
+let try_rule_p = true;
+
 const shift4: number[] = [];
 for (let i = 0; i <= 12; i++) shift4[i] = Math.pow(16, i);
 
@@ -154,8 +156,10 @@ export class Board {
                 }
             }
         }
-        for (let x = 0; x < 3; x++) {
-            if (this.get(x, 0) === Piece.opponent[Piece.Lion] && result_p) return Result.Lose; /* losing board */
+        if (try_rule_p) {
+            for (let x = 0; x < 3; x++) {
+                if (this.get(x, 0) === Piece.opponent[Piece.Lion] && result_p) return Result.Lose; /* losing board */
+            }
         }
         return boards;
     }
@@ -199,7 +203,10 @@ export class Board {
     }
 
     update_rules(rules: string) {
-        rules.split('').forEach((m, i) => move[i + 1] = this.decode_move(m))
+        // "val1nT" means "val1n", but ignore the "try" rule.
+        const [,core, ignore_try] = rules.match(/^(.*?)(T?)$/) || [rules, ''];
+        core.split('').forEach((m, i) => move[i + 1] = this.decode_move(m))
+        try_rule_p = (ignore_try === '');
     }
 
     private decode_move(m: string): Array<[number, number]> {

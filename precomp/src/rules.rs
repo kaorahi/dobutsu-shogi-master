@@ -9,6 +9,7 @@ pub struct Rules {
     pub giraffe: Vec<Move>,
     pub chick: Vec<Move>,
     pub hen: Vec<Move>,
+    pub try_p: bool,
 }
 
 static RULES_PTR: AtomicPtr<Rules> = AtomicPtr::new(ptr::null_mut());
@@ -79,7 +80,12 @@ fn decode_moves(v: u8) -> Vec<Move> {
 }
 
 fn parse_rules(s: &str) -> Result<Rules, String> {
-    let cs: Vec<char> = s.chars().collect();
+    let (core, try_p) = if let Some(stripped) = s.strip_suffix('T') {
+        (stripped, false)
+    } else {
+        (s, true)
+    };
+    let cs: Vec<char> = core.chars().collect();
     if cs.len() != 5 {
         return Err("rules must be 5 chars: L E G C H".to_string());
     }
@@ -90,6 +96,7 @@ fn parse_rules(s: &str) -> Result<Rules, String> {
         giraffe: decode_moves(digit32(cs[2])?),
         chick: decode_moves(digit32(cs[3])?),
         hen: decode_moves(digit32(cs[4])?),
+        try_p: try_p,
     })
 }
 
