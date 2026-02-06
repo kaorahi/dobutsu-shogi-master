@@ -29,6 +29,8 @@ export class UI {
     analysis_mode = false;
     swap_side_p = false;
     puzzle_depth = 5;
+    autorun_timer: number | null = null;
+    autorun_running = false;
 
     is_white_turn(): boolean {
         const xor = (a: boolean, b: boolean): boolean => !!a !== !!b;
@@ -70,6 +72,10 @@ export class UI {
             this.analysis_mode = true;
             this.leave();
         });
+        $("button#autorun").click((e) => this.start_autorun());
+        // click anywhere to stop autorun
+        document.addEventListener("click", (e) => this.stop_autorun(), {capture: true});
+        $(document).on("keydown", (e) => this.stop_autorun());
         $("button#puzzle").click((e) =>
             this.set_random_board(this.puzzle_depth));
         $(".puzzle-button").each((_, b) => {
@@ -79,7 +85,7 @@ export class UI {
                 this.set_random_board(this.puzzle_depth = d));
         });
         if (this.ai.supports_best_move_only())
-            $("button#swap, button#puzzle, .puzzle-button, button#analysis-mode").hide();
+            $("button#swap, button#puzzle, .puzzle-button, button#analysis-mode, button#autorun").hide();
         this.dragstop();
 
         this.enter();
@@ -153,6 +159,36 @@ export class UI {
         if (!this.enter()) return;
         this.initialize_state();
         this.set_board(this.ai.get_random_board(depth))
+        this.leave();
+    }
+
+    start_autorun() {
+        if (!this.enter()) return;
+        const autorun = () => {
+            const recur = () => this.do_master_turn_leave(autorun);
+            if (this.autorun_running &&
+                this.ui_state.board.gameover_status() === 0)
+                // "window" to avoid this TS error.
+                // error TS2322: Type 'Timeout' is not assignable to type 'number'.
+                this.autorun_timer = window.setTimeout(recur);
+            else
+                this.stop_autorun_now_and_leave_actually();
+        }
+        this.analysis_mode = true;
+        this.autorun_running = true;
+        autorun();
+    }
+
+    stop_autorun() {
+        if (this.autorun_running)
+            $("body").stop(true, true).fadeTo(150, 0.1).fadeTo(150, 1);
+        this.autorun_running = false;
+    }
+
+    stop_autorun_now_and_leave_actually() {
+        this.autorun_running = false; // necessary for auto stop by game end
+        this.autorun_timer !== null && window.clearTimeout(this.autorun_timer);
+        this.autorun_timer = null;
         this.leave();
     }
 
@@ -273,14 +309,17 @@ export class UI {
         });
     }
 
-    do_master_turn_leave() {
-        let [depth, nnb] = this.ai.search(this.ui_state.board);
-        let nmove = Move.detect_move(this.ui_state.board, nnb);
+    do_master_turn_leave(cont: (() => void) | null = null) {
+        let rev = !this.is_white_turn();
+        let b = this.revflip_maybe(this.ui_state.board, rev);
+        let [depth, nnb] = this.ai.search(b);
+        let nmove = this.revflip_maybe(Move.detect_move(b, nnb), rev);
         this.history.push([this.ui_state, null, nmove]);
 
         $("span.piece").delay(300).promise().done(() => {
             this.do_move(nmove);
             this.leave({ board: nmove.new_board, depth: depth - 1 });
+            if (cont) cont();
         });
     }
 
@@ -299,7 +338,7 @@ export class UI {
                 this.leave(prev_state);
             } else {
                 this.ui_state = prev_state;
-                this.do_master_turn_leave();
+                this.swap_side_p ? this.do_master_turn_leave() : this.leave();
             }
         });
     }
@@ -346,6 +385,7 @@ export class UI {
 
     // stop changing the state
     leave(s: UIState | undefined = undefined) {
+        const dont_leave_actually = this.autorun_running; // ugly logic...
         if (s) this.ui_state = s;
         let d = this.ui_state.depth;
         const gameover = this.ui_state.board.gameover_status();
@@ -381,7 +421,7 @@ export class UI {
             if (d <= 10) $("#player").addClass("dying");
             $("span#about-image").removeClass("dead");
         }
-        $("span#master-text").text(this.analysis_mode ? "あなた" : "どうぶつしょうぎ名人'");
+        $("span#master-text").text(this.analysis_mode && !this.autorun_running ? "あなた" : "どうぶつしょうぎ名人'");
         if (this.is_white_turn()) {
             $(".piece.master").draggable("enable");
             $(".piece.player").draggable("disable");
@@ -394,6 +434,7 @@ export class UI {
         $(".player").toggleClass("to-play", gameover === 0 && !master_to_play);
         $(".master").toggleClass("to-play", gameover === 0 && master_to_play);
         $("span#player").toggleClass("opposite", gameover === 0 && master_to_play);
+        if (dont_leave_actually) return;
         this.locked = false;
     }
 
