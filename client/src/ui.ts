@@ -27,9 +27,13 @@ export class UI {
     locked: boolean;
 
     constructor(public ai: AI) {
-        this.ui_state = { board: Board.init(), depth: 78 };
+        this.ui_state = { board: Board.init(), depth: -1 };
         this.history = [];
         this.locked = false;
+
+        this.ui_state.board.update_rules(ai.rules);
+        $("span#rules").text(ai.rules);
+        if (ai.rules !== "val1j") {$("span#rules-note").hide();}
 
         $("span.piece").draggable({
             start: (event, ui) => { this.dragstart($(event.target) as JQuery<HTMLElement>); },
@@ -220,7 +224,7 @@ export class UI {
             $("span#about-image").addClass("dead");
         }
         else {
-            $("span#msg").text("あと" + d + "手");
+            $("span#msg").text("あと" + (d >= 0 ? d : "？") + "手");
             if (d <= 10) $("#player").addClass("dying");
             $("span#about-image").removeClass("dead");
         }

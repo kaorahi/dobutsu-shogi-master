@@ -53,3 +53,7 @@ ai.txt: src/6-compress.rb 5.txt
 
 9.txt: $(OUT)/9-test 4.txt
 	time $< $(RULES_OPT) < 4.txt > $@
+
+unpruned_ai.txt: 3.txt
+	echo '#RULES $(RULES)' > $@
+	ruby -ne 'BEGIN {k = false}; k and puts $$_.split(":")[0]; k = ($$_ !~ /^\s|^$$/) and print $$_.split(/\s+/)[0..1].join(" ")' $< >> $@

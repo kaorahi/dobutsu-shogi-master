@@ -25,7 +25,7 @@ export function isResult(r: Board[] | Result): r is Result {
     return r === Result.Win || r === Result.Lose;
 }
 
-const move = [
+let move = [
     [ [ 0, 0] ],
     [ [-1, 1], [0, 1], [1, 1], [-1, 0], [1, 0], [-1, -1], [0, -1], [1, -1], [0, 0] ],
     [ [-1, 1],         [1, 1],                  [-1, -1],          [1, -1], [0, 0] ],
@@ -176,6 +176,34 @@ export class Board {
             }
         }
         return true;
+    }
+
+    update_rules(rules: string) {
+        rules.split('').forEach((m, i) => move[i + 1] = this.decode_move(m))
+    }
+
+    private decode_move(m: string): Array<[number, number]> {
+        const v = parseInt(m, 32);
+        const n  = !!(v & (1 << 0));
+        const ne = !!(v & (1 << 1));
+        const e  = !!(v & (1 << 2));
+        const se = !!(v & (1 << 3));
+        const s  = !!(v & (1 << 4));
+        const nw = ne;
+        const w = e;
+        const sw = se;
+        // keep this order for backward compatibility
+        const out: Array<[number, number]> = [];
+        if (nw) { out.push([-1,  1]); }
+        if (n ) { out.push([ 0,  1]); }
+        if (ne) { out.push([ 1,  1]); }
+        if (w ) { out.push([-1,  0]); }
+        if (e ) { out.push([ 1,  0]); }
+        if (sw) { out.push([-1, -1]); }
+        if (s ) { out.push([ 0, -1]); }
+        if (se) { out.push([ 1, -1]); }
+        out.push([0, 0])
+        return out;
     }
 
     hashstr() {

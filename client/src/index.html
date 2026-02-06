@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" type="text/css" href="app.scss">
-    <title>どうぶつしょうぎ名人</title>
-    <meta property="og:title" content="どうぶつしょうぎ名人">
-    <meta property="og:description" content="どうぶつしょうぎの後手完全プレイを体験できるサイトです。">
+    <title>どうぶつしょうギ名人</title>
+    <meta property="og:title" content="どうぶつしょうギ名人">
+    <meta property="og:description" content="どうぶつしょうギの後手完全プレイを体験できるサイトです。">
     <meta property="og:image" content="../images/ogp.png">
     <meta property="og:type" content="website">
   </head>
@@ -17,7 +17,7 @@
       <div id="board-box" role="main">
         <p class="name master-text">
           <span id="master"></span>
-          △どうぶつしょうぎ名人
+          △どうぶつしょうギ名人
         </p>
         <table>
           <tr>
@@ -135,7 +135,7 @@
         </table>
         <p class="name player-text">
           <span id="player" class="level1"></span>
-          ▲あなた（<span id="msg">あと78手</span>）
+          ▲あなた（<span id="msg">あと？手</span>）
         </p>
         <button id="undo">まった</button>
         <button id="about">せつめい</button>
@@ -143,15 +143,16 @@
       <div id="record-box">
         <p>棋譜：</p>
         <ol id="record"></ol>
-        <p id="dead-msg">まで<span id="last">XX</span>手にて<br />どうぶつしょうぎ名人 の勝ち</p>
+        <p id="dead-msg">まで<span id="last">XX</span>手にて<br />どうぶつしょうギ名人 の勝ち</p>
       </div>
     </div>
     <div id="about-overlay">
       <div id="about-dialog">
         <ul>
           <li>どうぶつしょうぎのルールは<a href="https://ja.wikipedia.org/wiki/%E3%81%A9%E3%81%86%E3%81%B6%E3%81%A4%E3%81%97%E3%82%87%E3%81%86%E3%81%8E">Wikipedia</a>を見てください。</li>
-          <li>どうぶつしょうぎ名人には勝てません。</li>
-          <li>ソースコードは <a href="https://github.com/mame/dobutsu-shogi-master">github</a> にあります。</li>
+          <li>どうぶつしょうギは駒の動きが違います。（ルールコード<span id="rules"></span><span id="rules-note">。にわとりは真横に動けません。これにより最善手数がのびます</span>）</li>
+          <li>どうぶつしょうギ名人には勝てません。</li>
+          <li>ソースコードは <a href="https://github.com/kaorahi/dobutsu-shogi-master">github</a> にあります。</li>
           <li>画像は「<a href="http://www.irasutoya.com/">いらすとや</a>」のものです。</li>
         </ul>
         <p id="about-image-container">

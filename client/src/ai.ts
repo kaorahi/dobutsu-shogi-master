@@ -5,91 +5,25 @@ import {Board, Piece, Result, isResult} from "./board";
 export class AI {
     // An oracle data base that maps a possible board to a move that AI should
     // choose to win.  This is encoded as a perfect hash function (PHF).
-    db: number[];
-
-    // Three primes each of which is a seed of the hash functions for PHF.
-    ps: number[];
+    private db: Record<string, [number, number]> = {};
+    rules: string = 'val1n';
 
     // Decodes the pre-calculated data base
     constructor(buf: string) {
-        // buf is the data base which is encoded in base 93:
-        // ASCII code 32, 33, 35-91, 93-126.
-        let offset = 0;
-        function fetch(n: number): number {
-            let r = 0;
-            for (let i = 0; i < n; i++) {
-                let c = buf.charCodeAt(offset++) - 32;
-                r = r * 93 + (c < 2 ? c : c < 60 ? c - 1 : c - 2);
+        buf.split(/\r?\n/).forEach(line => {
+            const m = line.match(/^#RULES\s+(\S+)/);
+            if (m) {
+                this.rules = m[1];
+                return;
             }
-            return r;
-        }
-
-        // Extract the seed primes
-        this.ps = [fetch(3), fetch(3), fetch(3)];
-
-        // Extract the frequency table for range coder
-        let sum = fetch(3);
-        let freq = [sum];
-        let freq_sym = [0];
-        let freq_accum = [0];
-        let freq_size = fetch(3);
-        let data_size = fetch(3);
-        for (let i = 0; i < freq_size - 1; i++) {
-            let n = fetch(4);
-            let c = Math.floor(n / (34 * 37 * 3));
-            let ch = n % (34 * 37 * 3);
-            freq[ch] = c;
-            freq_sym.push(ch);
-            freq_accum.push(sum);
-            sum += c;
-        }
-        freq_accum.push(sum);
-
-        // Decompress the data base
-        let low = fetch(5);
-        let range = Math.pow(93, 5);
-        let db: number[] = [];
-        for (let j = 0; j < data_size; j++) {
-            let v = Math.floor(range / sum);
-            let l = 0, h = freq_accum.length - 1;
-            while (l < h) {
-                let k = Math.floor((l + h) / 2);
-                if (freq_accum[k + 1] <= low / v) {
-                    l = k + 1;
-                }
-                else {
-                    h = k;
-                }
-            }
-            let c = freq_sym[l];
-            low -= v * freq_accum[l];
-            range = v * freq[c];
-            while (range < Math.pow(93, 4)) {
-                range *= 93;
-                low = ((low * 93) + fetch(1)) % Math.pow(93, 5);
-            }
-            db.push(c);
-        }
-
-        this.db = db;
+            const [board_hashstr, depth, move_idx] = line.split(/\s+/);
+            this.db[board_hashstr] = [Number(depth), Number(move_idx)];
+        })
     }
 
     // Get the move index for a depth-5 (or more) boards
     lookup_db(b: Board): [number, number] {
-        // lookup of PHF
-        let hs: number[] = [];
-        let i = 0;
-        let psum = 0;
-        for (let p of this.ps) {
-            let h = b.hash(p) + psum;
-            psum += p;
-            hs.push(h);
-            i += this.db[h];
-        }
-        let n = Math.floor(this.db[hs[i % 3]] / 3);
-        let depth = Math.floor(n / 34) * 2 + 5;
-        let idx = n % 34;
-        return [depth, idx];
+        return this.db[b.hashstr()];
     }
 
     // Check if the depth of a given board is 3 or less, and if so,
