@@ -185,6 +185,7 @@ impl Board {
                 }
             }
         }
+        // if boards.is_empty() { return Result::Lose; }  // Stalemate
         for x in 0..3 {
             if self.get(x, 0) == LION.opponent() { return Result::Lose }
         }
