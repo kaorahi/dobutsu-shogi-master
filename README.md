@@ -2,6 +2,8 @@
 
 [どうぶつしょうぎ名人](https://github.com/mame/dobutsu-shogi-master)の機能追加版です.
 
+[スクリーンショット](https://github.com/user-attachments/assets/15c45872-2891-4a8d-9864-c7f2ba39e9c3)
+
 ## 追加機能
 
 * 先手でも後手でも指せる
