@@ -78,7 +78,7 @@ export class AI {
     private search_core(nr_b: Board, limit: number): [number, Board] {
         const nr_nbs = nr_b.next_boards()
         // trivial cases
-        if (nr_nbs === Result.Lose) return [0, nr_b];
+        if (nr_b.gameover_status() !== 0) return [0, nr_b];
         if (nr_nbs === Result.Win) return [1, this.calc_final_board(nr_b)];
         let [depth, idx] = this.lookup_db(nr_b);
         if (depth >= 0 && idx >= 0) return [depth, nr_nbs[idx]];
