@@ -10,7 +10,7 @@ async function fetch_gunzip(url: string) {
   return ab;
 }
 
-async function main() {
+async function main(): Promise<{ ai: AI; ui: UI }> {
     const res = await fetch("rules.txt", { cache: "no-store" });
     const rules_txt = res.ok ? (await res.text()).trim() : 'val1n';
     const [abuf, kbuf, vbuf] = await Promise.all([
@@ -23,8 +23,18 @@ async function main() {
     const vals = new Uint8Array(vbuf);
     const ai = new AI(rules_txt, ai_txt, keys, vals);
     const ui = new UI(ai);
-    (window as any).ai = ai;
-    (window as any).ui = ui;
+    return {ai, ui};
 }
 
-main().catch(console.error);
+import {Board, Piece, Result, isResult} from "./board";
+import {Move, Normal, Drop} from "./move";
+main().then(({ai, ui}) => {
+    // for debug console
+    Object.assign((window as any),
+                  {AI},
+                  {UI},
+                  {Board, Piece, isResult},
+                  {Move, Normal, Drop},
+                  {ui, ai},
+                 );
+}).catch(console.error);

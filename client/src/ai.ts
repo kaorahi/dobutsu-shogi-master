@@ -128,6 +128,10 @@ export class AI {
         return this.vals.length === 0;
     }
 
+    hashstr_of_key(key: bigint): string {
+        return key.toString(16).padStart(15, "0");
+    }
+
     get_random_board(depth: number): Board {
         if (this.supports_best_move_only()) return Board.init();
         const len = this.keys.length;
@@ -150,12 +154,68 @@ export class AI {
         for (let t = 0; t < max_trial; t++) {
             const i = Math.floor(Math.random() * len);
             if (this.vals[i] === depth) {
-                const hashstr = this.keys[i].toString(16).padStart(15, "0");
+                const hashstr = this.hashstr_of_key(this.keys[i]);
                 const board = Board.from_hashstr(hashstr);
-                if (!trivial(board)) return board;
+                if (!trivial(board)) {
+                    console.assert(this.verify_depth(board, depth),
+                                   "get_random_board: wrong depth",
+                                   depth, board.hashstr(), board);
+                    return board;
+                }
             }
         }
         return Board.init();
+    }
+
+    // sanity check
+    verify_depth(b: Board, depth: number, verbose: boolean = false): boolean {
+        const nbs = b.next_boards();
+        if (verbose) {
+            console.log(`rules=${this.rules}, d=${depth}, b=${b.hashstr()}\n${b}`);
+            if (isResult(nbs)) console.log({nbs});
+        }
+        if (nbs === Result.Lose) return depth === 0;
+        if (nbs === Result.Win) return depth === 1;
+        const nds = nbs.map((nb: Board): number => this.search(nb)[0]);
+        const my_winning = (nd: number): boolean => nd >= 0 && nd % 2 === 0;
+        const my_losing = (nd: number): boolean => nd >= 0 && nd % 2 !== 0;
+        if (verbose) {
+            nbs.forEach((nb: Board, k: number) => {
+                console.log(`k=${k}, nd=${nds[k]}, nb=${nb.hashstr()}\n${nb}`);
+            })
+        }
+        if (depth < 0) // repetition
+            // no winning moves & at least one repetition move
+            return !nds.some(my_winning) && Math.min(...nds) < 0
+        if (depth % 2 !== 0) // I should win.
+            // the shortest winning move matches to the given depth
+            return Math.min(...nds.filter(my_winning)) === depth - 1;
+        if (depth % 2 === 0) // I should lose.
+            // all moves are losing & the longest one matches to the given depth
+            return nds.every(my_losing) && Math.max(...nds) === depth - 1;
+        return false;  // can't happen
+    }
+
+    // in debug console: ai.do_random_check(1000)
+    // if wrong item found:
+    // b = Board.from_hashstr("0040900a0a14053")
+    // ui.enter() && (ui.set_board(b), ui.leave())
+    // ai.lookup_db(b)
+    // ai.verify_depth(b, 11, true)
+    do_random_check(n: number) {
+        const len = this.keys.length
+        for (let i = 0; i < n; i++) {
+            const r = Math.floor(Math.random() * len);
+            const h = this.hashstr_of_key(this.keys[r]);
+            const d = this.vals[r];
+            const b = Board.from_hashstr(h);
+            if (!this.verify_depth(b, d)) {
+                console.log(`NG! (r=${r})`);
+                this.verify_depth(b, d, true);
+                return;
+            }
+        }
+        console.log("OK!");
     }
 }
 
