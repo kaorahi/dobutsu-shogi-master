@@ -47,10 +47,13 @@ def opt(o)
   system("advpng", "-z4", o) || raise
 end
 
-rules = $rules_str.chars.map{|c|
+def rules_dir(c)
   s, se, e, ne, n = c.to_i(32).to_s(2).rjust(5, '0').chars
   (ne + e + se + s + se + e + ne + n).to_i(2)
-}
+end
+
+
+rules = $rules_str.chars.map{|c| rules_dir(c)}
 
 arrow = sq(download("http://1.bp.blogspot.com/-Lj5NbsMLENk/UZMs1iWA56I/AAAAAAAASIo/f5HL7seBZYQ/s800/fabric_mark_triangle.png"), "arrow.png", SIZE * 0.1)
 pieces = [
@@ -65,12 +68,44 @@ pieces = [
   # にわとり
   download("http://2.bp.blogspot.com/-fhkRCjjEO98/VJF_LkOt_bI/AAAAAAAApzs/jYqrTFF6XA4/s800/animalface_niwatori.png"),
 ].map.with_index {|f, i| sq(f, "piece%d.png" % i, SIZE * 0.8, SIZE) }
+
+#######################################
+# 説明書用サンプル画像
+
+$sample_bg = "#ddd"
+$sample_fg = "black"
+$sample_font_en = "DejaVu-Sans"
+$sample_font_ja = "Noto-Sans-Mono-CJK-JP"
+
+system($magick, "-size", "15x15", "xc:none", "-fill", $sample_fg, "-stroke", "none", "-draw", "polygon 7,0 0,14 14,14", "sample_arrow.png")
+
+def sample(base, letter, dir, font, out)
+  system($magick, base, "-set", "option:pt", "%[fx:round(min(w,h)*0.6)]", "-size", "%[fx:w]x%[fx:h]", "xc:#{$sample_bg}", "-delete", "0", "-gravity", "center", "-font", font, "-fill", $sample_fg, "-pointsize", "%[pt]", "-annotate", "0", letter, out)
+  arrow(out, "sample_arrow.png", dir)
+end
+
+sample(pieces[0], "", rules_dir("0"), $sample_font_en, "sample_empty.png")
+
+32.times.each do |k|
+  c = k.to_s(32)
+  sample(pieces[0], c, rules_dir(c), $sample_font_en, "sample_code_#{c}.png")
+end
+
+piece_letters_en = ["L", "E", "G", "C", "H"]
+piece_letters = ["ラ", "ぞ", "き", "ひ", "に"]
+piece_letters.each_with_index do |letter, i|
+  sample(pieces[i], letter, rules[i], $sample_font_ja, "sample_piece_#{piece_letters_en[i]}.png")
+end
+
 pieces.each_with_index do |f, i|
   dir = rules[i]
   arrow(f, arrow, dir)
   system("cp", f, "n-" + f)
   system($magick, f, rotate(f), "+append", f)
 end
+
+# 説明書用サンプル画像おわり
+#######################################
 
 # 人工知能
 ai = sq(download("http://4.bp.blogspot.com/-Anllqq6pDXw/VRUSesbvyAI/AAAAAAAAsrc/CIHz6vLsuTU/s800/computer_jinkou_chinou.png"), "ai.png", SIZE)
