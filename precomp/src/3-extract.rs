@@ -142,7 +142,11 @@ fn output(nodes: Vec<Node>) {
         }
     }
     for ref m in &nodes[map[Board::init().normalize()] as usize].next_boards {
-        out!(out, " {}", names[m.board]);
+        // check "contains" to avoid panicking when some initial moves
+        // lose immediately (needed if the ruleset is modified)
+        if names.contains(m.board) {
+            out!(out, " {}", names[m.board]);
+        }
     }
     out!(out, "\n");
     for node in &nodes {
