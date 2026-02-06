@@ -164,8 +164,9 @@ export class UI {
 
     set_random_board(depth: number) {
         if (!this.enter()) return;
+        const depths = depth < 20 ? [depth] : [0, 2, 4, 6, 8].map(k => depth + k);
         this.initialize_state();
-        this.set_board(this.ai.get_random_board(depth))
+        this.set_board(this.ai.get_random_board(depths))
         this.leave();
     }
 

@@ -132,7 +132,7 @@ export class AI {
         return key.toString(16).padStart(15, "0");
     }
 
-    get_random_board(depth: number): Board {
+    get_random_board(depths: number[]): Board {
         if (this.supports_best_move_only()) return Board.init();
         const len = this.keys.length;
         const max_trial = 99999;
@@ -153,7 +153,8 @@ export class AI {
         }
         for (let t = 0; t < max_trial; t++) {
             const i = Math.floor(Math.random() * len);
-            if (this.vals[i] === depth) {
+            const depth = this.vals[i];
+            if (depths.includes(depth)) {
                 const hashstr = this.hashstr_of_key(this.keys[i]);
                 const board = Board.from_hashstr(hashstr);
                 if (!trivial(board)) {
