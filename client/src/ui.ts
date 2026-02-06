@@ -338,7 +338,8 @@ export class UI {
                 this.leave(prev_state);
             } else {
                 this.ui_state = prev_state;
-                this.swap_side_p ? this.do_master_turn_leave() : this.leave();
+                this.swap_side_p && !this.analysis_mode ?
+                    this.do_master_turn_leave() : this.leave();
             }
         });
     }
