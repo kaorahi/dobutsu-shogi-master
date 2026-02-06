@@ -57,6 +57,7 @@ export class UI {
         $("button").button();
         $("button#undo").click((e) => this.undo_turn());
         $("button#about").click((e) => {
+            $("#about-dialog").click((e) => e.stopPropagation());
             $("#about-overlay").fadeIn("fast").off().click(() => {
                 $("#about-overlay").fadeOut("fast");
             });
