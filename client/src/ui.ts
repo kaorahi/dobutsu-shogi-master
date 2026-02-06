@@ -324,10 +324,14 @@ export class UI {
         ][gameover + 2];
         if (msg) {
             $("span#msg").text(msg);
-            if (gameover > 0) $("p#won-msg").show()
-            else $("p#dead-msg").show();
+            if (gameover > 0) {
+                $("p#won-msg").show();
+                $("span#about-image").removeClass("dead");
+            } else {
+                $("p#dead-msg").show();
+                $("span#about-image").addClass("dead");
+            }
             $("span#last").text($("#record").children().length);
-            $("span#about-image").addClass("dead");
         }
         else {
             $("span#msg").text("あと" + (d >= 0 ? d : "∞") + "手");
