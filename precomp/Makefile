@@ -11,9 +11,9 @@ all: largedocs
 
 analyze: $(PRE)_2.txt
 
-small: $(PRE)_unpruned_ai.txt.gz
+small: $(PRE)_unpruned_ai.txt.xz
 
-large: $(PRE)_vals.gz
+large: $(PRE)_vals.xz
 
 smalldocs: small
 	make docs
@@ -33,6 +33,7 @@ LIB = src/board.rs src/board_collection.rs src/lib.rs
 PUB = ../client/src/public
 
 RULES_OPT = --rules=$(RULES)
+XZ = xz
 
 build:
 	cargo build --release
@@ -42,7 +43,9 @@ clean:
 	rm -f r_?????_1.txt r_?????_2.txt r_?????_3.txt r_?????_2_cooked.txt
 
 distclean: clean
-	rm -f rules.txt r_?????_unpruned_ai.txt.gz r_?????_keys.gz r_?????_vals.gz
+	rm -f rules.txt r_?????_unpruned_ai.txt.gz
+	rm -f r_?????_keys.gz r_?????_vals.gz
+	rm -f r_?????_keys.xz r_?????_vals.xz
 
 $(OUT)/1-enum: src/1-enum.rs $(LIB) build
 
@@ -66,15 +69,17 @@ $(PRE)_unpruned_ai.txt.gz: $(PRE)_3.txt update_rules
 	time ruby -ne 'BEGIN {k = false}; k and puts $$_.split(":")[0]; k = ($$_ !~ /^\s|^$$/) and print $$_.split(/\s+/)[0..1].join(" ")' $< | gzip > $@
 	mkdir -p $(PUB); cp $@ $(PUB)/
 	rm -f $(PRE)_keys.gz $(PRE)_vals.gz $(PUB)/keys.gz $(PUB)/vals.gz
+	rm -f $(PRE)_keys.xz $(PRE)_vals.xz $(PUB)/keys.xz $(PUB)/vals.xz
 
 $(PRE)_2_cooked.txt: $(PRE)_2.txt
 	time grep -v '[- ][0-3]$$' $< | time sort > $@
 
-$(PRE)_keys.gz: $(PRE)_2_cooked.txt
-	time ruby -ne 'STDOUT.write([$$_.split[0].to_i(16)].pack("Q<"))' $< | gzip > $@
-	mkdir -p $(PUB); cp $@ $(PUB)/keys.gz
+$(PRE)_keys.xz: $(PRE)_2_cooked.txt
+#	time ruby -ne 'STDOUT.write([$$_.split[0].to_i(16)].pack("Q<"))' $< | $(XZ) > $@
+	time ruby -ne 'BEGIN {$$p=0}; $$x=$$_.split[0].to_i(16); STDOUT.write([$$x-$$p].pack("Q<")); $$p=$$x' $< | $(XZ) > $@
+	mkdir -p $(PUB); cp $@ $(PUB)/keys.xz
 
-$(PRE)_vals.gz: $(PRE)_2_cooked.txt $(PRE)_keys.gz update_rules
-	time ruby -ne 'STDOUT.write([$$_.split[1].to_i].pack("C"))' $< | gzip > $@
-	mkdir -p $(PUB); cp $@ $(PUB)/vals.gz
+$(PRE)_vals.xz: $(PRE)_2_cooked.txt $(PRE)_keys.xz update_rules
+	time ruby -ne 'STDOUT.write([$$_.split[1].to_i].pack("C"))' $< | $(XZ) > $@
+	mkdir -p $(PUB); cp $@ $(PUB)/vals.xz
 	rm -f $(PRE)_unpruned_ai.txt.gz $(PUB)/unpruned_ai.txt.gz

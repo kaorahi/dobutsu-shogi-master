@@ -11,6 +11,9 @@
     "vim": "vim -p src/*.ts"
   },
   "license": "MIT",
+  "dependencies": {
+    "xz-decompress": "^0.2.3"
+  },
   "devDependencies": {
     "@types/jquery": "^3.5.1",
     "@types/jqueryui": "^1.12.13",

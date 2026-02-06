@@ -1,6 +1,13 @@
 import {AI} from "./ai";
 import "./bootstrap";
 import {UI} from "./ui";
+import { XzReadableStream } from "xz-decompress";
+
+async function fetch_xz(url: string) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok || !res.body) return new ArrayBuffer(0);
+    return await new Response(new XzReadableStream(res.body)).arrayBuffer();
+}
 
 async function fetch_gunzip(url: string) {
   const res = await fetch(url, { cache: "no-store" });
@@ -17,11 +24,14 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
     const rules_txt = res.ok ? (await res.text()).trim() : 'val1n';
     const [abuf, kbuf, vbuf] = await Promise.all([
         fetch_gunzip("unpruned_ai.txt.gz"),
-        fetch_gunzip("keys.gz"),
-        fetch_gunzip("vals.gz"),
+        fetch_xz("keys.xz"),
+        fetch_xz("vals.xz"),
     ]);
     const ai_txt = new TextDecoder("utf-8").decode(abuf);
     const keys = new BigUint64Array(kbuf);
+    for (let i = 1; i < keys.length; i++) {
+        keys[i] = keys[i] + keys[i - 1];
+    }
     const vals = new Uint8Array(vbuf);
     const ai = new AI(rules_txt, ai_txt, keys, vals);
     const ui = new UI(ai);
