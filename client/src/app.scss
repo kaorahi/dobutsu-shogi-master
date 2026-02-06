@@ -220,6 +220,32 @@ span.piece {
   &.chick.master.promoted { background-position: -4em -16em; }
 }
 
+span.rules {
+  display: inline-block;
+  width: 3em;
+  height: 3em;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none; 
+  margin: auto;
+  background-image: url(../images/sprites.png);
+  background-repeat: no-repeat;
+  background-position: 0em 0em;
+  background-size: 6em;
+  border-style: solid;
+  border-width: 1px;
+  background-color: #ffcccc;
+  border-color: #993333;
+  &.lion-sample      { background-position:  0em -0em; }
+  &.elephant-sample  { background-position:  0em -3em; }
+  &.giraffe-sample   { background-position:  0em -6em; }
+  &.chick-sample     { background-position:  0em -9em; }
+  &.hen-sample       { background-position:  0em -12em; }
+}
+
 .player-text { color: #990000; }
 .master-text { color: #000099; }
 
