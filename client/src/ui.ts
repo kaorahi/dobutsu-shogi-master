@@ -52,8 +52,9 @@ export class UI {
             });
         });
 
-        this.record_positions();
-        $("button#new-game").click((e) => this.restore_positions());
+        $("button#new-game").click((e) => this.restore_positions(false));
+        $("button#swap").click((e) => this.restore_positions(true));
+        if (this.ai.supports_best_move_only()) $("button#swap").hide();
 
         $(".piece").draggable("enable");
         this.dragstop();
@@ -64,20 +65,7 @@ export class UI {
         this.history = [];
     }
 
-    record_positions() {
-        const self = this;
-        $("span.piece").each((_, p) => {
-            const $p = $(p);
-            $p.data("init", {
-                pos: self.get_position_from_cell($p.parent()),
-                classes: Object.fromEntries(
-                    ["master", "player", "promoted"].map(c => [c, $p.hasClass(c)])
-                ),
-            });
-        });
-    }
-
-    restore_positions() {
+    restore_positions(swap_side: boolean) {
         const self = this;
         if (!self.enter()) return;
         if (!window.confirm("はじめに戻す？")) return;
@@ -90,7 +78,7 @@ export class UI {
         });
         self.initialze_state();
         $("ol#record").children().detach();
-        self.leave();
+        swap_side ? self.do_master_turn_leave() : self.leave();
     }
 
 
@@ -196,6 +184,18 @@ export class UI {
         });
     }
 
+    do_master_turn_leave() {
+        let [depth, nnb] = this.ai.search(this.ui_state.board);
+        let nmove = Move.detect_move(this.ui_state.board, nnb);
+        this.history.push([this.ui_state, null, nmove]);
+
+        $("span.piece").delay(300).promise().done(() => {
+            this.do_move(nmove);
+            this.leave({ board: nmove.new_board, depth: depth - 1 });
+        });
+    }
+
+
     // revoke the previous two turns (master's and player's)
     undo_turn() {
         if (!this.enter()) return;
@@ -205,8 +205,13 @@ export class UI {
 
         this.undo_move(nmove);
         $("span.piece").promise().done(() => {
-            this.undo_move(move);
-            this.leave(prev_state);
+            if (move) {
+                this.undo_move(move);
+                this.leave(prev_state);
+            } else {
+                this.ui_state = prev_state;
+                this.do_master_turn_leave();
+            }
         });
     }
 

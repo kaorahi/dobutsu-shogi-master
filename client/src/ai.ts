@@ -118,6 +118,10 @@ export class AI {
         // we should go from b to nb
         return [depth, nb];
     }
+
+    supports_best_move_only(): boolean {
+        return this.vals.length === 0;
+    }
 }
 
 /////////////////////////////////////
