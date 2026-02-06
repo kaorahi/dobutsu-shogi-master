@@ -142,7 +142,7 @@ export class Board {
                         /* capture */
                         if (np) nb = nb.del(nx, ny).inc_hand(Piece.opponent[np]);
 
-                        nb = nb.put(nx, ny, (p === Piece.Chick && ny === 3) ? Piece.Hen : p);
+                        nb = nb.put(nx, ny, (p === Piece.Chick && (y === 3 || ny === 3)) ? Piece.Hen : p);
                         boards.push(nb);
                     }
                 }

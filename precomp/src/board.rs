@@ -166,7 +166,7 @@ impl Board {
                             if np.mine() { continue }
                             if np == LION.opponent() { return Result::Win }
                             let b = if np == EMPTY { b } else { b.del(nx, ny).inc_hand(np.opponent()) };
-                            let b = b.put(nx, ny, if p == CHICK && ny == 3 { HEN } else { p });
+                            let b = b.put(nx, ny, if p == CHICK && (y == 3 || ny == 3) { HEN } else { p });
                             boards.push(b)
                         }
                     },
