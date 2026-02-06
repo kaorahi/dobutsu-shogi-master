@@ -3,7 +3,7 @@ import path from 'path';
 
 export default defineConfig({
   root: path.resolve(__dirname, 'src'),
-  base: '/dobutsu-shogi-master/',
+  base: './',
   build: {
     outDir: path.resolve(__dirname, '..', 'docs'),
     chunkSizeWarningLimit: 530,
