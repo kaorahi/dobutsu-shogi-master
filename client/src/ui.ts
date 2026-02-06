@@ -33,6 +33,7 @@ export class UI {
 
         this.ui_state.board.update_rules(ai.rules);
         $("span#rules").text(ai.rules);
+        $("li#rules-help").toggle(ai.rules !== "val1n");
 
         $("span.piece").draggable({
             start: (event, ui) => { this.dragstart($(event.target) as JQuery<HTMLElement>); },
