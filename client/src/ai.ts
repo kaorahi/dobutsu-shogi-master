@@ -97,8 +97,8 @@ export class AI {
         // ...or, the longest losing move
         const losing_d = Math.max(...ps.filter(d => d % 2 !== 0));
         if (losing_d > -Infinity) return [losing_d + 1, pick(losing_d)];
-        // empty nr_nbs???
-        return [-1, random_choice(nr_nbs)];
+        // no possible moves (for example, all pieces were captured)
+        return [-1, nr_b];
     }
 
     // given a white board, returns a pair of depth and next black board
