@@ -51,13 +51,6 @@ fn load() -> BoardMap {
     oracle
 }
 
-// check if a given branch is hopeless
-fn check_hopeless(b: Board, nb: Board) -> bool {
-    // we know the two branches are hopeless by some experiments
-    b.0 == 0x000a9030c41b002u64 && nb.0 == 0x400a00390c0b012u64 ||
-    b.0 == 0x000a0030c41b902u64 && nb.0 == 0x400a01390c0b002u64
-}
-
 // extract strictly reachable boards
 fn extract(oracle: BoardMap) -> Vec<Node> {
     // The definition of "strictly reachable"
@@ -115,9 +108,6 @@ fn extract(oracle: BoardMap) -> Vec<Node> {
                 // record all black boards (even depth),
                 // and white boards (odd depth, only best move)
                 if depth % 2 == 0 || oracle[nb] == depth - 1 {
-                    // ad-hoc heuristic: manually prune hopeless branches
-                    if check_hopeless(b, nb) { continue }
-
                     node.next_boards.push(Move { idx: i as u8, board: nb });
                     boards.push(nb)
                 }
