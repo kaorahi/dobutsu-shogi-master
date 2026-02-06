@@ -1,8 +1,9 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env -S ruby -s
 
 # utility for debugging
 # (ex.) The last line represents hands.
 # echo 'gl.\n.e.\n...\nELG\ncC' | tee /dev/stderr | ./encode.rb
+# Use "./encode.rb -v" to show both the original code and the flipped code.
 
 # piece codes (same as board.ts)
 PIECE = {
@@ -28,7 +29,7 @@ def encode(board, hands)
   # y = 0..3 (bottom to top)
   (0..2).each do |x|
     (0..3).each do |y|
-      ch = board[3 - y][x]
+      ch = board[3 - y][2 - x]
       code = PIECE[ch]
       raise "unknown piece #{ch}" unless code
       i = x * 4 + y
@@ -57,4 +58,9 @@ hands = board.pop.chars.tally
 
 a = encode(board, hands)
 b = encode(board.map{|s| s.reverse}, hands)
-puts(a < b ? a : b)
+c = a < b ? a : b
+if $v
+  puts(a); puts(b)
+else
+  puts(c)
+end

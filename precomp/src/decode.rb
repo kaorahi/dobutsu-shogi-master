@@ -2,7 +2,9 @@
 
 # utility for debugging
 # (ex.) The last line represents hands.
-# echo 41000039a01b002 | ./decode.rb
+# echo 410b0029a010003 | ./decode.rb
+# echo 410b0029a010003 | ./decode.rb | ./encode.rb -v
+# echo 410b0029a010003 | ./decode.rb | ./encode.rb
 # echo 'gl.\n.e.\n...\nELG\ncC' | tee /dev/stderr | ./encode.rb | tee /dev/stderr | ./decode.rb
 
 # decode ruleset
@@ -60,7 +62,7 @@ def decode(hex15)
       code = (cells >> (i * 4)) & 0xF
       ch = CODE_TO_PIECE[code]
       raise "unknown code #{code}" unless ch
-      grid[3 - y][x] = ch
+      grid[3 - y][2 - x] = ch
     end
   end
 
