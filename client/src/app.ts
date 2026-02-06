@@ -32,7 +32,8 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
     for (let i = 1; i < keys.length; i++) {
         keys[i] = keys[i] + keys[i - 1];
     }
-    const vals = new Uint8Array(vbuf);
+    const is_8bit = vbuf.byteLength === keys.length;
+    const vals = is_8bit ? new Uint8Array(vbuf) : new Uint16Array(vbuf);
     const ai = new AI(rules_txt, ai_txt, keys, vals);
     const ui = new UI(ai);
     loading.hide();

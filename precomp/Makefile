@@ -80,6 +80,7 @@ $(PRE)_keys.xz: $(PRE)_2_cooked.txt
 	mkdir -p $(PUB); cp $@ $(PUB)/keys.xz
 
 $(PRE)_vals.xz: $(PRE)_2_cooked.txt $(PRE)_keys.xz update_rules
-	time ruby -ne 'STDOUT.write([$$_.split[1].to_i].pack("C"))' $< | $(XZ) > $@
+#	time ruby -ne 'STDOUT.write([$$_.split[1].to_i].pack("C"))' $< | $(XZ) > $@
+	time ruby -ne 'STDOUT.write([$$_.split[1].to_i].pack("S"))' $< | $(XZ) > $@
 	mkdir -p $(PUB); cp $@ $(PUB)/vals.xz
 	rm -f $(PRE)_unpruned_ai.txt.gz $(PUB)/unpruned_ai.txt.gz

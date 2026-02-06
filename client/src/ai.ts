@@ -10,10 +10,10 @@ export class AI {
     // A larger dataset that maps each board to its depth.
     // It contains all reachable boards with depth > 3, enabling more flexible play.
     private keys: BigUint64Array;
-    private vals: Uint8Array;
+    private vals: Uint8Array | Uint16Array;
 
     // Decodes the pre-calculated data base
-    constructor(rules: string, buf: string, keys: BigUint64Array, vals: Uint8Array) {
+    constructor(rules: string, buf: string, keys: BigUint64Array, vals: Uint8Array | Uint16Array) {
         this.rules = rules;
         this.keys = keys;
         this.vals = vals;
