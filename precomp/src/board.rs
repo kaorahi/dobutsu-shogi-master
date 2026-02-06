@@ -208,6 +208,17 @@ impl Board {
             }
         }
 
+        fn push_backward_moves(boards: &mut Vec<Board>, b: Board, x: i8, y: i8, p: Piece) {
+            for m in p.moves() {
+                let nx = x - m.0;
+                if nx < 0 || 2 < nx { continue }
+                let ny = y - m.1;
+                if ny < 0 || 3 < ny { continue }
+                if b.get(nx, ny) != EMPTY { continue }
+                move_backward(boards, b, x, y, nx, ny, p);
+            }
+        }
+
         let mut boards = vec![];
         let b = self.reverse();
         for y in 0..4 {
@@ -216,23 +227,9 @@ impl Board {
                 match p {
                     LION | ELEPHANT | GIRAFFE | CHICK | HEN => {
                         let b2 = b.del(x, y);
-                        for m in p.moves() {
-                            let nx = x - m.0;
-                            if nx < 0 || 2 < nx { continue }
-                            let ny = y - m.1;
-                            if ny < 0 || 3 < ny { continue }
-                            if b.get(nx, ny) != EMPTY { continue }
-                            move_backward(&mut boards, b2, x, y, nx, ny, p);
-                        }
+                        push_backward_moves(&mut boards, b2, x, y, p);
                         if p == HEN && y == 3 {
-                            for m in CHICK.moves() {
-                                let nx = x - m.0;
-                                if nx < 0 || 2 < nx { continue }
-                                let ny = y - m.1;
-                                if ny < 0 || 3 < ny { continue }
-                                if b.get(nx, ny) != EMPTY { continue }
-                                move_backward(&mut boards, b2, x, y, nx, ny, CHICK);
-                            }
+                            push_backward_moves(&mut boards, b2, x, y, CHICK);
                         }
                         if p != LION && p != HEN {
                             boards.push(b2.inc_hand(p))
