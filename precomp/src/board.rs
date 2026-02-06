@@ -212,12 +212,20 @@ impl Board {
         }
 
         fn push_backward_moves(boards: &mut Vec<Board>, b: Board, x: i8, y: i8, p: Piece) {
+            push_backward_moves_sub(boards, b, x, y, p, p);
+            if p == HEN { push_backward_moves_sub(boards, b, x, y, CHICK, HEN) }
+        }
+
+        fn push_backward_moves_sub(boards: &mut Vec<Board>, b: Board, x: i8, y: i8, p: Piece, np: Piece) {
             for m in p.moves() {
                 let nx = x - m.0;
                 if nx < 0 || 2 < nx { continue }
                 let ny = y - m.1;
                 if ny < 0 || 3 < ny { continue }
                 if b.get(nx, ny) != EMPTY { continue }
+                let can_promote = y == 3 || ny == 3;
+                if can_promote && np == CHICK { continue }
+                if !can_promote && p == CHICK && np == HEN { continue }
                 move_backward(boards, b, x, y, nx, ny, p);
             }
         }
@@ -231,9 +239,6 @@ impl Board {
                     LION | ELEPHANT | GIRAFFE | CHICK | HEN => {
                         let b2 = b.del(x, y);
                         push_backward_moves(&mut boards, b2, x, y, p);
-                        if p == HEN && y == 3 {
-                            push_backward_moves(&mut boards, b2, x, y, CHICK);
-                        }
                         if p != LION && p != HEN {
                             boards.push(b2.inc_hand(p))
                         }
