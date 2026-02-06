@@ -26,6 +26,8 @@ export class UI {
     // a mutex to change the state
     locked: boolean;
 
+    puzzle_depth = 5;
+
     constructor(public ai: AI) {
         this.initialze_state();
 
@@ -54,7 +56,16 @@ export class UI {
 
         $("button#new-game").click((e) => this.restore_positions(false));
         $("button#swap").click((e) => this.restore_positions(true));
-        if (this.ai.supports_best_move_only()) $("button#swap").hide();
+        $("button#puzzle").click((e) =>
+            this.set_random_board(this.puzzle_depth));
+        $(".puzzle-button").each((_, b) => {
+            const $b = $(b);
+            const d = Number($b.attr("id").match(/puzzle([0-9]+)/)[1]);
+            $b.click((e) =>
+                this.set_random_board(this.puzzle_depth = d));
+        });
+        if (this.ai.supports_best_move_only())
+            $("button#swap, button#puzzle, .puzzle-button").hide();
 
         $(".piece").draggable("enable");
         this.dragstop();
@@ -63,22 +74,53 @@ export class UI {
     initialze_state() {
         this.ui_state = { board: Board.init(), depth: -1 };
         this.history = [];
+        $("ol#record").children().detach();
     }
 
     restore_positions(swap_side: boolean) {
-        const self = this;
-        if (!self.enter()) return;
+        if (!this.enter()) return;
         if (!window.confirm("はじめに戻す？")) return;
-        $("span.piece").each((_, p) => {
-            const $p = $(p);
-            const {pos, classes} = $p.data("init");
-            const orig_place = self.get_cell(...pos);
-            self.animate_piece($p, $p.parent(), orig_place, true);
-            Object.keys(classes).forEach(k => $p.toggleClass(k, classes[k]));
-        });
+        this.set_board(Board.init());
+        swap_side ? this.do_master_turn_leave() : this.leave();
+    }
+
+    set_board(board: Board) {
+        const self = this;
+        let rest = $("span.piece");
+        const move_piece = (piece: Piece, place: JQuery) => {
+            const kind = Piece.kind(piece);
+            if (kind === Piece.Empty) return;
+            const kind_class = [
+                null, ".lion", ".elephant", ".giraffe",
+                ".chick,.hen", ".chick,.hen",
+            ][kind];
+            const span = rest.filter(kind_class).first();
+            rest = rest.not(span);
+            self.animate_piece(span, span.parent(), place, true);
+            const mine_p = Piece.mine_p(piece);
+            span.toggleClass("master", !mine_p);
+            span.toggleClass("player", mine_p);
+            span.toggleClass("promoted", kind === Piece.Hen);
+        }
+        // cells
+        for (const x of [0, 1, 2])
+            for (const y of [0, 1, 2, 3])
+                move_piece(board.get(x, y), self.get_cell(x, y));
+        // hands
+        const kinds = [Piece.Elephant, Piece.Giraffe, Piece.Chick];
+        for (let k of kinds)
+            for (let p of [k, Piece.opponent[k]])
+                for (let h = board.hand(p); h > 0; h--)
+                    move_piece(p, self.get_empty_hand(Piece.mine_p(p)));
         self.initialze_state();
-        $("ol#record").children().detach();
-        swap_side ? self.do_master_turn_leave() : self.leave();
+        self.ui_state.board = board;
+    }
+
+    set_random_board(depth: number) {
+        if (!this.enter()) return;
+        this.initialze_state();
+        this.set_board(this.ai.get_random_board(depth))
+        this.leave();
     }
 
 

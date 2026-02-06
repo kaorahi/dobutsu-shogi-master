@@ -122,6 +122,20 @@ export class AI {
     supports_best_move_only(): boolean {
         return this.vals.length === 0;
     }
+
+    get_random_board(depth: number): Board {
+        if (this.supports_best_move_only()) return Board.init();
+        const len = this.keys.length;
+        const max_trial = 99999
+        for (let t = 0; t < max_trial; t++) {
+            const i = Math.floor(Math.random() * len);
+            if (this.vals[i] === depth) {
+                const hashstr = this.keys[i].toString(16).padStart(15, "0");
+                return Board.from_hashstr(hashstr);
+            }
+        }
+        return Board.init();
+    }
 }
 
 /////////////////////////////////////
