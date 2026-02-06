@@ -128,7 +128,7 @@ export class UI {
             cell.droppable("enable");
             cell.addClass("possible");
             let depth = this.ai.search(move.new_board)[0];
-            cell.children().first().text(depth ? depth - 1 : "×");
+            cell.children().first().text(depth < 0 ? "-" : depth ? depth - 1 : "×");
         });
     }
 
