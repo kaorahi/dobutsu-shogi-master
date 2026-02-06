@@ -29,7 +29,7 @@ export class UI {
     puzzle_depth = 5;
 
     constructor(public ai: AI) {
-        this.initialze_state();
+        this.initialize_state();
 
         this.ui_state.board.update_rules(ai.rules);
         $("span#rules").text(ai.rules);
@@ -76,7 +76,7 @@ export class UI {
         this.leave();
     }
 
-    initialze_state() {
+    initialize_state() {
         this.ui_state = { board: Board.init(), depth: -1 };
         this.history = [];
         $("ol#record").children().detach();
@@ -118,7 +118,7 @@ export class UI {
                 for (let h = board.hand(p); h > 0; h--)
                     move_piece(p, self.get_empty_hand(Piece.mine_p(p)));
         // state
-        self.initialze_state();
+        self.initialize_state();
         self.ui_state.board = board;
         self.update_depth();
     }
@@ -130,7 +130,7 @@ export class UI {
 
     set_random_board(depth: number) {
         if (!this.enter()) return;
-        this.initialze_state();
+        this.initialize_state();
         this.set_board(this.ai.get_random_board(depth))
         this.leave();
     }
