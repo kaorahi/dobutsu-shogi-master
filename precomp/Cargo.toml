@@ -17,10 +17,6 @@ path = "src/2-analyze.rs"
 name = "3-extract"
 path = "src/3-extract.rs"
 
-[[bin]]
-name = "9-test"
-path = "src/9-test.rs"
-
 [profile.release]
 opt-level = 3
 debug = true
