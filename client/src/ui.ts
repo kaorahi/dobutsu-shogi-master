@@ -185,7 +185,7 @@ export class UI {
 
     dragstart(piece: JQuery) {
         if (piece.hasClass("master")) return;
-        if (this.ui_state.board.dead_p()) return;
+        if (this.ui_state.board.gameover_status() !== 0) return;
         // show droppable cells
         this.query_move(piece, {}, (move) => {
             let cell = this.get_cell(move.nx, move.ny);
@@ -215,11 +215,14 @@ export class UI {
     // execute the player's turn, decide and execute the master's turn
     do_turn(move: Move, piece: JQuery) {
         if (!this.enter()) return;
-        let [depth, nnb] = this.ai.search(move.new_board);
-        let nmove = Move.detect_move(move.new_board, nnb);
+        let nb = move.new_board;
+        let gameover = nb.gameover_status();
+        let [depth, nnb] = (gameover === 0) ? this.ai.search(nb) : [null, null];
+        let nmove = nnb && Move.detect_move(nb, nnb);
         this.history.push([this.ui_state, move, nmove]);
 
         this.do_move(move, piece);
+        if (!nmove) return this.leave({ board: nb, depth: -2 })
         $("span.piece").delay(300).promise().done(() => {
             this.do_move(nmove);
             this.leave({ board: nmove.new_board, depth: depth - 1 });
@@ -245,7 +248,7 @@ export class UI {
         if (!prev) return this.leave();
         let [prev_state, move, nmove] = prev;
 
-        this.undo_move(nmove);
+        if (nmove) this.undo_move(nmove);
         $("span.piece").promise().done(() => {
             if (move) {
                 this.undo_move(move);
@@ -270,7 +273,7 @@ export class UI {
             // drop
             query.p = this.get_piece_id_from_piece(piece) ;
         }
-        for (let move of Move.possible_moves(this.ui_state.board)) {
+        for (let move of Move.possible_moves(this.ui_state.board, false)) {
             if (move.match_p(query)) cb(move);
         }
     }
@@ -282,6 +285,7 @@ export class UI {
         $("span#msg").text("計算中……");
         $("span.piece").draggable("disable");
         $("p#dead-msg").hide();
+        $("p#won-msg").hide();
         $("span#master").addClass("thinking");
         return true;
     }
@@ -298,10 +302,16 @@ export class UI {
         else if (d >= 10) $("span#player").addClass("level4");
         else if (d >=  2) $("span#player").addClass("level5");
         else if (d === 0) $("span#player").addClass("level6");
-        if (d === 0) {
-            let s = this.ui_state.board.dead_p() ? "ライオン取られた" : "トライされた";
-            $("span#msg").text(s);
-            $("p#dead-msg").show();
+        const gameover = this.ui_state.board.gameover_status();
+        const msg = [
+            "トライされた", "ライオン取られた",
+            null,
+            "ライオン取った", "トライした",
+        ][gameover + 2];
+        if (msg) {
+            $("span#msg").text(msg);
+            if (gameover > 0) $("p#won-msg").show()
+            else $("p#dead-msg").show();
             $("span#last").text($("#record").children().length);
             $("span#about-image").addClass("dead");
         }

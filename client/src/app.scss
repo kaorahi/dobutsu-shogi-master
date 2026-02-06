@@ -40,7 +40,7 @@ div#record-box {
   p {
     padding: 0.5em;
   }
-  p#dead-msg {
+  p#dead-msg, p#won-msg {
     display: none;
   }
 }

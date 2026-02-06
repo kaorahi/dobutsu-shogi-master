@@ -27,8 +27,8 @@ export namespace Move {
     }
 
     // return all possible moves from a given board
-    export function possible_moves(b: Board): Move[] {
-        let bs = b.next_boards();
+    export function possible_moves(b: Board, exclude_gameover: boolean = true): Move[] {
+        let bs = b.next_boards(exclude_gameover);
         if (isResult(bs)) {
             // assert: bs === Result.Lose
             return [];

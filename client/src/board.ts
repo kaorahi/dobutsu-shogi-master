@@ -112,7 +112,7 @@ export class Board {
         return (h * s + this.cells) % mod;
     }
 
-    next_boards(): Board[] | Result {
+    next_boards(result_p: boolean = true): Board[] | Result {
         let boards: Board[] = [];
         for (let y = 0; y < 4; y++) {
             for (let x = 0; x < 3; x++) {
@@ -129,7 +129,7 @@ export class Board {
 
                         let np = this.get(nx, ny);
                         if (Piece.Lion <= np && np <= Piece.Hen) continue; /* cannot move */
-                        if (np === Piece.opponent[Piece.Lion]) return Result.Win; /* winning board */
+                        if (np === Piece.opponent[Piece.Lion] && result_p) return Result.Win; /* winning board */
 
                         let nb = bb;
 
@@ -151,7 +151,7 @@ export class Board {
             }
         }
         for (let x = 0; x < 3; x++) {
-            if (this.get(x, 0) === Piece.opponent[Piece.Lion]) return Result.Lose; /* losing board */
+            if (this.get(x, 0) === Piece.opponent[Piece.Lion] && result_p) return Result.Lose; /* losing board */
         }
         return boards;
     }
@@ -169,13 +169,29 @@ export class Board {
         return b;
     }
 
-    dead_p(): boolean {
+    dead_p(player_p: boolean): boolean {
+        const lion = player_p ? Piece.Lion : Piece.opponent[Piece.Lion];
         for (let y = 0; y < 4; y++) {
             for (let x = 0; x < 3; x++) {
-                if (this.get(x, y) === Piece.Lion) return false;
+                if (this.get(x, y) === lion) return false;
             }
         }
         return true;
+    }
+
+    try_p(player_p: boolean): boolean {
+        if (player_p)
+            return this.reverse().try_p(false);
+        else
+            return this.next_boards() === Result.Lose;
+    }
+
+    gameover_status(): number {
+        return this.try_p(false) ? -2 :  // master wins (try)
+            this.dead_p(true) ? -1 :     // master wins (capture)
+            this.try_p(true) ? +2 :      // player wins (try)
+            this.dead_p(false) ? +1 :    // player wins (capture)
+            0;
     }
 
     update_rules(rules: string) {
