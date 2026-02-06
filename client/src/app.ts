@@ -11,6 +11,8 @@ async function fetch_gunzip(url: string) {
 }
 
 async function main(): Promise<{ ai: AI; ui: UI }> {
+    const loading = $("#loading");
+    (function loop() {loading.fadeOut(400).fadeIn(400, loop)});
     const res = await fetch("rules.txt", { cache: "no-store" });
     const rules_txt = res.ok ? (await res.text()).trim() : 'val1n';
     const [abuf, kbuf, vbuf] = await Promise.all([
@@ -23,6 +25,7 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
     const vals = new Uint8Array(vbuf);
     const ai = new AI(rules_txt, ai_txt, keys, vals);
     const ui = new UI(ai);
+    loading.hide();
     return {ai, ui};
 }
 
