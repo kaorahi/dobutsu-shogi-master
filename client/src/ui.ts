@@ -306,15 +306,17 @@ export class UI {
     leave(s: UIState | undefined = undefined) {
         if (s) this.ui_state = s;
         let d = this.ui_state.depth;
+        const gameover = this.ui_state.board.gameover_status();
         $("span#player").removeClass();
-             if (d % 2 !== 0) $("span#player").addClass("level1");
+             if (gameover > 0) $("span#player").addClass("win");
+        else if (d < 0) $("span#player").addClass("draw");
+        else if (d % 2 !== 0) $("span#player").addClass("level1");
         else if (d >= 70) $("span#player").addClass("level1");
         else if (d >= 40) $("span#player").addClass("level2");
         else if (d >= 20) $("span#player").addClass("level3");
         else if (d >= 10) $("span#player").addClass("level4");
         else if (d >=  2) $("span#player").addClass("level5");
         else if (d === 0) $("span#player").addClass("level6");
-        const gameover = this.ui_state.board.gameover_status();
         const msg = [
             "トライされた", "ライオン取られた",
             null,

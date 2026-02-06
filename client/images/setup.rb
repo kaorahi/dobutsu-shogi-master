@@ -88,6 +88,11 @@ faces = [
   download("http://2.bp.blogspot.com/-FUtTfORbaFI/VZ-PLKq5iFI/AAAAAAAAvCU/CN9CKxWOB6A/s300/boy_surprise.png"),
   # 泣く (0)
   download("http://1.bp.blogspot.com/-JvWLzDT99Bo/VZ-O2WKmgII/AAAAAAAAu90/uFNjFQlG7vw/s300/boy04_cry.png"),
+  # 笑う (勝ち)
+  download("https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiMthksSpqn934goyS2_wAR_wsemQHL_Jb32lpkC2kj2U1bpn25yqkFWeXdA3gQSySkV_Ws_VT8I2E114TTrDKIbOJL6y6gKVDkcBddWfrwzbrfUdiNAFMZv61BZ9gDRk6XPlmZgokKKHQ/s300/boy01_laugh.png"),
+  # 疑問 (千日手)
+  download("https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjg_1n5pG8eAPbvKhndMMSfWW_Bi5xFidXUpdcOumOT8lSZZ_MR8UUdqIgHIYiozEaxwdY6ZQjLHzgkcAxkq99mOJ8E5w8M5su14y1AAFJStEDBvU7L8pNt22edkDAjcFQ6XVuU2qcUzXY/s300/boy_question.png"),
+
 ].map.with_index {|f, i| sq(f, "face%d.png" % i, SIZE) }.each_slice(2).map do |f1, f2|
   system($magick, "+append", f1, f2, f1)
   f1

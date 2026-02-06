@@ -100,13 +100,13 @@ span#about-image {
   height: 8em;
   background-image: url(../images/sprites.png);
   background-repeat: no-repeat;
-  background-position: 0em -45em;
+  background-position: 0em -50em;
   background-size: 10em;
   padding: 0em;
   margin: 0em;
 }
 span#about-image.dead {
-  background-position: 0em -53em;
+  background-position: 0em -58em;
 }
 
 button {
@@ -284,4 +284,6 @@ span#player {
   &.level4 { background-position: -4em -28em; }
   &.level5 { background-position:  0em -32em; }
   &.level6 { background-position: -4em -32em; }
+  &.win    { background-position:  0em -36em; }
+  &.draw   { background-position: -4em -36em; }
 }
