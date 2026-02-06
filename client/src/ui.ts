@@ -378,7 +378,7 @@ export class UI {
             if (d <= 10) $("#player").addClass("dying");
             $("span#about-image").removeClass("dead");
         }
-        $("span#master-text").text(this.analysis_mode ? "あなた" : "どうぶつしょうギ名人");
+        $("span#master-text").text(this.analysis_mode ? "あなた" : "どうぶつしょうぎ名人'");
         if (this.is_white_turn()) {
             $(".piece.master").draggable("enable");
             $(".piece.player").draggable("disable");
