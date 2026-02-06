@@ -41,6 +41,7 @@ $(OUT)/3-extract: src/3-extract.rs $(LIB) build
 
 update_rules:
 	echo '$(RULES)' > rules.txt
+	(cd ../client/images; ruby setup.rb)
 
 unpruned_ai.txt.gz: 3.txt update_rules
 	time ruby -ne 'BEGIN {k = false}; k and puts $$_.split(":")[0]; k = ($$_ !~ /^\s|^$$/) and print $$_.split(/\s+/)[0..1].join(" ")' $< | gzip > $@

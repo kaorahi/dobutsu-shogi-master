@@ -45,6 +45,11 @@ def opt(o)
   system("advpng", "-z4", o) || raise
 end
 
+rules = File.read('../../precomp/rules.txt').chomp.chars.map{|c|
+  s, se, e, ne, n = c.to_i(32).to_s(2).rjust(5, '0').chars
+  (ne + e + se + s + se + e + ne + n).to_i(2)
+}
+
 arrow = sq(download("http://1.bp.blogspot.com/-Lj5NbsMLENk/UZMs1iWA56I/AAAAAAAASIo/f5HL7seBZYQ/s800/fabric_mark_triangle.png"), "arrow.png", SIZE * 0.1)
 pieces = [
   # ライオン
@@ -59,7 +64,7 @@ pieces = [
   download("http://2.bp.blogspot.com/-fhkRCjjEO98/VJF_LkOt_bI/AAAAAAAApzs/jYqrTFF6XA4/s800/animalface_niwatori.png"),
 ].map.with_index {|f, i| sq(f, "piece%d.png" % i, SIZE * 0.8, SIZE) }
 pieces.each_with_index do |f, i|
-  dir = [0b11111111, 0b10101010, 0b01010101, 0b00000001, 0b11010111][i]
+  dir = rules[i]
   arrow(f, arrow, dir)
   system("cp", f, "n-" + f)
   system($magick, "+append", f, rotate(f), f)
