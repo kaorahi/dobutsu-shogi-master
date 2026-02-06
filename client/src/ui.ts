@@ -69,6 +69,10 @@ export class UI {
 
         $(".piece").draggable("enable");
         this.dragstop();
+
+        this.enter();
+        this.update_depth();
+        this.leave();
     }
 
     initialze_state() {
@@ -112,8 +116,15 @@ export class UI {
             for (let p of [k, Piece.opponent[k]])
                 for (let h = board.hand(p); h > 0; h--)
                     move_piece(p, self.get_empty_hand(Piece.mine_p(p)));
+        // state
         self.initialze_state();
         self.ui_state.board = board;
+        self.update_depth();
+    }
+
+    update_depth() {
+        const white_board = this.ui_state.board.reverse();
+        this.ui_state.depth = this.ai.search(white_board)[0];
     }
 
     set_random_board(depth: number) {
@@ -316,7 +327,7 @@ export class UI {
             $("span#about-image").addClass("dead");
         }
         else {
-            $("span#msg").text("あと" + (d >= 0 ? d : "？") + "手");
+            $("span#msg").text("あと" + (d >= 0 ? d : "∞") + "手");
             if (d <= 10) $("#player").addClass("dying");
             $("span#about-image").removeClass("dead");
         }
