@@ -5,9 +5,11 @@ PRE = r_$(RULES)
 
 .DELETE_ON_ERROR:
 
-.PHONY: all build clean small large smalldocs largedocs docs update_rules
+.PHONY: all build clean distclean analyze small large smalldocs largedocs docs update_rules
 
 all: largedocs
+
+analyze: $(PRE)_2.txt
 
 small: $(PRE)_unpruned_ai.txt.gz
 
