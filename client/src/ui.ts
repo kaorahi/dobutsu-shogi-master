@@ -27,10 +27,12 @@ export class UI {
     locked: boolean;
 
     analysis_mode = false;
+    swap_side_p = false;
     puzzle_depth = 5;
 
     is_white_turn(): boolean {
-        return $("#record").children().length % 2 !== 0;
+        const xor = (a, b) => !!a !== !!b;
+        return xor(this.swap_side_p, $("#record").children().length % 2 !== 0);
     }
 
     constructor(public ai: AI) {
@@ -88,15 +90,23 @@ export class UI {
 
     initialize_state() {
         this.analysis_mode = false;
+        this.swap_side_p = false;
         this.ui_state = { board: Board.init(), depth: -1 };
         this.history = [];
         $("ol#record").children().detach();
+        $("#player-side-mark").text("▲");
+        $("#master-side-mark").text("△");
     }
 
     restore_positions(swap_side: boolean) {
         if (!this.enter()) return;
         if (!window.confirm("はじめに戻す？")) return;
         this.set_board(Board.init());
+        this.swap_side_p = swap_side;
+        if (swap_side) {
+            $("#player-side-mark").text("△");
+            $("#master-side-mark").text("▲");
+        }
         swap_side ? this.do_master_turn_leave() : this.leave();
     }
 
@@ -421,7 +431,7 @@ export class UI {
         }
 
         // add a entry to the record
-        let s1 = move.toString();
+        let s1 = move.toString(this.swap_side_p);
         let s2 = $("ol#record").children().last().text();
         if (s1.substring(1, 3) === s2.substring(1, 3))
             s1 = s1[0] + "同" + s1.substr(3);
