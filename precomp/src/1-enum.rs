@@ -19,9 +19,12 @@ use std::cmp;
 use precomp::Out;
 use precomp::board::{Board, Result};
 use precomp::board_collection::BoardSet;
+use precomp::rules::{init_rules_from_cli};
 
 fn main() {
     log!("Step 1: enumerate all reachable boards");
+
+    init_rules_from_cli();
 
     let mut item_counts = vec![0, 0, 0];
     let mut max_degree = 0;

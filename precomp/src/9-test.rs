@@ -15,6 +15,7 @@ use std::process;
 use precomp::{In, Out};
 use precomp::board::{Board, Result};
 use precomp::board_collection::{BoardSet, BoardMap};
+use precomp::rules::{init_rules_from_cli};
 
 struct Node {
     idx: u8,
@@ -44,6 +45,8 @@ macro_rules! error(
 );
 
 fn main() {
+    init_rules_from_cli();
+
     let mut out = Out::new();
 
     let (nodes, map) = load();

@@ -22,6 +22,7 @@ use std::cmp;
 use precomp::{In, Out};
 use precomp::board::{Board, Result, ELEPHANT, GIRAFFE, CHICK};
 use precomp::board_collection::{BoardSet, BoardMap};
+use precomp::rules::{init_rules_from_cli};
 
 struct Move {
     idx: u8,
@@ -182,6 +183,8 @@ fn output(nodes: Vec<Node>) {
 
 fn main() {
     log!("Step 3: extract an subset of needed boards");
+
+    init_rules_from_cli();
 
     let oracle = load();
     let nodes = extract(oracle);

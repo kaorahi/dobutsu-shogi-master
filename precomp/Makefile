@@ -1,3 +1,5 @@
+# (ex.) make RULES=val1b
+
 .DELETE_ON_ERROR:
 
 .PHONY: all build check clean
@@ -6,6 +8,9 @@ all: ai.txt 9.txt
 
 OUT = target/release
 LIB = src/board.rs src/board_collection.rs src/lib.rs
+
+RULES = val1n
+RULES_OPT = --rules=$(RULES)
 
 build:
 	cargo build --release
@@ -22,13 +27,13 @@ $(OUT)/3-extract: src/3-extract.rs $(LIB) build
 $(OUT)/9-test: src/9-test.rs $(LIB) build
 
 1.txt: $(OUT)/1-enum
-	time $< > $@
+	time $< $(RULES_OPT) > $@
 
 2.txt: $(OUT)/2-analyze 1.txt
-	time $< < 1.txt > $@
+	time $< $(RULES_OPT) < 1.txt > $@
 
 3.txt: $(OUT)/3-extract 2.txt
-	time $< < 2.txt > $@
+	time $< $(RULES_OPT) < 2.txt > $@
 
 4.lp: src/4-opt.rb 3.txt
 	time ruby $< 3.txt $@
@@ -47,4 +52,4 @@ ai.txt: src/6-compress.rb 5.txt
 	time ruby $< 5.txt > $@
 
 9.txt: $(OUT)/9-test 4.txt
-	time $< < 4.txt > $@
+	time $< $(RULES_OPT) < 4.txt > $@

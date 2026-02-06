@@ -1,4 +1,5 @@
 use std::fmt;
+use crate::rules::rules;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Board(pub u64);
@@ -19,22 +20,6 @@ pub const GIRAFFE  : Piece = Piece(3);
 pub const CHICK    : Piece = Piece(4);
 pub const HEN      : Piece = Piece(5);
 
-const MOVE_NW : &'static Move = &Move(-1,  1);
-const MOVE_N  : &'static Move = &Move( 0,  1);
-const MOVE_NE : &'static Move = &Move( 1,  1);
-const MOVE_W  : &'static Move = &Move(-1,  0);
-const MOVE_E  : &'static Move = &Move( 1,  0);
-const MOVE_SW : &'static Move = &Move(-1, -1);
-const MOVE_S  : &'static Move = &Move( 0, -1);
-const MOVE_SE : &'static Move = &Move( 1, -1);
-
-const MOVE_DUMMY    : &'static [&'static Move] = &[];
-const MOVE_LION     : &'static [&'static Move] = &[MOVE_NW, MOVE_N, MOVE_NE, MOVE_W, MOVE_E, MOVE_SW, MOVE_S, MOVE_SE];
-const MOVE_ELEPHANT : &'static [&'static Move] = &[MOVE_NW,         MOVE_NE,                 MOVE_SW,         MOVE_SE];
-const MOVE_GIRAFFE  : &'static [&'static Move] = &[         MOVE_N,          MOVE_W, MOVE_E,          MOVE_S         ];
-const MOVE_CHICK    : &'static [&'static Move] = &[         MOVE_N                                                   ];
-const MOVE_HEN      : &'static [&'static Move] = &[MOVE_NW, MOVE_N, MOVE_NE, MOVE_W, MOVE_E,          MOVE_S         ];
-
 impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:015x}", self.0)
@@ -44,6 +29,12 @@ impl fmt::Display for Board {
 impl fmt::Display for Move {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Move({}, {})", self.0, self.1)
+    }
+}
+
+impl Move {
+    pub fn new(dx: i8, dy: i8) -> Move {
+        Move(dx, dy)
     }
 }
 
@@ -59,14 +50,15 @@ impl Piece {
             _ => '*'
         }
     }
-    fn moves(&self) -> &'static [&'static Move] {
+    fn moves(&self) -> &'static [Move] {
+        let r = rules();
         match *self {
-            LION     => MOVE_LION,
-            ELEPHANT => MOVE_ELEPHANT,
-            GIRAFFE  => MOVE_GIRAFFE,
-            CHICK    => MOVE_CHICK,
-            HEN      => MOVE_HEN,
-            _ => MOVE_DUMMY,
+            LION => &r.lion,
+            ELEPHANT => &r.elephant,
+            GIRAFFE => &r.giraffe,
+            CHICK => &r.chick,
+            HEN => &r.hen,
+            _ => &[],
         }
     }
     fn mine(&self) -> bool {

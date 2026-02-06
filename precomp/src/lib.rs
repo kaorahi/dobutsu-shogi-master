@@ -1,5 +1,6 @@
 pub mod board;
 pub mod board_collection;
+pub mod rules;
 
 use std::fmt;
 use std::io::{self, BufRead, Write};

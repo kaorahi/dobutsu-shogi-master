@@ -18,6 +18,7 @@ extern crate precomp;
 use precomp::{In, Out};
 use precomp::board::{Board, Result};
 use precomp::board_collection::BoardSet;
+use precomp::rules::{init_rules_from_cli};
 
 #[derive(Default)]
 struct State {
@@ -124,6 +125,8 @@ fn enumerate_next_boards(s: &mut State, depth: i32) {
 
 fn main() {
     log!("Step 2: perform retrospective analysis");
+
+    init_rules_from_cli();
 
     let mut out = Out::new();
     let mut s = load();
