@@ -79,8 +79,6 @@ export class UI {
         });
         if (this.ai.supports_best_move_only())
             $("button#swap, button#puzzle, .puzzle-button, button#analysis-mode").hide();
-
-        $(".piece").draggable("enable");
         this.dragstop();
 
         this.enter();
@@ -381,7 +379,13 @@ export class UI {
             $("span#about-image").removeClass("dead");
         }
         $("span#master-text").text(this.analysis_mode ? "あなた" : "どうぶつしょうギ名人");
-        $("span.piece").draggable("enable");
+        if (this.is_white_turn()) {
+            $(".piece.master").draggable("enable");
+            $(".piece.player").draggable("disable");
+        } else {
+            $(".piece.master").draggable("disable");
+            $(".piece.player").draggable("enable");
+        }
         $("span#master").removeClass("thinking");
         const master_to_play = this.analysis_mode && this.is_white_turn();
         $(".player").toggleClass("to-play", gameover === 0 && !master_to_play);

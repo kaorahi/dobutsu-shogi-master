@@ -229,6 +229,10 @@ span.piece {
   &.chick.master.promoted { background-position: -4em -16em; }
 }
 
+span.piece.ui-draggable-disabled {
+  cursor: default;
+}
+
 span.rules {
   display: inline-block;
   width: 3em;
