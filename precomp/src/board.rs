@@ -224,8 +224,15 @@ impl Board {
                             if b.get(nx, ny) != EMPTY { continue }
                             move_backward(&mut boards, b2, x, y, nx, ny, p);
                         }
-                        if p == HEN && y == 3 && b2.get(x, 2) == EMPTY {
-                            move_backward(&mut boards, b2, x, 3, x, 2, CHICK);
+                        if p == HEN && y == 3 {
+                            for m in CHICK.moves() {
+                                let nx = x - m.0;
+                                if nx < 0 || 2 < nx { continue }
+                                let ny = y - m.1;
+                                if ny < 0 || 3 < ny { continue }
+                                if b.get(nx, ny) != EMPTY { continue }
+                                move_backward(&mut boards, b2, x, y, nx, ny, CHICK);
+                            }
                         }
                         if p != LION && p != HEN {
                             boards.push(b2.inc_hand(p))
