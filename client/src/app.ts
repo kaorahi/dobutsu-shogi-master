@@ -1,8 +1,6 @@
 import {AI} from "./ai";
 import "./bootstrap";
 import {UI} from "./ui";
-//@ts-ignore
-import rules_txt from "../../precomp/rules.txt?raw";
 
 async function fetch_gunzip(url: string) {
   const res = await fetch(url, { cache: "no-store" });
@@ -13,6 +11,8 @@ async function fetch_gunzip(url: string) {
 }
 
 async function main() {
+    const res = await fetch("rules.txt");
+    const rules_txt = res.ok ? (await res.text()).trim() : 'val1n';
     const [abuf, kbuf, vbuf] = await Promise.all([
         fetch_gunzip("unpruned_ai.txt.gz"),
         fetch_gunzip("keys.gz"),

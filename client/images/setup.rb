@@ -1,6 +1,8 @@
 # coding: utf-8
 SIZE = 150
 
+$rules_str = ARGV[0] || "val1n"
+
 def which(command)
   system("which", command, out: File::NULL, err: File::NULL) && command
 end
@@ -45,7 +47,7 @@ def opt(o)
   system("advpng", "-z4", o) || raise
 end
 
-rules = File.read('../../precomp/rules.txt').chomp.chars.map{|c|
+rules = $rules_str.chars.map{|c|
   s, se, e, ne, n = c.to_i(32).to_s(2).rjust(5, '0').chars
   (ne + e + se + s + se + e + ne + n).to_i(2)
 }

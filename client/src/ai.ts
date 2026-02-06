@@ -14,7 +14,7 @@ export class AI {
 
     // Decodes the pre-calculated data base
     constructor(rules: string, buf: string, keys: BigUint64Array, vals: Uint8Array) {
-        this.rules = rules.trim();
+        this.rules = rules;
         this.keys = keys;
         this.vals = vals;
         buf.split(/\r?\n/).forEach(line => {
