@@ -5,13 +5,22 @@ PRE = r_$(RULES)
 
 .DELETE_ON_ERROR:
 
-.PHONY: all build clean small large update_rules
+.PHONY: all build clean small large smalldocs largedocs docs update_rules
 
-all: large
+all: largedocs
 
 small: $(PRE)_unpruned_ai.txt.gz
 
 large: $(PRE)_vals.gz
+
+smalldocs: small
+	make docs
+
+largedocs: large
+	make docs
+
+docs:
+	cd ../client && npm run build
 
 OUT = target/release
 LIB = src/board.rs src/board_collection.rs src/lib.rs
