@@ -210,7 +210,8 @@ export class UI {
         if (s) this.ui_state = s;
         let d = this.ui_state.depth;
         $("span#player").removeClass();
-             if (d >= 70) $("span#player").addClass("level1");
+             if (d % 2 !== 0) $("span#player").addClass("level1");
+        else if (d >= 70) $("span#player").addClass("level1");
         else if (d >= 40) $("span#player").addClass("level2");
         else if (d >= 20) $("span#player").addClass("level3");
         else if (d >= 10) $("span#player").addClass("level4");
