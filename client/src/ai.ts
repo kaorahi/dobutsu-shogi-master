@@ -131,12 +131,28 @@ export class AI {
     get_random_board(depth: number): Board {
         if (this.supports_best_move_only()) return Board.init();
         const len = this.keys.length;
-        const max_trial = 99999
+        const max_trial = 99999;
+        const count_my_pieces = (b: Board): number => {
+            let my_pieces = 0;
+            for (let y = 3; y >= 0; y--)
+                for (let x = 2; x >= 0; x--)
+                    if (Piece.mine_p(b.get(x, y))) my_pieces++;
+            my_pieces += b.hand(Piece.Elephant);
+            my_pieces += b.hand(Piece.Giraffe);
+            my_pieces += b.hand(Piece.Chick);
+            return my_pieces;
+        }
+        const trivial = (b: Board): boolean => {
+            const checked = b.reverse().next_boards() === Result.Win;
+            const dominant = count_my_pieces(b) > 4;
+            return checked || dominant;
+        }
         for (let t = 0; t < max_trial; t++) {
             const i = Math.floor(Math.random() * len);
             if (this.vals[i] === depth) {
                 const hashstr = this.keys[i].toString(16).padStart(15, "0");
-                return Board.from_hashstr(hashstr);
+                const board = Board.from_hashstr(hashstr);
+                if (!trivial(board)) return board;
             }
         }
         return Board.init();
