@@ -89,6 +89,7 @@ export class UI {
         this.dragstop();
 
         this.enter();
+        this.set_board(this.inital_board());
         this.update_depth();
         this.leave();
     }
@@ -106,13 +107,19 @@ export class UI {
     restore_positions(swap_side: boolean) {
         if (!this.enter()) return;
         if (!window.confirm("はじめに戻す？")) return;
-        this.set_board(Board.init());
+        const b = this.inital_board();
+        this.set_board(this.revflip_maybe(this.inital_board(), swap_side));
         this.swap_side_p = swap_side;
         if (swap_side) {
             $("#player-side-mark").text("△");
             $("#master-side-mark").text("▲");
         }
         swap_side ? this.do_master_turn_leave() : this.leave();
+    }
+
+    inital_board(): Board {
+        const s = new URLSearchParams(window.location.search).get("board");
+        return s ? Board.from_hashstr(s) : Board.init();
     }
 
     set_board(board: Board) {
@@ -435,6 +442,10 @@ export class UI {
         $(".player").toggleClass("to-play", gameover === 0 && !master_to_play);
         $(".master").toggleClass("to-play", gameover === 0 && master_to_play);
         $("span#player").toggleClass("opposite", gameover === 0 && master_to_play);
+        const url = new URL(window.location.href);
+        const r_board = this.revflip_maybe(this.ui_state.board, this.is_white_turn());
+        url.searchParams.set("board", r_board.hashstr());
+        $("a#permalink").attr("href", url.toString());
         if (dont_leave_actually) return;
         this.locked = false;
     }
