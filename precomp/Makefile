@@ -5,7 +5,7 @@ PRE = r_$(RULES)
 
 .DELETE_ON_ERROR:
 
-.PHONY: all build clean distclean analyze small large smalldocs largedocs docs update_rules
+.PHONY: all build clean distclean analyze small large smalldocs largedocs docs update_rules images
 
 all: largedocs
 
@@ -21,8 +21,11 @@ smalldocs: small
 largedocs: large
 	make docs
 
-docs:
+docs: images
 	cd ../client && npm run build
+
+images:
+	cd ../client/images && cat ../src/public/rules.txt | xargs ruby setup.rb
 
 OUT = target/release
 LIB = src/board.rs src/board_collection.rs src/lib.rs
@@ -58,7 +61,6 @@ $(PRE)_3.txt: $(OUT)/3-extract $(PRE)_2.txt
 
 update_rules:
 	mkdir -p $(PUB); echo '$(RULES)' > $(PUB)/rules.txt
-	(cd ../client/images; ruby setup.rb $(RULES))
 
 $(PRE)_unpruned_ai.txt.gz: $(PRE)_3.txt update_rules
 	time ruby -ne 'BEGIN {k = false}; k and puts $$_.split(":")[0]; k = ($$_ !~ /^\s|^$$/) and print $$_.split(/\s+/)[0..1].join(" ")' $< | gzip > $@
