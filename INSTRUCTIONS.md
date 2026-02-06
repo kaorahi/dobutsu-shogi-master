@@ -70,7 +70,7 @@ vql1n 11111_11010_10101_00001_10111  ← 象が後にも動ける
 
 ## 対局 Web アプリのビルド
 
-* npm, Ruby, ImageMagick, [OptiPNG](https://optipng.sourceforge.net/), [AdvanceCOMP](https://www.advancemame.it/) をインストールしておく
+* npm, Ruby, ImageMagick をインストールしておく
 * ターミナルを開いて, このファイル `INSTRACTION.md` があるディレクトリに移動
 * ターミナル上で以下のコマンドを実行
 
