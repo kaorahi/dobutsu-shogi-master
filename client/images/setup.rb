@@ -69,13 +69,13 @@ pieces.each_with_index do |f, i|
   dir = rules[i]
   arrow(f, arrow, dir)
   system("cp", f, "n-" + f)
-  system($magick, "+append", f, rotate(f), f)
+  system($magick, f, rotate(f), "+append", f)
 end
 
 # 人工知能
 ai = sq(download("http://4.bp.blogspot.com/-Anllqq6pDXw/VRUSesbvyAI/AAAAAAAAsrc/CIHz6vLsuTU/s800/computer_jinkou_chinou.png"), "ai.png", SIZE)
 system($magick, "ai.png", "-modulate", "130", "ai2.png")
-system($magick, "+append", ai, "ai2.png", ai)
+system($magick, ai, "ai2.png", "+append", ai)
 
 faces = [
   # 普通 (78-70)
@@ -96,16 +96,16 @@ faces = [
   download("https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjg_1n5pG8eAPbvKhndMMSfWW_Bi5xFidXUpdcOumOT8lSZZ_MR8UUdqIgHIYiozEaxwdY6ZQjLHzgkcAxkq99mOJ8E5w8M5su14y1AAFJStEDBvU7L8pNt22edkDAjcFQ6XVuU2qcUzXY/s300/boy_question.png"),
 
 ].map.with_index {|f, i| sq(f, "face%d.png" % i, SIZE) }.each_slice(2).map do |f1, f2|
-  system($magick, "+append", f1, f2, f1)
+  system($magick, f1, f2, "+append", f1)
   f1
 end
-system($magick, "-append", *(pieces + [ai] + faces), "sprites.png")
+system($magick, *(pieces + [ai] + faces), "-append", "sprites.png")
 
 abouts = [
   download("http://2.bp.blogspot.com/--RIb-pd-Kdg/WFtH6Um3jmI/AAAAAAABAmQ/wRiSA1kKc8MBYEaEonmSbwB2UZAaiwhwACLcB/s800/ai_kenka.png"),
   download("http://2.bp.blogspot.com/-Vo_Zg1TcAz8/V5NDnu2l8WI/AAAAAAAA8dQ/bVr8Ybi7k9oSX8MH0Af9Kvv5MzW-ccwJQCLcB/s800/ai_pet_family.png"),
 ].map.with_index {|f, i| sq(f, "about%d.png" % i, "%dx%d" % [SIZE * 2, SIZE * 1.6]) }
-system($magick, "-append", "sprites.png", *abouts, "sprites.png")
+system($magick, "sprites.png", *abouts, "-append", "sprites.png")
 
 #opt("sprites.png")
 
