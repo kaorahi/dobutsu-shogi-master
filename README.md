@@ -4,6 +4,10 @@
 
 [スクリーンショット](https://github.com/user-attachments/assets/15c45872-2891-4a8d-9864-c7f2ba39e9c3)
 
+## デモ
+
+* [お試し版](https://kaorahi.github.io/dobutsu-shogi-master/)
+
 ## 追加機能
 
 * 先手でも後手でも指せる
