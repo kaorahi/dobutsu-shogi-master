@@ -1,5 +1,7 @@
 # 「どうぶつしょうぎ名人」改造版の使い方
 
+※ Google Colaboratory での実行は COLAB.md を参照
+
 ## 完全解析 (最善手の事前計算)
 
 * make, xz, gzip, cp 等の UNIX 系コマンドが使える環境を用意する
