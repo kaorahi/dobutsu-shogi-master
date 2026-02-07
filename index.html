@@ -1,0 +1,69 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+ <meta charset="UTF-8" />
+ <title>どうぶつしょうぎ変種ルール集（お試し版）</title>
+<style>
+.rule-table {
+  border-collapse: collapse;
+}
+.rule-table th, .rule-table td {
+  border: 1px solid #999;
+  padding: 0.2em;
+  text-align: center;
+}
+.rule-table td:nth-child(4) {
+  text-align: left;
+}
+.caution {
+  color: red;
+}
+</style>
+</head>
+
+<body>
+<h1>どうぶつしょうぎ変種ルール集（お試し版）</h1>
+
+<p class="caution">
+このページはお試し用です (いつまで公開するかも未定).
+使い込む場合や, もっと多くの変種ルールを見たい場合は,
+<a href="https://github.com/kaorahi/dobutsu-shogi-master/releases">ダウンロード版</a>を.
+</p>
+
+<hr>
+
+<p>
+「<a href="https://github.com/mame/dobutsu-shogi-master">どうぶつしょうぎ名人</a>」の改造版です.
+駒の動きを変えて…
+<ul>
+ <li>パーフェクトプレイヤーとの対局</li>
+ <li>各候補手の勝敗と手数の表示</li>
+ <li>終局までの最善手順のアニメーション</li>
+ <li>指定手数で勝てる問題の生成</li>
+</ul>
+</p>
+
+<p>
+<video controls style="max-width: 100%; height: auto;">
+  <source src="sample_vqpeu_small_4x.mp4" type="video/mp4">
+</video>
+</p>
+
+<p class="caution">
+表中の各リンク（ルールのデモ）は内部で数十MBのデータをダウンロードします
+</p>
+
+<table class="rule-table">
+ <tr><th>ルールコード</th><th>初期局面から</th><th>最長局面から</th><th>コメント</th></tr>
+ <tr><th>val1n</th><td><a href="val1n">78手で後手勝</a></td><td><a href="val1n?board=0009a13b00ac00c">173手で先手勝</a></td><td>現行ルール</td></tr>
+ <tr><th>vqpeu</th><td><a href="vqpeu">153手で先手勝</a></td><td></td><td>現行ルールの2倍近い長さ</td></tr>
+ <tr><th>vqp2a</th><td><a href="vqp2a">40手で後手勝</a></td><td><a href="vqp2a?board=00000b2903ad015">451手で先手勝</a></td><td>決着まで400手以上かかる局面が存在. <a href="vqp2a?board=0019b120030d005">最長局面はもう一つあり</a></td></tr>
+</table>
+
+<h2>リンク</h2>
+<p>
+<a href="https://github.com/kaorahi/dobutsu-shogi-master">Project Home</a>
+</p>
+
+</body>
+</html>
