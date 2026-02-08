@@ -148,7 +148,7 @@ export class AI {
         }
         const trivial = (b: Board): boolean => {
             const checked = b.reverse().next_boards() === Result.Win;
-            const dominant = count_my_pieces(b) > 4;
+            const dominant = count_my_pieces(b) >= 4;
             return checked || dominant;
         }
         for (let t = 0; t < max_trial; t++) {
