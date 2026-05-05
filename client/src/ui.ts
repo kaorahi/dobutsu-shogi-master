@@ -673,12 +673,13 @@ export class UI {
         const seen = new Set<string>();
         let cur_board = board;
         let cur_white_p = white_p;
+        const rest_plies = first_move ? Math.max(max_plies - 1, 0) : max_plies;
         if (first_move) {
             pv.push(first_move);
             cur_board = first_move.new_board;
             cur_white_p = !cur_white_p;
         }
-        for (let ply = 0; ply < max_plies; ply++) {
+        for (let ply = 0; ply < rest_plies; ply++) {
             const key = `${cur_white_p ? "w" : "b"}:${cur_board.hashstr()}`;
             if (seen.has(key)) break;
             seen.add(key);
