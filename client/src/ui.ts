@@ -14,7 +14,7 @@ import {Board, Piece, Result, isResult} from "./board";
 import {AI} from "./ai";
 import {Move, Normal, Drop} from "./move";
 
-type UIState = { board: Board, depth: number };
+type UIState = { board: Board, depth: number | null };
 
 export class UI {
     // the current board and its depth
@@ -105,7 +105,7 @@ export class UI {
     initialize_state() {
         this.analysis_mode = false;
         this.swap_side_p = false;
-        this.ui_state = { board: Board.init(), depth: -1 };
+        this.ui_state = { board: Board.init(), depth: null };
         this.history = [];
         this.clear_future();
         $("#player-side-mark").text("▲");
@@ -164,7 +164,7 @@ export class UI {
                     move_piece(p, self.get_empty_hand(Piece.mine_p(p)));
         // state
         keep_history_p || self.initialize_state();
-        self.ui_state.board = board;
+        self.ui_state = { board, depth: null };
         self.update_depth();
     }
 
@@ -451,7 +451,8 @@ export class UI {
     leave(s: UIState | undefined = undefined) {
         const dont_leave_actually = this.autorun_running; // ugly logic...
         if (s) this.ui_state = s;
-        let d = this.ui_state.depth;
+        if (this.ui_state.depth === null) this.update_depth();
+        let d = this.ui_state.depth as number;
         const gameover = this.ui_state.board.gameover_status();
         $("span#player").removeClass();
              if (gameover > 0) $("span#player").addClass("win");
