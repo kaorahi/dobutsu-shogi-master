@@ -51,6 +51,7 @@ export class UI {
     swap_side_p = false;
     pv_hover_move: Move | null = null;
     pv_drag_piece: JQuery | null = null;
+    drag_move_committed = false;
     puzzle_depth = -1;
     autorun_running = false;
     snapshots: Snapshot[] = [];
@@ -76,8 +77,7 @@ export class UI {
         $("span.piece").draggable({
             start: (event, ui) => { this.dragstart($(event.target) as JQuery<HTMLElement>); },
             stop: (event, ui) => { this.dragstop($(event.target) as JQuery<HTMLElement>); },
-            revert: "invalid",
-            revertDuration: 300,
+            revert: false,
             zIndex: 1000,
             scroll: false
         });
@@ -519,6 +519,7 @@ export class UI {
     }
 
     dragstart(piece: JQuery) {
+        this.drag_move_committed = false;
         if (this.edit_mode) {
             this.edit_controller.dragstart(piece);
             return;
@@ -585,6 +586,7 @@ export class UI {
         this.pv_drag_piece = null;
         this.update_principal_variation_display();
         $("div.cell, div.hand").droppable("disable");
+        this.drag_move_committed || piece?.stop(true, false).animate({ left: 0, top: 0 }, 120);
         if (this.edit_mode && piece) {
             const place = piece.parent();
             piece.css("fontSize", place.hasClass("hand") ? "0.5em" : "1em");
@@ -626,12 +628,14 @@ export class UI {
 
     drop(piece: JQuery, new_cell: JQuery, e: JQueryEventObject) { // mouse drop
         if (this.edit_mode) {
+            this.drag_move_committed = true;
             this.edit_controller.drop(piece, new_cell, e);
             return;
         }
         let [nx, ny] = this.get_position_from_cell(new_cell);
         // identify and execute a move corresponding to the drop
         this.query_move(piece, { nx: nx, ny: ny }, (move) => {
+            this.drag_move_committed = true;
             this.do_turn(move, piece);
         });
     }
