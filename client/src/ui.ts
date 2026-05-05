@@ -20,8 +20,8 @@ type UIState = { board: Board, depth: number | null };
 
 type Snapshot = [
     UIState,
-    [UIState, Move][],
-    [UIState, Move][],
+    [UIState, Move, number | null][],
+    [UIState, Move, number | null][],
     boolean,
     boolean,
 ];
@@ -30,9 +30,9 @@ export class UI {
     // the current board and its depth
     ui_state: UIState;
 
-    // (the previous state, move)*
-    history: [UIState, Move][];
-    future: [UIState, Move][];
+    // (the state before move, move, depth after move)*
+    history: [UIState, Move, number | null][];
+    future: [UIState, Move, number | null][];
 
     // a mutex to change the state
     locked: boolean;
@@ -330,8 +330,8 @@ export class UI {
     swap_view(swap_p: boolean) {
         if (this.swap_side_p === swap_p) return;
         if (!this.enter()) return;
-        const swap_h = ([s, m]: [UIState, Move]): [UIState, Move] =>
-              [{...s, board: s.board.revflip()}, m.revflip()];
+        const swap_h = ([s, m, d]: [UIState, Move, number | null]): [UIState, Move, number | null] =>
+              [{...s, board: s.board.revflip()}, m.revflip(), d];
         this.history = this.history.map(swap_h);
         this.future = this.future.map(swap_h);
         this.swap_side_p = swap_p;
@@ -553,16 +553,17 @@ export class UI {
         let nnb = r_nnb && this.revflip_maybe(r_nnb, master_p);
         let nmove = nnb && !this.analysis_mode && Move.detect_move(nb, nnb);
         this.clear_future(true);
-        this.history.push([this.ui_state, move]);
+        this.history.push([this.ui_state, move, depth]);
 
         this.do_move(move, piece);
         const state_before_nmove = { board: nb, depth: depth};
         if (!nmove || this.analysis_mode) return this.leave(state_before_nmove);
         $("span.piece").delay(300).promise().done(() => {
             // history must be updated before do_move
-            this.history.push([state_before_nmove, nmove]);
+            let depth_after_nmove = Math.max(-1, depth - 1);
+            this.history.push([state_before_nmove, nmove, depth_after_nmove]);
             this.do_move(nmove);
-            this.leave({ board: nmove.new_board, depth: Math.max(-1, depth - 1) });
+            this.leave({ board: nmove.new_board, depth: depth_after_nmove });
         });
     }
 
@@ -579,12 +580,13 @@ export class UI {
         let [depth, nmoves] = this.get_depth_and_best_moves();
         let nmove = random_choice(nmoves);
         if (depth === null || nmoves.length === 0 || !nmove) return fin();
+        const depth_after_nmove = Math.max(-1, depth - 1);
         this.clear_future(true);
-        this.history.push([this.ui_state, nmove]);
+        this.history.push([this.ui_state, nmove, depth_after_nmove]);
 
         $("span.piece").delay(300).promise().done(() => {
             this.do_move(nmove);
-            this.ui_state = { board: nmove.new_board, depth: Math.max(-1, depth - 1) };
+            this.ui_state = { board: nmove.new_board, depth: depth_after_nmove};
             fin();
         });
     }
@@ -648,11 +650,11 @@ export class UI {
         let next = this.future.pop();
         if (!next) return this.leave();
         this.history.push(next);
-        let [_cur_state, move] = next;
+        let [_cur_state, move, depth] = next;
 
         if (move) {
             this.redo_move(move);
-            this.ui_state = { board: move.new_board, depth: -1 };
+            this.ui_state = { board: move.new_board, depth };
         }
         $("span.piece").promise().done(() => {
             this.update_depth();

@@ -27,10 +27,11 @@ export class CsaIO {
                     let prev_li: JQuery<HTMLElement> | null = null;
                     let is_white_turn = false;
                     text.split(/\r?\n/).forEach(line => {
+                        const depth = null;
                         const move = this.textToMove(line.trim(), is_white_turn);
                         if (!move) return;
-                        this.ui.history.push([this.ui.ui_state, move]);
-                        this.ui.ui_state = { board: move.new_board, depth: null };
+                        this.ui.history.push([this.ui.ui_state, move, depth]);
+                        this.ui.ui_state = { board: move.new_board, depth };
                         prev_li = this.ui.add_to_record(move, prev_li);
                         is_white_turn = !is_white_turn;
                     });
@@ -47,7 +48,7 @@ export class CsaIO {
         const is_standard = b.hashstr() === Board.init().hashstr();
         const board_text = is_standard ? "" : this.boardToText(b, true);
         const hs = [...this.ui.history, ...this.ui.future.toReversed()];
-        const moves = hs.flatMap(z => z.slice(1)).filter(m => m) as Move[];
+        const moves = hs.map(z => z[1]).filter(m => m) as Move[];
         return board_text + moves.map(m => this.moveToText(m) + "\n").join("");
     }
 
