@@ -8,7 +8,7 @@
         "strictNullChecks": true,
         "sourceMap": true,
         "outDir": "out",
-        "lib": ["dom", "es6"]
+        "lib": ["dom", "ES2023"]
     },
     "files": [
         "src/board.ts",

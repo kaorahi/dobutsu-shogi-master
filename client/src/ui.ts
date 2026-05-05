@@ -58,9 +58,14 @@ export class UI {
             drop: (event, ui) => { this.drop(ui.draggable, $(event.target) as JQuery<HTMLElement>); },
         });
 
+        $("ol#record").on("click", "li", (e) => {
+            this.goto_history_len($(e.currentTarget).data("history-len"));
+        });
+
         $("button").button();
         $("button#undo").click((e) => this.undo_turn());
         $("button#redo").click((e) => this.redo_turn());
+        $("#record-before-first").click((e) => this.goto_history_len(0));
         $("button#about").click((e) => {
             $("#about-dialog").click((e) => e.stopPropagation());
             $("#about-overlay").fadeIn("fast").off().click(() => {
@@ -129,7 +134,7 @@ export class UI {
         return s ? Board.from_hashstr(s) : Board.init();
     }
 
-    set_board(board: Board) {
+    set_board(board: Board, keep_history_p = false) {
         const self = this;
         let rest = $("span.piece");
         const move_piece = (piece: Piece, place: JQuery) => {
@@ -158,7 +163,7 @@ export class UI {
                 for (let h = board.hand(p); h > 0; h--)
                     move_piece(p, self.get_empty_hand(Piece.mine_p(p)));
         // state
-        self.initialize_state();
+        keep_history_p || self.initialize_state();
         self.ui_state.board = board;
         self.update_depth();
     }
@@ -364,6 +369,10 @@ export class UI {
 
     redo_turn() {
         if (!this.enter()) return;
+        this.redo_turn_leave();
+    }
+
+    redo_turn_leave() {
         let next = this.future.pop();
         if (!next) return this.leave();
         this.history.push(next);
@@ -380,6 +389,21 @@ export class UI {
             }
             this.update_depth();
             this.leave();
+        });
+    }
+
+    goto_history_len(n: number) {
+        if (!this.enter()) return;
+        const hs = [...this.history, ...this.future.toReversed()];
+        const prev = Math.max(n - 1, 0);
+        this.history = hs.slice(0, prev);
+        this.future = hs.slice(prev).reverse();
+        const b = this.future.at(-1)?.[0].board;
+        if (!b) return this.leave();
+        this.set_board(b, true);
+        $("span.piece").promise().done(() => {
+            this.update_records();
+            n > 0 ? this.redo_turn_leave() : this.leave();
         });
     }
 
@@ -500,13 +524,22 @@ export class UI {
     // perform a move forward
     do_move(move: Move, piece: JQuery | undefined = undefined) {
         this.do_move_sub(move, piece);
+        this.add_to_record(move);
+    }
+
+    add_to_record(move: Move, prev_li?: JQuery<HTMLElement> | null): JQuery<HTMLElement> {
         // add a entry to the record
+        if (!prev_li)
+            prev_li = $("ol#record").children().last();
         let s1 = move.toString(this.swap_side_p);
-        let s2 = $("ol#record").children().last().data("full-text") || "";
+        let s2 = prev_li.data("full-text") || "";
         let s = s1;
         if (s1.substring(1, 3) === s2.substring(1, 3))
             s = s1[0] + "同" + s1.substr(3);
-        $("ol#record").append($("<li>").text(s).data("full-text", s1));
+        let n = this.history.length;
+        const li = $("<li>").text(s).data("full-text", s1).data("history-len", n);
+        $("ol#record").append(li);
+        return li;
     }
 
     redo_move(move: Move) {
@@ -572,6 +605,7 @@ export class UI {
     }
 
     update_records() {
+        if (this.history.length + this.future.length > 10000) return;
         const mc = this.current_move_count();
         const records = $("ol#record").children();
         records.slice(0, mc).removeClass("future-move");
