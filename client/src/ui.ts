@@ -221,7 +221,7 @@ export class UI {
         if (snapshot_p && this.future.length > 0)
             this.take_snapshot();
         this.future = [];
-        $("ol#record").children().slice(this.history.length).detach();
+        $("ol#record").children().slice(this.history.length).remove();
     }
 
     restore_positions(swap_side: boolean) {
