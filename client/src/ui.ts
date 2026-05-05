@@ -95,7 +95,9 @@ export class UI {
             },
             out: (event, ui) => {
                 $(event.target).removeClass("drop-current");
-                this.clear_drag_p(ui.draggable as JQuery<HTMLElement>);
+                queueMicrotask(() =>
+                    $("div.cell.drop-current, div.hand.drop-current").length === 0 &&
+                        this.clear_drag_p(ui.draggable as JQuery<HTMLElement>));
             },
         });
         $("div.hand").droppable({
