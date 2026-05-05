@@ -24,11 +24,13 @@ import {
 
 type UIState = { board: Board, depth: number | null };
 
+type UIHistoryItem = [UIState, Move, number | null];
+
 type Snapshot = [
     string,
     UIState,
-    [UIState, Move, number | null][],
-    [UIState, Move, number | null][],
+    UIHistoryItem[],
+    UIHistoryItem[],
     boolean,
     boolean,
 ];
@@ -38,8 +40,8 @@ export class UI {
     ui_state: UIState;
 
     // (the state before move, move, depth after move)*
-    history: [UIState, Move, number | null][];
-    future: [UIState, Move, number | null][];
+    history: UIHistoryItem[];
+    future: UIHistoryItem[];
 
     // a mutex to change the state
     locked: boolean;
@@ -364,7 +366,7 @@ export class UI {
     swap_view(swap_p: boolean) {
         if (this.swap_side_p === swap_p) return;
         if (!this.enter()) return;
-        const swap_h = ([s, m, d]: [UIState, Move, number | null]): [UIState, Move, number | null] =>
+        const swap_h = ([s, m, d]: UIHistoryItem): UIHistoryItem =>
               [{...s, board: s.board.revflip()}, m.revflip(), d];
         this.history = this.history.map(swap_h);
         this.future = this.future.map(swap_h);
@@ -1069,7 +1071,7 @@ export class UI {
         }
     }
 
-    update_record_item(i: number, elem: HTMLElement, max_depth: number, hs: [UIState, Move, number | null][]) {
+    update_record_item(i: number, elem: HTMLElement, max_depth: number, hs: UIHistoryItem[]) {
         let [{depth}, move, next_depth] = hs[i] || hs[0] || [this.ui_state, null, -1];
         if (i < 0)
             next_depth = depth;
