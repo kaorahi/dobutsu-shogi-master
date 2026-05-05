@@ -90,7 +90,7 @@ export class UI {
         this.dragstop();
 
         this.enter();
-        this.set_board(this.inital_board());
+        this.set_board(this.initial_board());
         this.update_depth();
         this.leave();
     }
@@ -108,8 +108,7 @@ export class UI {
     restore_positions(swap_side: boolean) {
         if (!this.enter()) return;
         if (!window.confirm("はじめに戻す？")) return this.leave();
-        const b = this.inital_board();
-        this.set_board(this.revflip_maybe(this.inital_board(), swap_side));
+        this.set_board(this.revflip_maybe(this.initial_board(), swap_side));
         this.swap_side_p = swap_side;
         if (swap_side) {
             $("#player-side-mark").text("△");
@@ -118,7 +117,7 @@ export class UI {
         swap_side ? this.do_master_turn_leave() : this.leave();
     }
 
-    inital_board(): Board {
+    initial_board(): Board {
         const s = new URLSearchParams(window.location.search).get("board");
         return s ? Board.from_hashstr(s) : Board.init();
     }
