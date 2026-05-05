@@ -227,7 +227,7 @@ export class AI {
     // b = Board.from_hashstr("0040900a0a14053")
     // ui.enter() && (ui.set_board(b), ui.leave())
     // ai.lookup_db(b, false)
-    // ai.verify_depth(b, 11, true)
+    // ai.verify_depth(b, 5, true)
     do_random_check(n: number) {
         const len = this.keys.length
         for (let i = 0; i < n; i++) {
