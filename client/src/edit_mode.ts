@@ -9,24 +9,18 @@ export class EditModeController {
 
     enterEditMode() {
         if (!this.host.enter()) return;
-        this.closeContextMenu();
-        this.host.stop_autorun();
         this.pre_edit_state = this.host.ui_state;
         this.host.edit_mode = true;
-        this.host.dragstop();
         this.host.leave();
     }
 
     confirmEditMode() {
         if (!this.host.enter()) return;
         this.closeContextMenu();
-        const edited_board = this.buildBoardFromDom();
-        const pre_edit_state = this.pre_edit_state;
-        this.pre_edit_state = null;
         this.host.edit_mode = false;
-        if (pre_edit_state)
-            this.host.ui_state = pre_edit_state;
-        this.host.set_board(edited_board, false, true);
+        // restore board before set_board() for snapshot in it
+        this.pre_edit_state && (this.host.ui_state = this.pre_edit_state);
+        this.host.set_board(this.buildBoardFromDom(), false, true);
         this.host.leave();
     }
 
