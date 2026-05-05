@@ -548,7 +548,7 @@ export class UI {
         let nb = move.new_board
         let r_nb = this.revflip_maybe(nb, master_p);
         let gameover = nb.gameover_status();
-        let [depth, r_nnbs] = (gameover === 0) ? this.ai.search(r_nb) : [-2, [null]];
+        let [depth, r_nnbs] = (gameover === 0) ? this.ai.search(r_nb) : [-1, [null]];
         let r_nnb = random_choice(r_nnbs) || null;
         let nnb = r_nnb && this.revflip_maybe(r_nnb, master_p);
         let nmove = nnb && !this.analysis_mode && Move.detect_move(nb, nnb);
@@ -562,7 +562,7 @@ export class UI {
             // history must be updated before do_move
             this.history.push([state_before_nmove, nmove]);
             this.do_move(nmove);
-            this.leave({ board: nmove.new_board, depth: depth - 1 });
+            this.leave({ board: nmove.new_board, depth: Math.max(-1, depth - 1) });
         });
     }
 
@@ -584,7 +584,7 @@ export class UI {
 
         $("span.piece").delay(300).promise().done(() => {
             this.do_move(nmove);
-            this.ui_state = { board: nmove.new_board, depth: depth - 1 };
+            this.ui_state = { board: nmove.new_board, depth: Math.max(-1, depth - 1) };
             fin();
         });
     }
