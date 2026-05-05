@@ -158,6 +158,7 @@ export class UI {
             this.leave();
         });
         $("#swap-ckbox").on("change", () => this.swap_view($("#swap-ckbox").prop("checked")));
+        $("input[type=checkbox]").on("click change", (e) => e.currentTarget.blur());
         $("button#autorun").click((e) => this.start_autorun());
         // click anywhere to stop autorun
         document.addEventListener("click", (e) => this.stop_autorun(), {capture: true});
