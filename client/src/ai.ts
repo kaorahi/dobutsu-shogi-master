@@ -99,6 +99,9 @@ export class AI {
         // iteration
         if (depth_only && depth < 0)
             limit = Math.min(limit, lowest_depth_in_db - 1);
+        const tries_by_opponent = nr_nbs.filter((b: Board, k: number) =>
+            b.reverse().normalize().next_boards() === Result.Lose);
+        if (tries_by_opponent.length > 0) return [1, tries_by_opponent];
         const next_depth = (b: Board): number | undefined =>
               this.search_core(b.reverse().normalize(), limit - 1, depth_only)?.[0];
         const ds = nr_nbs.map(next_depth);
