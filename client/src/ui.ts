@@ -20,8 +20,8 @@ type UIState = { board: Board, depth: number | null };
 
 type Snapshot = [
     UIState,
-    [UIState, Move | null | false][],
-    [UIState, Move | null | false][],
+    [UIState, Move][],
+    [UIState, Move][],
     boolean,
     boolean,
 ];
@@ -31,8 +31,8 @@ export class UI {
     ui_state: UIState;
 
     // (the previous state, move)*
-    history: [UIState, Move | null | false][];
-    future: [UIState, Move | null | false][];
+    history: [UIState, Move][];
+    future: [UIState, Move][];
 
     // a mutex to change the state
     locked: boolean;
@@ -330,9 +330,8 @@ export class UI {
     swap_view(swap_p: boolean) {
         if (this.swap_side_p === swap_p) return;
         if (!this.enter()) return;
-        const swap_s = (s: UIState): UIState => ({...s, board: s.board.revflip()});
-        const swap_m = (m: Move | null | false): Move | null | false => m ? m.revflip() : m;
-        const swap_h = ([s, m]: [UIState, Move | null | false]): [UIState, Move | null | false] => [swap_s(s), swap_m(m)];
+        const swap_h = ([s, m]: [UIState, Move]): [UIState, Move] =>
+              [{...s, board: s.board.revflip()}, m.revflip()];
         this.history = this.history.map(swap_h);
         this.future = this.future.map(swap_h);
         this.swap_side_p = swap_p;
@@ -937,8 +936,7 @@ export class UI {
     }
 
     current_move_count(): number {
-        const f = (m: Move | null | false): number => (m ? 1 : 0);
-        return this.history.reduce((acc, [_s, m]) => acc + f(m), 0);
+        return this.history.length;
     }
 }
 
