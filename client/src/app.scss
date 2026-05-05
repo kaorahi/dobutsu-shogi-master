@@ -130,6 +130,10 @@ div#control-dialog {
   button, p {
     margin: 1em;
   }
+  button.puzzle-button {
+    width: 4.5em;
+    margin-right: 0.5em;
+  }
 }
 p#about-image-container {
   text-align: center;
