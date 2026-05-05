@@ -167,10 +167,9 @@ export class UI {
     }
 
     set_board(board: Board, keep_history_p = false) {
-        const modified = board.hashstr() !== this.ui_state.board.hashstr();
         const snapshot_p = (this.history.length + this.future.length > 0) ||
               this.ui_state.board.hashstr() !== this.initial_board().hashstr();
-        !keep_history_p && modified && snapshot_p && this.take_snapshot();
+        !keep_history_p && snapshot_p && this.take_snapshot();
         const self = this;
         const gameover_status = board.gameover_status();
         let rest = $("span.piece");
