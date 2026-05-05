@@ -547,7 +547,6 @@ export class UI {
             let depth = this.ai.search_depth(r_nb);
             let status = r_nb.gameover_status();
             const depth_text =
-                  !this.analysis_mode ? "" :
                   status > 0 ? "!" : // win
                   status < 0 || depth === 1 ? "x" :  // lose
                   depth < 0 ? "-" :  // draw
@@ -571,7 +570,7 @@ export class UI {
             // E.G 
             cell.children().first().text(depth_text);
             const set_c = (klass: string, flag: boolean) =>
-                  cell.toggleClass(klass, this.analysis_mode && flag);
+                  cell.toggleClass(klass, flag);
             set_c("winning", depth % 2 === 0 && status >= 0);
             set_c("draw", depth < 0);
             const best_p = this.ui_state.depth === 1 ? status > 0 :
