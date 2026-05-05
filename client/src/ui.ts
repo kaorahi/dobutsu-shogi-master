@@ -573,14 +573,11 @@ export class UI {
     // execute the player's turn, decide and execute the master's turn
     do_turn(move: Move, piece: JQuery) {
         if (!this.enter()) return;
-        let master_p = piece.hasClass("master");
-        let nb = move.new_board
-        let r_nb = this.revflip_maybe(nb, master_p);
+        let nb = move.new_board;
         let gameover = nb.gameover_status();
-        let [depth, r_nnbs] = (gameover === 0) ? this.ai.search(r_nb) : [-1, [null]];
-        let r_nnb = random_choice(r_nnbs) || null;
-        let nnb = r_nnb && this.revflip_maybe(r_nnb, master_p);
-        let nmove = nnb && !this.analysis_mode && Move.detect_move(nb, nnb);
+        let [depth, nmoves] = (gameover === 0) ?
+            this.get_depth_and_best_moves(nb, piece.hasClass("player")) : [-1, []];
+        let nmove = random_choice(nmoves) || null;
         this.clear_future(true);
         this.history.push([this.ui_state, move, depth]);
 
@@ -627,15 +624,12 @@ export class UI {
         });
     }
 
-    get_depth_and_best_moves(): [number, Move[]] | [null, Move[]] {
-        try {
-            let rev = !this.is_white_turn();
-            let b = this.revflip_maybe(this.ui_state.board, rev);
-            let [depth, nnbs] = this.ai.search(b);
-            return [depth, nnbs.map(nnb => this.revflip_maybe(Move.detect_move(b, nnb), rev))];
-        } catch {
-            return [null, []];
-        }
+    get_depth_and_best_moves(board = this.ui_state.board, white_p = this.is_white_turn()): [number, Move[]] {
+        const rev = !white_p;
+        const white_board = this.revflip_maybe(board, rev);
+        const [depth, nbs] = this.ai.search(white_board);
+        const white_moves = nbs.map(nb => Move.detect_move(white_board, nb));
+        return [depth, white_moves.map(m => this.revflip_maybe(m, rev))];
     }
 
     highlight_best_move_piece() {
