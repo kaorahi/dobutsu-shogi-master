@@ -20,8 +20,8 @@ type UIState = { board: Board, depth: number | null };
 
 type Snapshot = [
     UIState,
-    [UIState, Move | null | false, null | false][],
-    [UIState, Move | null | false, null | false][],
+    [UIState, Move | null | false][],
+    [UIState, Move | null | false][],
     boolean,
     boolean,
 ];
@@ -30,9 +30,9 @@ export class UI {
     // the current board and its depth
     ui_state: UIState;
 
-    // (the previous state, player's (black) move, master's (white) move)*
-    history: [UIState, Move | null | false, null | false][];
-    future: [UIState, Move | null | false, null | false][];
+    // (the previous state, move)*
+    history: [UIState, Move | null | false][];
+    future: [UIState, Move | null | false][];
 
     // a mutex to change the state
     locked: boolean;
@@ -332,7 +332,7 @@ export class UI {
         if (!this.enter()) return;
         const swap_s = (s: UIState): UIState => ({...s, board: s.board.revflip()});
         const swap_m = (m: Move | null | false): Move | null | false => m ? m.revflip() : m;
-        const swap_h = ([s, m, nm]: [UIState, Move | null | false, null | false]): [UIState, Move | null | false, null | false] => [swap_s(s), swap_m(m), null];
+        const swap_h = ([s, m]: [UIState, Move | null | false]): [UIState, Move | null | false] => [swap_s(s), swap_m(m)];
         this.history = this.history.map(swap_h);
         this.future = this.future.map(swap_h);
         this.swap_side_p = swap_p;
@@ -404,9 +404,8 @@ export class UI {
         this.set_board(this.ui_state.board, true);
         let prev_li: JQuery<HTMLElement> | null = null;
         const hs = [...this.history, ...this.future.toReversed()];
-        hs.forEach(([_, move, nmove], k) => {
+        hs.forEach(([_, move], k) => {
             move && (prev_li = this.add_to_record(move, prev_li, k + 1));
-            nmove && (prev_li = this.add_to_record(nmove, prev_li, k + 1));
         });
         this.update_records();
         this.leave();
@@ -555,14 +554,14 @@ export class UI {
         let nnb = r_nnb && this.revflip_maybe(r_nnb, master_p);
         let nmove = nnb && !this.analysis_mode && Move.detect_move(nb, nnb);
         this.clear_future(true);
-        this.history.push([this.ui_state, move, null]);
+        this.history.push([this.ui_state, move]);
 
         this.do_move(move, piece);
         const state_before_nmove = { board: nb, depth: depth};
         if (!nmove || this.analysis_mode) return this.leave(state_before_nmove);
         $("span.piece").delay(300).promise().done(() => {
             // history must be updated before do_move
-            this.history.push([state_before_nmove, nmove, null]);
+            this.history.push([state_before_nmove, nmove]);
             this.do_move(nmove);
             this.leave({ board: nmove.new_board, depth: depth - 1 });
         });
@@ -582,7 +581,7 @@ export class UI {
         let nmove = random_choice(nmoves);
         if (depth === null || nmoves.length === 0 || !nmove) return fin();
         this.clear_future(true);
-        this.history.push([this.ui_state, nmove, null]);
+        this.history.push([this.ui_state, nmove]);
 
         $("span.piece").delay(300).promise().done(() => {
             this.do_move(nmove);
@@ -620,7 +619,7 @@ export class UI {
         let prev = this.history.pop();
         if (!prev) return this.leave();
         this.future.push(prev);
-        let [prev_state, move, nmove] = prev;
+        let [prev_state, move] = prev;
         if (!move) return this.leave();
         $("span.piece").promise().done(() => {
             this.undo_move(move);
@@ -650,7 +649,7 @@ export class UI {
         let next = this.future.pop();
         if (!next) return this.leave();
         this.history.push(next);
-        let [_cur_state, move, nmove] = next;
+        let [_cur_state, move] = next;
 
         if (move) {
             this.redo_move(move);
@@ -939,7 +938,7 @@ export class UI {
 
     current_move_count(): number {
         const f = (m: Move | null | false): number => (m ? 1 : 0);
-        return this.history.reduce((acc, [_s, m, nm]) => acc + f(m) + f(nm), 0);
+        return this.history.reduce((acc, [_s, m]) => acc + f(m), 0);
     }
 }
 

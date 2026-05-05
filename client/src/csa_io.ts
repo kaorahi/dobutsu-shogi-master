@@ -29,7 +29,7 @@ export class CsaIO {
                     text.split(/\r?\n/).forEach(line => {
                         const move = this.textToMove(line.trim(), is_white_turn);
                         if (!move) return;
-                        this.ui.history.push([this.ui.ui_state, move, null]);
+                        this.ui.history.push([this.ui.ui_state, move]);
                         this.ui.ui_state = { board: move.new_board, depth: null };
                         prev_li = this.ui.add_to_record(move, prev_li);
                         is_white_turn = !is_white_turn;
