@@ -953,9 +953,16 @@ export class UI {
         records.slice(mc).addClass("future-move");
         const hs = [...this.history, ...this.future.toReversed()];
         const max_depth = Math.max(this.ui_state.depth || 0, hs[0]?.[0].depth || 0, ...hs.map(h => h[2] || 0));
-        this.update_record_item(-1, $("li#record-before-first")[0], max_depth, hs);
-        $("ol#record").children()
-            .each((i, elem) => this.update_record_item(i, elem, max_depth, hs));
+        if (this.analysis_mode) {
+            this.update_record_item(-1, $("li#record-before-first")[0], max_depth, hs);
+            $("ol#record").children()
+                .each((i, elem) => this.update_record_item(i, elem, max_depth, hs));
+        } else {
+            const lis = $("li#record-before-first, ol#record li");
+            lis.children(".outcome-loss, .moves-loss").parent().removeAttr("title").tooltip("destroy");
+            lis.children(".move").removeClass("outcome-loss moves-loss")
+            lis.children(".depth").css("background-color", "");
+        }
     }
 
     update_record_item(i: number, elem: HTMLElement, max_depth: number, hs: [UIState, Move, number | null][]) {
