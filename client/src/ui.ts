@@ -101,20 +101,16 @@ export class UI {
         $("button#best-move").on("pointerdown", () => this.highlight_best_move_piece());
         $("button#best-move").on("pointerup pointerleave pointercancel lostpointercapture", () => this.unhighlight_best_move_piece());
         $("#record-before-first").click((e) => this.goto_history_len(0));
-        $("button#about").click((e) => {
-            $("#about-dialog").click((e) => e.stopPropagation());
-            $("#about-overlay").fadeIn("fast").off().click(() => {
-                $("#about-overlay").fadeOut("fast");
-            });
-        });
+        $("button#about").click((e) => $("#about-overlay").fadeIn("fast"));
+        $("#about-dialog").click((e) => e.stopPropagation());
+        $("#about-overlay").click(() => $("#about-overlay").fadeOut("fast"));
         $("#control-dialog button").click((e) => $("#control-overlay").fadeOut("fast"));
         $("button#show-control").click((e) => {
             $("#control-dialog input").val("");
-            $("#control-dialog").click((e) => e.stopPropagation());
-            $("#control-overlay").fadeIn("fast").off().click(() => {
-                $("#control-overlay").fadeOut("fast");
-            });
+            $("#control-overlay").fadeIn("fast");
         });
+        $("#control-dialog").click((e) => e.stopPropagation());
+        $("#control-overlay").click(() => $("#control-overlay").fadeOut("fast"));
         $("button#copy").click((e) => this.csa_io.copyToClipboard());
         $("button#copy-url").click((e) => {
             const url = new URL(window.location.href);
