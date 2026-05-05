@@ -229,7 +229,7 @@ export class UI {
 
     // returns an empty hand cell of the player or master
     get_empty_hand(player: boolean): JQuery | never {
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 8; i++) {
             let hand = this.get_hand(player, i);
             if (hand.children().length === 0) return hand;
         }
@@ -238,7 +238,7 @@ export class UI {
 
     // returns a hand cell at that a given piece p is
     get_hand_piece(p: Piece): [JQuery, JQuery] | never {
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 8; i++) {
             let hand = this.get_hand(Piece.mine_p(p), i);
             let piece = hand.children().first();
             if (piece.length === 0) continue;
