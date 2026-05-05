@@ -503,6 +503,7 @@ export class UI {
             let cell = this.get_cell(move.nx, move.ny);
             cell.droppable("enable");
             cell.addClass("possible");
+            if (!this.analysis_mode) return;
             let r_nb = this.revflip_maybe(move.new_board, is_master_turn);
             let depth = this.ai.search(r_nb)[0];
             let status = r_nb.gameover_status();
