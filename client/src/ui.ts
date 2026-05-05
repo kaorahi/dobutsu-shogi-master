@@ -117,6 +117,7 @@ export class UI {
         $("button#edit-revflip").click((e) => this.edit_controller.revflipBoard());
         $("button#edit-flip").click((e) => this.edit_controller.flipBoard());
         $("button#swap").click((e) => this.restore_positions(true));
+        $("button#swap-view").click((e) => this.swap_view());
         $("button#analysis-mode").click((e) => {
             if (!this.enter()) return;
             if (!this.analysis_mode)
@@ -289,6 +290,18 @@ export class UI {
         const depths = depth < 20 ? [depth] : [0, 2, 4, 6, 8].map(k => depth + k);
         this.set_board(this.ai.get_random_board(depths))
         this.show_depth_p = false;
+        this.leave();
+    }
+
+    swap_view() {
+        if (!this.enter()) return;
+        const swap_s = (s: UIState): UIState => ({...s, board: s.board.revflip()});
+        const swap_m = (m: Move | null | false): Move | null | false => m ? m.revflip() : m;
+        const swap_h = ([s, m, nm]: [UIState, Move | null | false, Move | null | false]): [UIState, Move | null | false, Move | null | false] => [swap_s(s), swap_m(m), swap_m(nm)];
+        this.history = this.history.map(swap_h);
+        this.future = this.future.map(swap_h);
+        this.swap_side_p = !this.swap_side_p;
+        this.set_board(this.ui_state.board.revflip(), true);
         this.leave();
     }
 
@@ -675,6 +688,9 @@ export class UI {
             if (d <= 10) $("#player").addClass("dying");
             $("span#about-image").removeClass("dead");
         }
+        const title_text = this.swap_side_p ?
+              "（後手から見た盤面）" : "どうぶつしょうぎ名人'";
+        $("span#title-text").text(title_text);
         if (this.edit_mode) {
             $(".piece").draggable("enable");
         }
