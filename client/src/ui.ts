@@ -556,7 +556,7 @@ export class UI {
         this.history.push([this.ui_state, move, depth]);
 
         this.do_move(move, piece);
-        const state_before_nmove = { board: nb, depth: depth};
+        const state_before_nmove = { board: nb, depth: depth };
         this.ui_state = state_before_nmove;
         if (!nmove || this.analysis_mode) return this.leave();
         $("span.piece").delay(300).promise().done(() => {
