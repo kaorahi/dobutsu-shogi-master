@@ -31,7 +31,7 @@ type Snapshot = [
     UIState,
     UIHistoryItem[],
     UIHistoryItem[],
-    boolean,
+    boolean | null,
     boolean,
 ];
 
@@ -46,7 +46,7 @@ export class UI {
     // a mutex to change the state
     locked: boolean;
 
-    analysis_mode = false;
+    analysis_mode: boolean | null = false;  // null = raw mode
     edit_mode = false;
     swap_side_p = false;
     pv_hover_move: Move | null = null;
@@ -179,6 +179,13 @@ export class UI {
             this.hide_hints();
             this.leave();
         });
+        $("#raw-ckbox").on("change", () => {
+            if (!this.enter()) return;
+            this.set_raw_mode($("#raw-ckbox").prop("checked"));
+            this.hide_hints();
+            close_dialogs();
+            this.leave();
+        });
         $("#swap-ckbox").on("change", () => this.swap_view($("#swap-ckbox").prop("checked")));
         $("input[type=checkbox]").on("click change", (e) => e.currentTarget.blur());
         $("button#autorun").click((e) => this.start_autorun());
@@ -258,10 +265,12 @@ export class UI {
     restore_positions() {
         if (!this.enter()) return;
         const swap_p = this.swap_side_p;
+        const raw_p = this.is_raw_mode();
         this.edit_controller.closeContextMenu();
         this.set_board(this.revflip_maybe(this.initial_board(), swap_p));
         this.swap_side_p = swap_p;  // reset by set_board
-        swap_p ? this.do_master_turn_leave() : this.leave();
+        this.set_raw_mode(raw_p);
+        swap_p && !raw_p ? this.do_master_turn_leave() : this.leave();
     }
 
     initial_board(from_url = false): Board {
@@ -661,7 +670,7 @@ export class UI {
         const state_before_nmove = { board: nb, depth: depth };
         this.ui_state = state_before_nmove;
         this.do_move(move, piece);
-        if (!nmove || this.analysis_mode || !this.is_white_turn()) return this.leave();
+        if (!nmove || this.analysis_mode || this.is_raw_mode() || !this.is_white_turn()) return this.leave();
         this.update_ui();
         this.update_records();
         $("span.piece").delay(300).promise().done(() => {
@@ -707,7 +716,7 @@ export class UI {
     }
 
     update_principal_variation_display() {
-        const pv_p = this.analysis_mode;
+        const pv_p = this.analysis_mode && !this.is_raw_mode();
         const pv_text = pv_p ?
               format_principal_variation(this, this.ui_state.board, this.is_white_turn(), this.pv_hover_move) :
               "";
@@ -899,6 +908,8 @@ export class UI {
         $(".player").toggleClass("to-play", gameover === 0 && !master_to_play);
         $(".master").toggleClass("to-play", gameover === 0 && master_to_play);
         $("span#player").toggleClass("opposite", !this.edit_mode && gameover === 0 && master_to_play);
+        const is_raw = this.is_raw_mode();
+        !is_raw && $(".hide-if-raw").show();
         if (this.edit_mode) {
             $("#record-box").children().hide();
             $("#record-controls").show();
@@ -921,7 +932,8 @@ export class UI {
             $("button#puzzle").toggle(this.puzzle_depth > 0);
             $("button#reveal-eval").css("visibility", this.analysis_mode ? "hidden" : "visible");
         }
-        $("button#autorun").prop("disabled", gameover !== 0);
+        $("button#autorun").prop("disabled", gameover !== 0 || this.is_raw_mode());
+        $("select#puzzle-select").prop("disabled", this.is_raw_mode());
         $("button#copy, button#download").prop("disabled", this.fresh_game_p(Board.init()));
         $("#depth-ckbox").prop("disabled", false);
         $("#move-count").text(this.history.length);
@@ -929,12 +941,23 @@ export class UI {
         $("#board-normalized-hashstr").text(this.board_hashstr(true));
         $("#analysis-ckbox").prop("checked", this.analysis_mode);
         $("#swap-ckbox").prop("checked", this.swap_side_p);
+        $("#raw-ckbox").prop("checked", this.is_raw_mode());
+        is_raw && $(".hide-if-raw").hide();
+        $("#depth").toggleClass("isRaw", is_raw);
         this.update_principal_variation_display();
         this.update_coord_labels();
         const hl = this.history.length
         const v = hl === 0 ? $("li#record-before-first") : $("ol#record").children().eq(hl - 1);
         v.length > 0 && $("#container").css("flex-direction") === "row" &&
             v[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    is_raw_mode(): boolean {
+        return this.analysis_mode === null;
+    }
+
+    set_raw_mode(val: boolean) {
+        this.analysis_mode = val ? null : false;
     }
 
     board_hashstr(normalize_p = false): string {

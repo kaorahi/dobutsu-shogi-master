@@ -136,7 +136,7 @@
         <p class="name player-text">
           <span id="msg-left-box">
             <button id="matta">まった</button>
-            <button id="hint">ヒント</button>
+            <button id="hint" class="hide-if-raw">ヒント</button>
           </span>
           <span id="msg">
            <span id="depth">あと<span id="revealed-depth"></span><span id="censored-depth">？</span>手</span>
@@ -151,7 +151,7 @@
       </div>
       <div id="record-box">
         <div id="record-controls">
-          <div class="button-row">
+          <div class="button-row hide-if-raw">
             <button id="best-move">最善手</button>
             <button id="puzzle"></button>
           </div>
@@ -162,7 +162,7 @@
           <button id="confirm-edit-mode" class="highlight edit-mode-only">配置確定</button>
           <button id="edit-revflip" class="edit-mode-only">上下回転</button>
           <button id="edit-flip" class="edit-mode-only">左右反転</button>
-          <label class="switch edit-mode-too">
+          <label class="switch edit-mode-too hide-if-raw">
             <input type="checkbox" class="switch" id="analysis-ckbox">
             <span class="switch-slider"></span>
             <span class="switch-label">検討モード</span>
@@ -171,7 +171,7 @@
         <div id="pv"><span class="label">読筋</span> <span id="pv-text"></span></div>
         <div id="record-status">
           <span id="count"><span id="move-count">0</span>手まで</span>
-          <button id="reveal-eval">評価</button>
+          <button id="reveal-eval" class="hide-if-raw">評価</button>
         </div>
         <div id="record-container">
           <ol><li value="0" id="record-before-first"><span class="depth"></span>原図</li></ol>
@@ -227,6 +227,8 @@
          <option value="51">51〜</option>
         </select>
         <button id="autorun">最善手順</button>
+        <br>
+        <label class="switch"><input type="checkbox" class="switch" id="raw-ckbox"><span class="switch-slider"></span><span class="switch-label">（ただの将棋盤として使う）</span></label>
         <p>棋譜</p>
         <button id="copy">コピー</button>
         <input placeholder="ここに貼って読込"></input><br>

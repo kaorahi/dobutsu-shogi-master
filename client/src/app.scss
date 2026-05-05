@@ -505,6 +505,7 @@ span#msg {
   }
   &:not(.isGameover) {
     #depth { display: inline; }
+    #depth.isRaw { display: none; }
     #gameover { display: none; }
   }
   &.censored {
