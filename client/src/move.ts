@@ -41,10 +41,8 @@ export namespace Move {
     }
 }
 
-function basename(x: number, y: number, p: Piece, swap_side_p: boolean = false) {
-    const xor = (a: boolean, b: boolean): boolean => !!a !== !!b;
-    let is_black = xor(Piece.mine_p(p), swap_side_p);
-    let s = is_black ? "▲" : "△";
+function basename(x: number, y: number, p: Piece) {
+    let s = Piece.mine_p(p) ? "▲" : "△";
     s += "CBA"[x] + (4 - y);
     s += names[Piece.kind(p)];
     return s;
@@ -89,9 +87,9 @@ export class Normal {
     }
 
     // return a record string
-    toString(swap_side_p: boolean = false): string {
+    toString(): string {
         let p = this.old_board.get(this.x, this.y);
-        let s = basename(this.nx, this.ny, p, swap_side_p);
+        let s = basename(this.nx, this.ny, p);
 
         let old_board = this.old_board;
         let x = this.x;
@@ -165,8 +163,8 @@ export class Drop {
         );
     }
 
-    toString(swap_side_p: boolean = false): string {
-        let s = basename(this.nx, this.ny, this.p, swap_side_p);
+    toString(): string {
+        let s = basename(this.nx, this.ny, this.p);
 
         for (let move of Move.possible_moves(this.old_board)) {
             if (move instanceof Normal && move.new_board.get(this.nx, this.ny) === this.p) {

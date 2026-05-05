@@ -740,6 +740,18 @@ export class UI {
         $("button#puzzle").text(`次問（${puzzle_label}）`);
         $("#depth-ckbox").prop("checked", this.show_depth_p);
         $("#swap-ckbox").prop("checked", this.swap_side_p);
+        this.update_coord_labels();
+    }
+
+    update_coord_labels() {
+        const row = ["1", "2", "3", "4"];
+        const col = ["A", "B", "C"];
+        if (this.swap_side_p) {
+            row.reverse();
+            col.reverse();
+        }
+        $("td.row-label").each((i, elem) => { $(elem).text(row[i]); });
+        $("td.col-label").each((i, elem) => { $(elem).text(col[i]); });
     }
 
     // move a span element of a piece with animation
@@ -769,7 +781,7 @@ export class UI {
         // add a entry to the record
         if (!prev_li)
             prev_li = $("ol#record").children().last();
-        let s1 = move.toString(this.swap_side_p);
+        let s1 = this.revflip_maybe(move, this.swap_side_p).toString();
         let s2 = prev_li.data("full-text") || "";
         let s = s1;
         if (s1.substring(1, 3) === s2.substring(1, 3))
