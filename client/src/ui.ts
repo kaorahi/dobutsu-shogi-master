@@ -20,8 +20,8 @@ type UIState = { board: Board, depth: number | null };
 
 type Snapshot = [
     UIState,
-    [UIState, Move | null | false, Move | null | false][],
-    [UIState, Move | null | false, Move | null | false][],
+    [UIState, Move | null | false, null | false][],
+    [UIState, Move | null | false, null | false][],
     boolean,
     boolean,
 ];
@@ -31,8 +31,8 @@ export class UI {
     ui_state: UIState;
 
     // (the previous state, player's (black) move, master's (white) move)*
-    history: [UIState, Move | null | false, Move | null | false][];
-    future: [UIState, Move | null | false, Move | null | false][];
+    history: [UIState, Move | null | false, null | false][];
+    future: [UIState, Move | null | false, null | false][];
 
     // a mutex to change the state
     locked: boolean;
@@ -332,7 +332,7 @@ export class UI {
         if (!this.enter()) return;
         const swap_s = (s: UIState): UIState => ({...s, board: s.board.revflip()});
         const swap_m = (m: Move | null | false): Move | null | false => m ? m.revflip() : m;
-        const swap_h = ([s, m, nm]: [UIState, Move | null | false, Move | null | false]): [UIState, Move | null | false, Move | null | false] => [swap_s(s), swap_m(m), swap_m(nm)];
+        const swap_h = ([s, m, nm]: [UIState, Move | null | false, null | false]): [UIState, Move | null | false, null | false] => [swap_s(s), swap_m(m), null];
         this.history = this.history.map(swap_h);
         this.future = this.future.map(swap_h);
         this.swap_side_p = swap_p;
@@ -582,7 +582,7 @@ export class UI {
         let nmove = random_choice(nmoves);
         if (depth === null || nmoves.length === 0 || !nmove) return fin();
         this.clear_future(true);
-        this.history.push([this.ui_state, null, nmove]);
+        this.history.push([this.ui_state, nmove, null]);
 
         $("span.piece").delay(300).promise().done(() => {
             this.do_move(nmove);
@@ -619,7 +619,6 @@ export class UI {
         this.future.push(prev);
         let [prev_state, move, nmove] = prev;
 
-        if (nmove) this.undo_move(nmove);
         $("span.piece").promise().done(() => {
             if (move) {
                 this.undo_move(move);
@@ -648,10 +647,6 @@ export class UI {
             this.ui_state = { board: move.new_board, depth: -1 };
         }
         $("span.piece").promise().done(() => {
-            if (nmove) {
-                this.redo_move(nmove);
-                this.ui_state = { board: nmove.new_board, depth: -1 };
-            }
             this.update_depth();
             this.leave();
         });
