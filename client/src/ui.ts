@@ -125,6 +125,12 @@ export class UI {
             a.click();
             URL.revokeObjectURL(url);
         });
+        $('#load').on('click', () => $('#load-input').trigger('click'));
+        $('#load-input').on('change', (e) => {
+            const input = e.target as HTMLInputElement
+            input.files?.[0].text().then(text => this.csa_io.loadFromText(text));
+            $(input).val('');
+        });
         $("button#copy-url").click((e) => {
             const url = new URL(window.location.href);
             const r_board = this.revflip_maybe(this.ui_state.board, this.is_white_turn());
