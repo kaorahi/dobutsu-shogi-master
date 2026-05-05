@@ -799,7 +799,7 @@ export class UI {
             $("span#last").text($("#record").children().length);
         }
         else {
-            $("span#msg #revealed-depth").text(d >= 0 ? d : "∞");
+            $("span#msg #revealed-depth").text(d >= 0 ? d : "---");
             if (d <= 10) $("#player").addClass("dying");
             $("span#about-image").removeClass("dead");
         }
@@ -1039,12 +1039,12 @@ export class UI {
         if (m_regret === 0) return;
         const m_outcome = (d: number, ev: number, gos: number): string => [
             "負",
-            [`${d}手負`, "引分", `${d}手勝`][Math.sign(ev) + 1],
+            [`${d}手負`, " - ", `${d}手勝`][Math.sign(ev) + 1],
             "勝",
         ][Math.sign(gos) + 1];
         const m_o = m_outcome(depth, m_eval, 0);
         const m_next_o = m_outcome(next_depth + 1, m_next_eval, m_next_gos);
-        const tooltip = `${m_o}→${m_next_o}`;
+        const tooltip = `${m_o} → ${m_next_o}`;
         li.attr("title", tooltip).tooltip({
             show: 100, hide: 100,
             position: {
