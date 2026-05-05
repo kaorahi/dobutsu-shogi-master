@@ -1,6 +1,6 @@
 # 「どうぶつしょうぎ名人」改造版の使い方
 
-※ Google Colaboratory での実行は COLAB.md を参照
+※ Google Colaboratory での実行は COLAB.md, 長周期千日手の探索は LONGCYCLE.md を参照
 
 ## 完全解析 (最善手の事前計算)
 

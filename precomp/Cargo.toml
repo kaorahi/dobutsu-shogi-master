@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Yusuke Endoh <mame@ruby-lang.org>"]
 
 [dependencies]
+rand = "0.8"
 
 [[bin]]
 name = "1-enum"
@@ -16,6 +17,18 @@ path = "src/2-analyze.rs"
 [[bin]]
 name = "3-extract"
 path = "src/3-extract.rs"
+
+[[bin]]
+name = "longcycle_1-next"
+path = "src/longcycle_1-next.rs"
+
+[[bin]]
+name = "longcycle_2-node2comp"
+path = "src/longcycle_2-node2comp.rs"
+
+[[bin]]
+name = "longcycle_8-cycle"
+path = "src/longcycle_8-cycle.rs"
 
 [profile.release]
 opt-level = 3
