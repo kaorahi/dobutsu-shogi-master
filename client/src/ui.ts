@@ -165,8 +165,6 @@ export class UI {
             $b.click((e) =>
                 this.set_random_board(this.puzzle_depth = d));
         });
-        if (this.ai.supports_best_move_only())
-            $("button#swap, button#puzzle, .puzzle-button, button#analysis-mode, button#autorun").hide();
         this.dragstop();
 
         this.enter();
