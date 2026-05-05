@@ -47,6 +47,7 @@ export class UI {
     edit_mode = false;
     swap_side_p = false;
     pv_hover_move: Move | null = null;
+    pv_drag_piece: JQuery | null = null;
     puzzle_depth = -1;
     autorun_timer: number | null = null;
     autorun_running = false;
@@ -504,9 +505,9 @@ export class UI {
         }
         this.highlight_droppable_cells(piece);
         if (this.analysis_mode && !this.locked && piece.hasClass("to-play")) {
+            this.pv_drag_piece = piece;
             this.highlight_best_move_piece();
-            this.pv_hover_move = null;
-            this.update_principal_variation_display();
+            this.update_drag_pv_piece(piece);
         }
     }
 
@@ -561,6 +562,7 @@ export class UI {
     dragstop(piece?: JQuery) {
         // make all cells undroppable
         this.hide_hints();
+        this.pv_drag_piece = null;
         $("div.cell, div.hand").droppable("disable");
         if (this.edit_mode && piece) {
             const place = piece.parent();
@@ -586,8 +588,18 @@ export class UI {
         this.update_principal_variation_display();
     }
 
+    update_drag_pv_piece(piece: JQuery) {
+        if (!this.analysis_mode || this.edit_mode || !piece.hasClass("to-play")) return;
+        this.pv_hover_move = get_hover_pv_move(this, piece);
+        this.update_principal_variation_display();
+    }
+
     clear_drag_p(piece: JQuery) {
         if (!this.analysis_mode || this.edit_mode || !piece.hasClass("to-play")) return;
+        if (this.pv_drag_piece && this.pv_drag_piece.length > 0) {
+            this.update_drag_pv_piece(this.pv_drag_piece);
+            return;
+        }
         this.pv_hover_move = null;
         this.update_principal_variation_display();
     }
