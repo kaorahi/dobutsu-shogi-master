@@ -25,6 +25,7 @@ import {
 type UIState = { board: Board, depth: number | null };
 
 type Snapshot = [
+    string,
     UIState,
     [UIState, Move, number | null][],
     [UIState, Move, number | null][],
@@ -52,6 +53,7 @@ export class UI {
     autorun_timer: number | null = null;
     autorun_running = false;
     snapshots: Snapshot[] = [];
+    snapshot_id = this.get_snapshot_id();
     csa_io: CsaIO;
     edit_controller: EditModeController;
 
@@ -410,12 +412,19 @@ export class UI {
     rotate_snapshot(backward = false) {
         const popped = backward ? this.snapshots.pop() : this.snapshots.shift();
         if (!popped) return;
-        this.take_snapshot(backward);
+        this.push_snapshot(backward);
         this.restore_snapshot(popped);
     }
 
-    take_snapshot(backward = false) {
+    take_snapshot() {
+        this.push_snapshot();
+        this.snapshot_id = this.get_snapshot_id();
+        toast(this.snapshot_id);
+    }
+
+    push_snapshot(backward = false) {
         const s: Snapshot = [
+            this.snapshot_id,
             this.ui_state,
             this.history.slice(),
             this.future.slice(),
@@ -428,18 +437,25 @@ export class UI {
     restore_snapshot(s: Snapshot) {
         if (!this.enter()) return;
         this.initialize_state();
-        this.ui_state = s[0];
-        this.history = s[1];
-        this.future = s[2];
-        this.analysis_mode = s[3];
-        this.swap_side_p = s[4];
+        const id = s[0];
+        this.ui_state = s[1];
+        this.history = s[2];
+        this.future = s[3];
+        this.analysis_mode = s[4];
+        this.swap_side_p = s[5];
         this.set_board(this.ui_state.board, true);
         let prev_li: JQuery<HTMLElement> | null = null;
         const hs = [...this.history, ...this.future.toReversed()];
         hs.forEach(([_s, move, _d]) => {
             move && (prev_li = this.add_to_record(move, prev_li));
         });
+        this.snapshot_id = id;
+        toast(id);
         this.leave();
+    }
+
+    get_snapshot_id(): string {
+        return `盤${this.snapshots.length + 1}`;
     }
 
     // Helpers for manipulating DOMs
@@ -1120,6 +1136,11 @@ export class UI {
             },
         });
     }
+}
+
+function toast(message: string, millisec = 2000) {
+    $("#toast-message").text(message);
+    $("#toast").stop(true, true).fadeTo(0, 1).fadeTo(millisec, 0);
 }
 
 function random_choice<T>(arr: readonly T[]): T | undefined {
