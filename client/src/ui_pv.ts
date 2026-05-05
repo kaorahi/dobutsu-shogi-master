@@ -27,7 +27,7 @@ export function get_principal_variation(
     white_p = host.is_white_turn(),
     first_move: Move | null = null,
 ): Move[] {
-    const max_plies = 12;
+    const max_plies = 7;
     const max_millisec = 10;
     const deadline = Date.now() + max_millisec;
     const pv: Move[] = [];
