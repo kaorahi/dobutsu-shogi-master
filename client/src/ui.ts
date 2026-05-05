@@ -71,7 +71,9 @@ export class UI {
             scroll: false
         });
         $("span.piece").on("pointerover", e => this.hover_on_piece($(e.currentTarget) as JQuery<HTMLElement>));
-        $("span.piece").on("pointerleave pointercancel lostpointercapture", e => this.unhover_on_piece($(e.currentTarget) as JQuery<HTMLElement>));
+        $("span.piece").on("pointerleave pointercancel lostpointercapture", () => {
+            $(".ui-draggable-dragging").length === 0 && this.hide_hints();
+        });
         $("div.cell").droppable({
             tolerance: "pointer",
             drop: (event, ui) => { this.drop(ui.draggable, $(event.target) as JQuery<HTMLElement>, event); },
@@ -97,11 +99,11 @@ export class UI {
 
         $("button").button();
         $("button#matta").click((e) => this.undo_turn(true));
+        $("button#hint").click((e) => this.highlight_best_move_piece());
         $("button#undo").click((e) => this.undo_turn());
         $("button#redo").click((e) => this.redo_turn());
         $("button#best-move").click((e) => this.enter() && this.do_master_turn_leave());
-        $("button#best-move").on("pointerdown", () => this.highlight_best_move_piece());
-        $("button#best-move").on("pointerup pointerleave pointercancel lostpointercapture", () => this.unhighlight_best_move_piece());
+        $("span#msg").click((e) => $("span#msg").removeClass("censored"));
         $("#record-before-first").click((e) => this.goto_history_len(0));
         $("button#about").click((e) => $("#about-overlay").fadeIn("fast"));
         $("#about-dialog").click((e) => e.stopPropagation());
@@ -151,6 +153,7 @@ export class UI {
         $("#analysis-ckbox").on("change", () => {
             if (!this.enter()) return;
             this.analysis_mode = $("#analysis-ckbox").prop("checked");
+            this.hide_hints();
             this.leave();
         });
         $("#swap-ckbox").on("change", () => this.swap_view($("#swap-ckbox").prop("checked")));
@@ -235,6 +238,7 @@ export class UI {
     }
 
     set_board(board: Board, keep_history_p = false, keep_state_p = false) {
+        this.hide_hints();
         const snapshot_p = (this.history.length + this.future.length > 0) ||
               this.ui_state.board.hashstr() !== this.initial_board().hashstr();
         !keep_history_p && snapshot_p && this.take_snapshot();
@@ -474,11 +478,6 @@ export class UI {
         }
     }
 
-    unhover_on_piece(piece: JQuery) {
-        this.unhighlight_droppable_cells();
-        this.unhighlight_best_move_piece();
-    }
-
     dragstart(piece: JQuery) {
         if (this.edit_mode) {
             this.edit_controller.dragstart(piece);
@@ -516,8 +515,7 @@ export class UI {
 
     dragstop(piece?: JQuery) {
         // make all cells undroppable
-        this.unhighlight_droppable_cells();
-        this.unhighlight_best_move_piece();
+        this.hide_hints();
         $("div.cell, div.hand").droppable("disable");
         if (this.edit_mode && piece) {
             const place = piece.parent();
@@ -525,7 +523,8 @@ export class UI {
         }
     }
 
-    unhighlight_droppable_cells() {
+    hide_hints() {
+        $(".piece").removeClass("best-move");
         $("div.cell, div.hand").removeClass("possible drop-current winning draw best");
         $("span.hint").text("");
     }
@@ -601,18 +600,12 @@ export class UI {
     }
 
     highlight_best_move_piece() {
-        if (!this.enter()) return;
         const [_, moves] = this.get_depth_and_best_moves();
         moves.forEach(move => {
             const [place, piece] = (move instanceof Normal) ?
                   this.get_cell_piece(move.x, move.y) : this.get_hand_piece(move.p);
             piece.addClass("best-move");
         });
-        this.leave();
-    }
-
-    unhighlight_best_move_piece() {
-        $(".piece").removeClass("best-move");
     }
 
     // revoke the previous two turns (master's and player's)
@@ -731,11 +724,12 @@ export class UI {
         if (this.ui_state.depth === null) this.update_depth();
         let d = this.ui_state.depth as number;
         const gameover = this.ui_state.board.gameover_status();
+        const hide_depth_p = !this.analysis_mode;
         $("span#player").removeClass();
         if (this.edit_mode) $("span#player").addClass("draw");
         else if (gameover > 0) $("span#player").addClass("win");
         else if (gameover < 0) $("span#player").addClass("level6");
-        else if (d < 0 || !this.analysis_mode) $("span#player").addClass("draw");
+        else if (d < 0 || hide_depth_p) $("span#player").addClass("draw");
         else if (d % 2 !== 0) $("span#player").addClass("level1");
         else if (d >= 70) $("span#player").addClass("level1");
         else if (d >= 40) $("span#player").addClass("level2");
@@ -748,8 +742,9 @@ export class UI {
             null,
             "キャッチ！", "トライ！",
         ][gameover + 2];
+        $("span#msg").toggleClass("isGameover", gameover !== 0);
         if (msg) {
-            $("span#msg").text(msg);
+            $("span#msg #gameover").text(msg);
             if (gameover * (this.swap_side_p ? -1 : 1) > 0) {
                 $("p#won-msg").show();
                 $("span#about-image").removeClass("dead");
@@ -760,12 +755,11 @@ export class UI {
             $("span#last").text($("#record").children().length);
         }
         else {
-            const rest = !this.analysis_mode ? "？" : d >= 0 ? d : "∞";
-            $("span#msg").text("あと" + rest + "手");
+            $("span#msg #revealed-depth").text(d >= 0 ? d : "∞");
             if (d <= 10) $("#player").addClass("dying");
             $("span#about-image").removeClass("dead");
         }
-        $("span#msg").removeClass("obsolete");
+        $("span#msg").removeClass("obsolete").toggleClass("censored", hide_depth_p);
         const title_text = this.swap_side_p ?
               "（後手から見た盤面）" : "どうぶつしょうぎ名人'";
         $("span#title-text").text(title_text);
@@ -869,6 +863,7 @@ export class UI {
     }
 
     do_move_sub(move: Move, piece: JQuery | undefined = undefined) {
+        this.hide_hints();
         let new_cell = this.get_cell(move.nx, move.ny);
         if (move instanceof Normal) {
             if (move.captured_piece() !== Piece.Empty) {
@@ -897,6 +892,7 @@ export class UI {
 
     // perform a move backward
     undo_move(move: Move) {
+        this.hide_hints();
         let [new_cell, piece] = this.get_cell_piece(move.nx, move.ny);
         if (move instanceof Normal) {
             // undo a move of a piece

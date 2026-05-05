@@ -134,8 +134,14 @@
           </tr>
         </table>
         <p class="name player-text">
-          <button id="matta">まった</button>
-          <span id="msg">あと？手</span>
+          <span id="msg-left-box">
+            <button id="matta">まった</button>
+            <button id="hint">ヒント</button>
+          </span>
+          <span id="msg">
+           <span id="depth">あと<span id="revealed-depth"></span><span id="censored-depth">？</span>手</span>
+           <span id="gameover"></span>
+          </span>
           <button id="undo">＜</button>
           <button id="redo">＞</button>
           <span id="player" class="level1"></span>
@@ -180,7 +186,6 @@
           <li>ソースコードは <a href="https://github.com/kaorahi/dobutsu-shogi-master" target="_blank" rel="noopener noreferrer">github</a> にあります。</li>
           <li>画像は「<a href="http://www.irasutoya.com/" target="_blank" rel="noopener noreferrer">いらすとや</a>」のものです。</li>
           <li>ショートカットキー：&lt;&gt;キーまたは,.キーで手を戻す・進める。[]キーで前盤・次盤。</li>
-          <li>最善手ボタンは押しているあいだ駒が光ります。そのまま離せば指す、ずらして離せば光るだけ。</li>
         </ul>
         <p id="about-image-container">
           <span id="about-image"></span>

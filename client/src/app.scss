@@ -208,8 +208,12 @@ button#about {
   right: 1em;
   top: 1em;
 }
-button#matta {
+span#msg-left-box {
   margin-right: auto;
+  button#hint {
+    padding-left: 0.1em;
+    padding-right: 0.1em;
+  }
 }
 
 p.name {
@@ -422,8 +426,30 @@ $sw-on-color: #333;
 $sw-off-color: #ccc;
 $sw-knob-color: #fff;
 
-span#msg.obsolete {
-  opacity: 0.4;
+span#msg {
+  &.isGameover {
+    #depth { display: none; }
+    #gameover { display: inline; }
+  }
+  &:not(.isGameover) {
+    #depth { display: inline; }
+    #gameover { display: none; }
+  }
+  &.censored {
+    cursor: pointer;
+    &:hover {
+      background-color: rgba(255, 153, 153, 0.5);
+    }
+    #revealed-depth { display: none; }
+    #censored-depth { display: inline; text-decoration: underline; }
+  }
+  &:not(.censored) {
+    #revealed-depth { display: inline; }
+    #censored-depth { display: none; }
+  }
+  &.obsolete {
+    opacity: 0.4;
+  }
 }
 
 .switch {
