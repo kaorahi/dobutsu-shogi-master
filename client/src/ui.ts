@@ -121,9 +121,9 @@ export class UI {
             this.analysis_mode = true;
             this.leave();
         });
-        $("button#toggle-depth").click((e) => {
+        $("#depth-ckbox").on("change", () => {
             if (!this.enter()) return;
-            this.show_depth_p = !this.show_depth_p;
+            this.show_depth_p = $("#depth-ckbox").prop("checked");
             this.leave();
         });
         $("button#autorun").click((e) => this.start_autorun());
@@ -621,6 +621,7 @@ export class UI {
         $("p#dead-msg").hide();
         $("p#won-msg").hide();
         $("span#master").addClass("thinking");
+        $("#depth-ckbox").prop("disabled", true);
         return true;
     }
 
@@ -691,7 +692,7 @@ export class UI {
             $("#record-controls").children().hide();
             $(".edit-mode-only, .edit-mode-too").show();
             $("button").prop("disabled", true);
-            $(".edit-mode-only *, #piece-menu button, #toggle-depth").prop("disabled", false);
+            $(".edit-mode-only *, #piece-menu button").prop("disabled", false);
             $(".player, .master").toggleClass("to-play", true);
         } else {
             $("#record-box").children().show();
@@ -707,10 +708,11 @@ export class UI {
             $("button#next-board").prop("disabled", this.snapshots.length === 0);
             $("#puzzle-container").toggle(this.puzzle_depth > 0);
         }
+        $("#depth-ckbox").prop("disabled", false);
         $("#move-count").text(this.current_move_count());
         const puzzle_label = $("button#puzzle" + this.puzzle_depth).text();
         $("button#puzzle").text(`次問（${puzzle_label}）`);
-        $("button#toggle-depth").toggleClass("highlight", !this.show_depth_p);
+        $("#depth-ckbox").prop("checked", this.show_depth_p);
         if (dont_leave_actually) return;
         this.locked = false;
     }

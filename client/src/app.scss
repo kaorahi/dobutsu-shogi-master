@@ -205,6 +205,12 @@ button#matta {
   bottom: 1em;
 }
 
+input[type="checkbox"] {
+  width: 1.0em;
+  height: 1.0em;
+  accent-color: #222222;
+}
+
 p.name {
   text-align: center;
   vertical-align: middle;
