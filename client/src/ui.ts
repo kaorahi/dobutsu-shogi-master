@@ -170,50 +170,73 @@ export class UI {
               this.ui_state.board.hashstr() !== this.initial_board().hashstr();
         !keep_history_p && snapshot_p && this.take_snapshot();
         const self = this;
+        const gameover_status = board.gameover_status();
         let rest = $("span.piece");
-        self.set_board_sub(board, rest);
+        // to avoid unnecessary swaps...
+        // (1) exclude unmoved pieces from board and rest
+        const [board1, rest1] = self.set_board_sub(board, rest, gameover_status, true);
+        // (2) then move rest pieces
+        self.set_board_sub(board1, rest1, gameover_status, false);
         // state
         keep_history_p || self.initialize_state();
         self.ui_state = { board, depth: null };
         self.update_depth();
     }
 
-    set_board_sub(board: Board, rest: JQuery) {
+    set_board_sub(board: Board, rest: JQuery, gameover_status: number, staying_only: boolean): [Board, JQuery] {
         const self = this;
-        const move_piece = (piece: Piece, place: JQuery) => {
-            const kind = Piece.kind(piece);
-            if (kind === Piece.Empty) return;
-            const kind_class = [
-                "", ".lion", ".elephant", ".giraffe",
+        const kind_class = (piece: Piece): string => {
+            const never_match = ":not(*)";  // for Piece.Empty
+            return [
+                never_match, ".lion", ".elephant", ".giraffe",
                 ".chick,.hen", ".chick,.hen",
-            ][kind];
-            const span = rest.filter(kind_class).first();
+            ][Piece.kind(piece)];
+        }
+        const move_piece = (piece: Piece, place: JQuery): boolean => {
+            let spans = rest.filter(kind_class(piece));
+            if (staying_only)
+                spans = spans.filter((_, elem) => place.is($(elem).parent()));
+            if (spans.length === 0) return false;
+            const span = spans.first();
+            const parent = span.parent();
             rest = rest.not(span);
-            self.animate_piece(span, span.parent(), place, true);
+            !place.is(parent) && self.animate_piece(span, parent, place, true);
             const mine_p = Piece.mine_p(piece);
             span.toggleClass("master", !mine_p);
             span.toggleClass("player", mine_p);
-            span.toggleClass("promoted", kind === Piece.Hen);
+            span.toggleClass("promoted", Piece.kind(piece) === Piece.Hen);
+            return true;
+        }
+        const move_to_hand = (piece: Piece): boolean => {
+            const mine_p = Piece.mine_p(piece);
+            const mine_class = mine_p ? ".player" : ".master";
+            const expand = (orig: string) => `.hand ${orig}${mine_class}`;
+            const expanded_selector = kind_class(piece).split(",").map(expand).join(",");
+            const span = rest.filter(expanded_selector).first();
+            const place = (span.length > 0) ? span.parent() : self.get_empty_hand(mine_p);
+            return move_piece(piece, place);
         }
         // cells
         for (const x of [0, 1, 2])
             for (const y of [0, 1, 2, 3])
-                move_piece(board.get(x, y), self.get_cell(x, y));
+                move_piece(board.get(x, y), self.get_cell(x, y)) &&
+                    (board = board.del(x, y));
         // hands
         const kinds = [Piece.Elephant, Piece.Giraffe, Piece.Chick];
         for (let k of kinds)
             for (let p of [k, Piece.opponent[k]])
                 for (let h = board.hand(p); h > 0; h--)
-                    move_piece(p, self.get_empty_hand(Piece.mine_p(p)));
+                    move_to_hand(p) && (board = board.dec_hand(p));
         // lion is missing in "board" if captured
-        switch (board.gameover_status()) {
+        switch (!staying_only && gameover_status) {
         case -1:  // master wins (capture)
-            move_piece(Piece.opponent[Piece.Lion], self.get_empty_hand(false));
+            move_to_hand(Piece.opponent[Piece.Lion]);
             break;
         case +1:  // player wins (capture)
-            move_piece(Piece.Lion, self.get_empty_hand(true));
+            move_to_hand(Piece.Lion);
             break;
         }
+        return [board, rest];
     }
 
     update_depth() {
