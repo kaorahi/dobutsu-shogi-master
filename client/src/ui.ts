@@ -40,6 +40,7 @@ export class UI {
     analysis_mode = false;
     edit_mode = false;
     swap_side_p = false;
+    show_depth_p = true;
     puzzle_depth = 5;
     autorun_timer: number | null = null;
     autorun_running = false;
@@ -109,6 +110,11 @@ export class UI {
         $("button#analysis-mode").click((e) => {
             if (!this.enter()) return;
             this.analysis_mode = true;
+            this.leave();
+        });
+        $("button#toggle-depth").click((e) => {
+            if (!this.enter()) return;
+            this.show_depth_p = !this.show_depth_p;
             this.leave();
         });
         $("button#autorun").click((e) => this.start_autorun());
@@ -282,6 +288,7 @@ export class UI {
         if (!this.enter()) return;
         const depths = depth < 20 ? [depth] : [0, 2, 4, 6, 8].map(k => depth + k);
         this.set_board(this.ai.get_random_board(depths))
+        this.show_depth_p = false;
         this.leave();
     }
 
@@ -430,6 +437,7 @@ export class UI {
             let r_nb = this.revflip_maybe(move.new_board, is_master_turn);
             let depth = this.ai.search(r_nb)[0];
             const depth_text =
+                  !this.show_depth_p ? "" :
                   depth < 0 ? "-" :
                   depth === 0 ? "!" :
                   depth === 1 ? "x" :
@@ -617,7 +625,7 @@ export class UI {
         if (this.edit_mode) $("span#player").addClass("draw");
         else if (gameover > 0) $("span#player").addClass("win");
         else if (gameover < 0) $("span#player").addClass("level6");
-        else if (d < 0) $("span#player").addClass("draw");
+        else if (d < 0 || !this.show_depth_p) $("span#player").addClass("draw");
         else if (d % 2 !== 0) $("span#player").addClass("level1");
         else if (d >= 70) $("span#player").addClass("level1");
         else if (d >= 40) $("span#player").addClass("level2");
@@ -642,7 +650,8 @@ export class UI {
             $("span#last").text($("#record").children().length);
         }
         else {
-            $("span#msg").text("あと" + (d >= 0 ? d : "∞") + "手");
+            const rest = !this.show_depth_p ? "？" : d >= 0 ? d : "∞";
+            $("span#msg").text("あと" + rest + "手");
             if (d <= 10) $("#player").addClass("dying");
             $("span#about-image").removeClass("dead");
         }
@@ -670,9 +679,9 @@ export class UI {
             $("#record-box").children().hide();
             $("#record-controls").show();
             $("#record-controls").children().hide();
-            $("#record-controls").children(".edit-mode-only").show();
+            $("#record-controls").children(".edit-mode-only, #toggle-depth").show();
             $("button").prop("disabled", true);
-            $("#record-controls .edit-mode-only, #piece-menu button").prop("disabled", false);
+            $("#record-controls .edit-mode-only, #piece-menu button, #toggle-depth").prop("disabled", false);
             $(".player, .master").toggleClass("to-play", true);
         } else {
             $("#record-box").children().show();
@@ -688,6 +697,7 @@ export class UI {
             $("button#next-board").prop("disabled", this.snapshots.length === 0);
         }
         $("#move-count").text(this.current_move_count());
+        $("button#toggle-depth").toggleClass("highlight", !this.show_depth_p);
         if (dont_leave_actually) return;
         this.locked = false;
     }
