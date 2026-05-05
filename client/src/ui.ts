@@ -483,7 +483,8 @@ export class UI {
         let nb = move.new_board
         let r_nb = this.revflip_maybe(nb, master_p);
         let gameover = nb.gameover_status();
-        let [depth, nnb] = (gameover === 0) ? this.ai.search(r_nb) : [-2, null];
+        let [depth, r_nnb] = (gameover === 0) ? this.ai.search(r_nb) : [-2, null];
+        let nnb = r_nnb && this.revflip_maybe(r_nnb, master_p);
         let nmove = nnb && !this.analysis_mode && Move.detect_move(nb, nnb);
         this.clear_future(true);
         this.history.push([this.ui_state, move, nmove]);
