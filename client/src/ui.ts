@@ -706,7 +706,7 @@ export class UI {
     }
 
     update_principal_variation_display() {
-        const pv_p = this.analysis_mode && !this.edit_mode;
+        const pv_p = this.analysis_mode;
         const pv_text = pv_p ?
               format_principal_variation(this, this.ui_state.board, this.is_white_turn(), this.pv_hover_move) :
               "";
