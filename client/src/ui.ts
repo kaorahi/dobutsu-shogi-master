@@ -72,6 +72,7 @@ export class UI {
                 $("#about-overlay").fadeOut("fast");
             });
         });
+        $("button#copy").click((e) => this.copy_csa_kifu_to_clipboard());
 
         $("button#new-game").click((e) => this.restore_positions(false));
         $("button#swap").click((e) => this.restore_positions(true));
@@ -84,11 +85,7 @@ export class UI {
         // click anywhere to stop autorun
         document.addEventListener("click", (e) => this.stop_autorun(), {capture: true});
         $(document).on("keydown", (e) => this.stop_autorun());
-        $(document).on("paste", (e) => {
-            const oe = e.originalEvent as ClipboardEvent;
-            const text = oe.clipboardData?.getData("text") ?? "";
-            this.paste(text);
-        });
+        $(document).on("paste", (e) => this.load_csa_kifu_from_clipboard(e));
         $("button#puzzle").click((e) =>
             this.set_random_board(this.puzzle_depth));
         $(".puzzle-button").each((_, b) => {
@@ -226,7 +223,33 @@ export class UI {
         this.leave();
     }
 
-    paste(text: string) {
+    // copy & paste (CSA-like Kifu)
+    // See this page for the format.
+    // https://www.tanaka.ecc.u-tokyo.ac.jp/ktanaka/dobutsushogi/index.html
+    // (example)
+    // +C4C3KI
+    // -B2B3HI
+    // +C3B3KI
+    // -00A2HI
+
+    copy_csa_kifu_to_clipboard() {
+        this.copy_to_clipboard(this.csa_kifu_text());
+        $("body").stop(true, true).fadeTo(150, 0.1).fadeTo(150, 1);
+    }
+
+    load_csa_kifu_from_clipboard(e: JQuery.TriggeredEvent) {
+            const oe = e.originalEvent as ClipboardEvent;
+            const text = oe.clipboardData?.getData("text") ?? "";
+            this.load_csa_kifu_text(text);
+    }
+
+    csa_kifu_text(): string {
+        const hs = [...this.history, ...this.future.toReversed()];
+        const moves = hs.flatMap(z => z.slice(1)).filter(m => m) as Move[];
+        return moves.map(m => this.move2csa(m) + "\n").join("");
+    }
+
+    load_csa_kifu_text(text: string) {
         if (!this.enter()) return;
         $("#loading").show();
         // needs requestAnimationFrame twice in my environment to show "loading"
@@ -254,14 +277,18 @@ export class UI {
         });
     }
 
+    move2csa(m: Move): string {
+        const piece_name = ["", "LI", "ZO", "KI", "HI", "NI"];
+        const col_name = ["A", "B", "C"];
+        const xy2s = (x: number, y: number): string => `${col_name[2-x]}${4-y}`;
+        const np = m.new_board.get(m.nx, m.ny);
+        const s = Piece.mine_p(np) ? "+" : "-"
+        const from = (m instanceof Drop) ? "00" : xy2s(m.x, m.y);
+        const to = xy2s(m.nx, m.ny);
+        return s + from + to + piece_name[Piece.kind(np)];
+    }
+
     csa2move(s: string, is_white_turn: boolean) : Move | null {
-        // Kifu format: See this page.
-        // https://www.tanaka.ecc.u-tokyo.ac.jp/ktanaka/dobutsushogi/index.html
-        // (example)
-        // +C4C3KI
-        // -B2B3HI
-        // +C3B3KI
-        // -00A2HI
         try {
             const piece_name = ["", "LI", "ZO", "KI", "HI", "NI"];  // L,E,G,C,H
             const col_name = ["A", "B", "C"];
@@ -292,6 +319,15 @@ export class UI {
         } catch {
             return null;
         }
+    }
+
+    copy_to_clipboard(text: string) {
+        const $textarea = $("<textarea>").val(text).css({ position: "fixed", left: "-9999px", top: "0" }).appendTo("body");
+        const textarea = $textarea[0] as HTMLTextAreaElement;
+        textarea.focus();
+        textarea.select();
+        try { document.execCommand("copy"); } catch {};
+        $textarea.remove();
     }
 
 
