@@ -459,12 +459,19 @@ export class UI {
                   depth === 1 ? "x" :
                   depth + 1;
             cell.children().first().text(depth_text);
+            const set_c = (klass: string, flag: boolean) =>
+                  cell.toggleClass(klass, this.analysis_mode && flag);
+            set_c("winning", depth % 2 === 0);
+            set_c("draw", depth < 0);
+            set_c("best", depth + (depth < 0 ? 0 : 1) === this.ui_state.depth);
         });
     }
 
     dragstop(piece?: JQuery) {
         // make all cells undroppable
-        $("div.cell, div.hand").removeClass("possible").removeClass("drop-current").droppable("disable");
+        $("div.cell, div.hand")
+            .removeClass("possible drop-current winning draw best")
+            .droppable("disable");
         $("span.hint").text("");
         if (this.edit_mode && piece) {
             const place = piece.parent();

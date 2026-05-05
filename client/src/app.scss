@@ -247,10 +247,15 @@ td.cell {
     z-index: 2000;
   }
   div.possible {
-    background: rgba(255, 153, 153, 0.5);
-  }
-  div.possible.drop-current {
-    background: rgba(255, 153, 153, 0.8);
+    --bg: 255, 153, 153;
+    --alpha: 0.5;
+    background: rgba(var(--bg), var(--alpha));
+    &.best { --bg: 255, 153, 255; }
+    &.winning { --bg: 153, 153, 255; }
+    &.winning.best { --bg: 0, 204, 204; }
+    &.draw { --bg: 153, 153, 153; }
+    &.draw.best { --bg: 204, 204, 0; }
+    &.drop-current { --alpha: 0.8; }
   }
 }
 td.hand {
