@@ -309,6 +309,9 @@ span.piece {
     background-color: #ddddff;
     border-color: #9999ff;
   }
+  &.best-move {
+    background-color: #fff;
+  }
   &.lion.player           { background-position:  0em -0em; }
   &.lion.master           { background-position: -4em -0em; }
   &.elephant.player       { background-position:  0em -4em; }

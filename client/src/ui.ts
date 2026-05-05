@@ -98,6 +98,8 @@ export class UI {
         $("button#undo").click((e) => this.undo_turn());
         $("button#redo").click((e) => this.redo_turn());
         $("button#best-move").click((e) => this.enter() && this.do_master_turn_leave());
+        $("button#best-move").on("pointerdown", () => this.highlight_best_move_piece());
+        $("button#best-move").on("pointerup pointerleave pointercancel lostpointercapture", () => this.unhighlight_best_move_piece());
         $("#record-before-first").click((e) => this.goto_history_len(0));
         $("button#about").click((e) => {
             $("#about-dialog").click((e) => e.stopPropagation());
@@ -515,23 +517,44 @@ export class UI {
     }
 
     do_master_turn_leave_or_callback(callback: (() => void) | null = null) {
-        let rev = !this.is_white_turn();
-        let b = this.revflip_maybe(this.ui_state.board, rev);
-        let [depth, nnb] = this.ai.search(b);
-        let nmove = this.revflip_maybe(Move.detect_move(b, nnb), rev);
+        const fin = callback || (() => this.leave());
+        let [depth, nmove] = this.get_depth_and_best_move();
+        if (depth === null || nmove === null )
+            return callback ? callback() : this.leave();
         this.clear_future(true);
         this.history.push([this.ui_state, null, nmove]);
 
         $("span.piece").delay(300).promise().done(() => {
             this.do_move(nmove);
             this.ui_state = { board: nmove.new_board, depth: depth - 1 };
-            if (callback)
-                callback();
-            else
-                this.leave();
+            fin();
         });
     }
 
+    get_depth_and_best_move(): [number, Move] | [null, null] {
+        try {
+            let rev = !this.is_white_turn();
+            let b = this.revflip_maybe(this.ui_state.board, rev);
+            let [depth, nnb] = this.ai.search(b);
+            return [depth, this.revflip_maybe(Move.detect_move(b, nnb), rev)];
+        } catch {
+            return [null, null];
+        }
+    }
+
+    highlight_best_move_piece() {
+        if (!this.enter()) return;
+        const [_, move] = this.get_depth_and_best_move();
+        if (!move) return this.leave();
+        const [place, piece] = (move instanceof Normal) ?
+              this.get_cell_piece(move.x, move.y) : this.get_hand_piece(move.p);
+        piece.addClass("best-move");
+        this.leave();
+    }
+
+    unhighlight_best_move_piece() {
+        $(".piece").removeClass("best-move");
+    }
 
     // revoke the previous two turns (master's and player's)
     undo_turn(destructive: boolean = false) {
