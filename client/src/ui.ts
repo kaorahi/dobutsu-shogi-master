@@ -557,7 +557,8 @@ export class UI {
 
         this.do_move(move, piece);
         const state_before_nmove = { board: nb, depth: depth};
-        if (!nmove || this.analysis_mode) return this.leave(state_before_nmove);
+        this.ui_state = state_before_nmove;
+        if (!nmove || this.analysis_mode) return this.leave();
         $("span.piece").delay(300).promise().done(() => {
             // history must be updated before do_move
             let depth_after_nmove = Math.max(-1, depth - 1);
