@@ -90,6 +90,8 @@ export class CsaIO {
     }
 
     private textToBoard(text: string): Board {
+        const board_from_hashstr = board_from_hashstr_or_url(text);
+        if (board_from_hashstr) return board_from_hashstr;
         const piece_name = ["", "LI", "ZO", "KI", "HI", "NI"];
         const c2mypiece = (t: string) => piece_name.indexOf(t) as Piece;
         const opp = (p: Piece, sign: string) => (sign === "+") ? p : Piece.opponent[p];
@@ -181,6 +183,18 @@ export class CsaIO {
         try { document.execCommand("copy"); } catch {}
         $textarea.remove();
     }
+}
+
+function board_from_hashstr_or_url(text: string): Board | null {
+    const hashstr_p = (t: string): boolean => /^[0-9a-f]{15}$/.test(t);
+    const board_maybe = (t: string): Board | null => {
+        try { return Board.from_hashstr(t); } catch { return null; }
+    }
+    if (hashstr_p(text)) return board_maybe(text);
+    try {
+        const t = new URL(text).searchParams.get("board");
+        return t ? board_maybe(t) : null;
+    } catch { return null; }
 }
 
 let last_wink_animation: Animation | null = null;
