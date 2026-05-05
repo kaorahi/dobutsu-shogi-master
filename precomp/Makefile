@@ -5,7 +5,7 @@ PRE = r_$(RULES)
 
 .DELETE_ON_ERROR:
 
-.PHONY: all build clean distclean analyze small large smalldocs largedocs docs update_rules images
+.PHONY: all build clean distclean analyze small large smalldocs largedocs docs docs_only update_rules images
 
 all: largedocs
 
@@ -29,7 +29,9 @@ largedocs: large update_rules
 	rm -f $(PRE)_unpruned_ai.txt.gz $(PUB)/unpruned_ai.txt.gz
 	make docs
 
-docs: images
+docs: images docs_only
+
+docs_only:
 	cd ../client && npm run build
 
 images:
