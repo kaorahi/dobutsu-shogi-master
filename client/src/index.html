@@ -146,7 +146,7 @@
           <button id="redo">＞</button>
           <span id="player" class="level1"></span>
         </p>
-        <button id="about">せつめい</button>
+        <button id="show-control">メニュー</button>
       </div>
       <div id="record-box">
         <div id="record-controls">
@@ -155,7 +155,6 @@
             <button id="prev-board">前盤</button>
             <button id="next-board">次盤</button>
           </div>
-          <button id="show-control">☗メニュー</button>
           <button id="puzzle">次問（5手）</button>
           <label class="switch edit-mode-too">
             <input type="checkbox" class="switch" id="analysis-ckbox">
@@ -203,6 +202,7 @@
     </div>
     <div class="dialog-overlay" id="control-overlay">
       <div id="control-dialog">
+        <p>ゲーム</p>
         <button id="new-game">もう一局</button>
         <button id="swap">後手番で</button>
         <label class="switch"><input type="checkbox" class="switch" id="swap-ckbox"><span class="switch-slider"></span><span class="switch-label">後手視点</span></label>
@@ -230,6 +230,8 @@
         <input id="load-input" type="file" hidden>
         <button id="download">保存</button>
         <button id="copy-url">局面URLのコピー</button>
+        <p>ヘルプ</p>
+        <button id="about">せつめい</button>
       </div>
     </div>
     <dialog id="loading" open>ロード中…<span id="loading-count"> (0)</span></dialog>

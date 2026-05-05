@@ -122,11 +122,14 @@ export class UI {
         $("button#best-move").click((e) => this.enter() && this.do_master_turn_leave());
         $("span#msg").click((e) => $("span#msg").removeClass("censored"));
         $("#record-before-first").click((e) => this.goto_history_len(0));
-        $("button#about").click((e) => $("#about-overlay").fadeIn("fast"));
+        $("button#about").click((e) => {
+            $("#control-overlay").fadeOut("fast");
+            $("#about-overlay").fadeIn("fast");
+        });
         $("#about-dialog").click((e) => e.stopPropagation());
         const close_dialogs = () => $(".dialog-overlay").fadeOut("fast");
         $("#about-overlay").click(close_dialogs);
-        $("#control-dialog button").click(close_dialogs);
+        $("#control-dialog button:not(#about)").click(close_dialogs);
         $("button#show-control").click((e) => {
             $("#control-dialog input").val("");
             $("#control-overlay").fadeIn("fast");
