@@ -18,8 +18,15 @@ async function fetch_gunzip(url: string) {
 }
 
 async function main(): Promise<{ ai: AI; ui: UI }> {
+    // initialize UI
     $("#record-box").css("opacity", 0);
     const loading = $("#loading");
+    const start_time = Date.now();
+    const loading_timer = setInterval(() => {
+        const sec = Math.floor((Date.now() - start_time) / 1000);
+        $("#loading-count").text(sec);
+    }, 1000);
+    // fetch
     const res = await fetch("rules.txt", { cache: "no-store" });
     const rules_txt = res.ok ? (await res.text()).trim() : 'val1n';
     const init_game_file_switch = new URLSearchParams(window.location.search).get("tmp_load_initial_game_record_txt_xz");
@@ -40,6 +47,7 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
     ]);
     const kbuf = await fetch_xz("keys.xz");
     const vbuf = await fetch_xz("vals.xz");
+    // build
     const ai_txt = new TextDecoder("utf-8").decode(abuf);
     const init_game_txt = new TextDecoder("utf-8").decode(ibuf);
     const keys = new BigUint64Array(kbuf);
@@ -50,6 +58,8 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
     const vals = is_8bit ? new Uint8Array(vbuf) : new Uint16Array(vbuf);
     const ai = new AI(rules_txt, ai_txt, keys, vals);
     const ui = new UI(ai, init_game_txt);
+    // finalize
+    clearInterval(loading_timer);
     loading.hide();
     $("#record-box").css("opacity", 1);
     return {ai, ui};
