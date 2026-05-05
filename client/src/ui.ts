@@ -158,8 +158,7 @@ export class UI {
         });
         $("button#copy-url").click((e) => {
             const url = new URL(window.location.href);
-            const r_board = this.revflip_maybe(this.ui_state.board, this.is_white_turn());
-            url.searchParams.set("board", r_board.hashstr());
+            url.searchParams.set("board", this.board_hashstr());
             const url_str = url.toString();
             this.csa_io.copyToClipboard(url_str);
             toast(url_str, 5000);
@@ -923,6 +922,8 @@ export class UI {
         $("button#copy, button#download").prop("disabled", this.fresh_game_p(Board.init()));
         $("#depth-ckbox").prop("disabled", false);
         $("#move-count").text(this.history.length);
+        $("#board-hashstr").text(this.board_hashstr());
+        $("#board-normalized-hashstr").text(this.board_hashstr(true));
         $("#analysis-ckbox").prop("checked", this.analysis_mode);
         $("#swap-ckbox").prop("checked", this.swap_side_p);
         this.update_principal_variation_display();
@@ -931,6 +932,11 @@ export class UI {
         const v = hl === 0 ? $("li#record-before-first") : $("ol#record").children().eq(hl - 1);
         v.length > 0 && $("#container").css("flex-direction") === "row" &&
             v[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    board_hashstr(normalize_p = false): string {
+        const b = this.revflip_maybe(this.ui_state.board, this.is_white_turn());
+        return (normalize_p ? b.normalize() : b).hashstr();
     }
 
     update_coord_labels() {

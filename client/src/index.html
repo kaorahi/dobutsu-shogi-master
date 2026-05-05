@@ -232,7 +232,11 @@
         <button id="load" type="button">開く</button>
         <input id="load-input" type="file" hidden>
         <button id="download">保存</button>
-        <button id="copy-url">局面URLのコピー</button>
+        <div id="hashstr-box">
+          現局面コード <span id="board-hashstr"></span>
+          <button id="copy-url">局面URLのコピー</button><br>
+          （正規化 <span id="board-normalized-hashstr"></span>）
+        </div>
         <p>ヘルプ</p>
         <button id="about">せつめい</button>
       </div>

@@ -200,8 +200,8 @@ div#about-dialog {
 div#control-dialog {
   width: 22em;
   padding: 1em 0em 0em 0em;
-  button, select, p, label {
-    margin: 1em;
+  button, select, p, label, div {
+    margin: 1rem;
   }
   select, input {
     font-size: 0.8em;
@@ -210,8 +210,11 @@ div#control-dialog {
   input {
     width: 10em;
   }
-  #copy-url {
-    font-size: 0.5em;
+  #hashstr-box {
+    font-size: 0.8em;
+    margin-top: 0rem;
+    margin-bottom: 2rem;
+    color: #888;
   }
 }
 p#about-image-container {
