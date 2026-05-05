@@ -161,7 +161,7 @@ export class AI {
                     console.assert(this.verify_depth(board, depth),
                                    "get_random_board: wrong depth",
                                    depth, board.hashstr(), board);
-                    return board;
+                    return Math.random() < 0.5 ? board : board.flip();
                 }
             }
         }
