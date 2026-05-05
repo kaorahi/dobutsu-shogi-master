@@ -164,7 +164,7 @@
         </div>
       </div>
     </div>
-    <div id="about-overlay">
+    <div class="dialog-overlay" id="about-overlay">
       <div id="about-dialog">
         <ul>
           <li>どうぶつしょうぎのルールは<a href="https://ja.wikipedia.org/wiki/%E3%81%A9%E3%81%86%E3%81%B6%E3%81%A4%E3%81%97%E3%82%87%E3%81%86%E3%81%8E" target="_blank" rel="noopener noreferrer">Wikipedia</a>を見てください。</li>
@@ -187,26 +187,28 @@
         </p>
       </div>
     </div>
-    <div id="control-overlay">
+    <div class="dialog-overlay" id="control-overlay">
       <div id="control-dialog">
         <button id="new-game">もう一局</button>
         <button id="swap">後手番で</button>
         <label class="switch"><input type="checkbox" class="switch" id="swap-ckbox"><span class="switch-slider"></span><span class="switch-label">後手視点</span></label>
         <button id="enter-edit-mode">自由配置</button>
+        <select id="puzzle-select">
+         <option id="puzzle-select-title" value="-1">問題練習</option>
+         <option value="5">5手</option>
+         <option value="7">7手</option>
+         <option value="9">9手</option>
+         <option value="11">11手</option>
+         <option value="13">13手</option>
+         <option value="15">15手</option>
+         <option value="17">17手</option>
+         <option value="19">19手</option>
+         <option value="21">21〜</option>
+         <option value="31">31〜</option>
+         <option value="41">41〜</option>
+         <option value="51">51〜</option>
+        </select>
         <button id="autorun">最善手順</button>
-        <p>問題練習</p>
-        <button class="puzzle-button" id="puzzle5">5手</button>
-        <button class="puzzle-button" id="puzzle7">7手</button>
-        <button class="puzzle-button" id="puzzle9">9手</button>
-        <button class="puzzle-button" id="puzzle11">11手</button>
-        <button class="puzzle-button" id="puzzle13">13手</button>
-        <button class="puzzle-button" id="puzzle15">15手</button>
-        <button class="puzzle-button" id="puzzle17">17手</button>
-        <button class="puzzle-button" id="puzzle19">19手</button>
-        <button class="puzzle-button" id="puzzle21">21〜</button>
-        <button class="puzzle-button" id="puzzle31">31〜</button>
-        <button class="puzzle-button" id="puzzle41">41〜</button>
-        <button class="puzzle-button" id="puzzle51">51〜</button>
         <p>記録</p>
         <button id="copy">棋譜のコピー</button>
         <input placeholder="ここに貼って読込"></input><br>
