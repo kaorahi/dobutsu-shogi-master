@@ -5,8 +5,8 @@ import {Move, Drop} from "./move";
 export class CsaIO {
     constructor(private ui: UI) {}
 
-    copyToClipboard() {
-        this.copyText(this.toText());
+    copyToClipboard(text = this.toText()) {
+        this.copyText(text);
         wink();
     }
 

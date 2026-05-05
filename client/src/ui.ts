@@ -116,6 +116,12 @@ export class UI {
             });
         });
         $("button#copy").click((e) => this.csa_io.copyToClipboard());
+        $("button#copy-url").click((e) => {
+            const url = new URL(window.location.href);
+            const r_board = this.revflip_maybe(this.ui_state.board, this.is_white_turn());
+            url.searchParams.set("board", r_board.hashstr());
+            this.csa_io.copyToClipboard(url.toString());
+        });
         $("button#prev-board").click((e) => this.rotate_snapshot(true));
         $("button#next-board").click((e) => this.rotate_snapshot());
 
@@ -734,10 +740,6 @@ export class UI {
         $(".player").toggleClass("to-play", gameover === 0 && !master_to_play);
         $(".master").toggleClass("to-play", gameover === 0 && master_to_play);
         $("span#player").toggleClass("opposite", !this.edit_mode && gameover === 0 && master_to_play);
-        const url = new URL(window.location.href);
-        const r_board = this.revflip_maybe(this.ui_state.board, this.is_white_turn());
-        url.searchParams.set("board", r_board.hashstr());
-        $("a#permalink").attr("href", url.toString());
         if (this.edit_mode) {
             $("#record-box").children().hide();
             $("#record-controls").show();
