@@ -113,6 +113,18 @@ export class UI {
         $("#control-dialog").click((e) => e.stopPropagation());
         $("#control-overlay").click(close_dialogs);
         $("button#copy").click((e) => this.csa_io.copyToClipboard());
+        $("button#download").click((e) => {
+            const text = this.csa_io.toText();
+            const yymmdd_HHMMSS = new Date().toISOString().slice(2, 19).replace(/[-:]/g, '').replace('T', '-');
+            const filename = `dobutsu-shogi-${yymmdd_HHMMSS}.txt`;
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
         $("button#copy-url").click((e) => {
             const url = new URL(window.location.href);
             const r_board = this.revflip_maybe(this.ui_state.board, this.is_white_turn());
