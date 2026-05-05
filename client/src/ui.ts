@@ -72,11 +72,13 @@ export class UI {
             scroll: false
         });
         $("div.cell").droppable({
+            tolerance: "pointer",
             drop: (event, ui) => { this.drop(ui.draggable, $(event.target) as JQuery<HTMLElement>, event); },
             over: (event, ui) => { this.edit_controller.highlightDropTarget($(event.target) as JQuery<HTMLElement>); },
             out: (event, ui) => { this.edit_controller.clearDropTarget($(event.target) as JQuery<HTMLElement>); },
         });
         $("div.hand").droppable({
+            tolerance: "pointer",
             drop: (event, ui) => { this.drop(ui.draggable, $(event.target) as JQuery<HTMLElement>, event); },
             over: (event, ui) => { this.edit_controller.highlightDropTarget($(event.target) as JQuery<HTMLElement>); },
             out: (event, ui) => { this.edit_controller.clearDropTarget($(event.target) as JQuery<HTMLElement>); },
