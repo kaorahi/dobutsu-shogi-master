@@ -6,6 +6,7 @@ const lowest_depth_in_db = 4;
 
 export class AI {
     rules: string = 'val1n';
+    private search_cache: [string, boolean, [number, Board[]]][] = [];
     // An oracle data base that maps a possible board to a move that AI should
     // choose to win.
     private db: Record<string, [number, number]> = {};
@@ -130,6 +131,18 @@ export class AI {
     }
 
     search_sub(b: Board, depth_only: boolean): [number, Board[]] {
+        const cache_size = 200;
+        const h = b.hashstr();
+        const cached = this.search_cache.find(trio =>
+            trio[0] === h && (depth_only || !trio[1]))?.[2];
+        if (cached) return cached;
+        const ret = this.search_actually(b, depth_only);
+        this.search_cache.unshift([h, depth_only, ret]);
+        this.search_cache.slice(cache_size);
+        return ret;
+    }
+
+    search_actually(b: Board, depth_only: boolean): [number, Board[]] {
         let r_b = b.reverse(); // reverse black and white
         let nr_b = r_b.normalize(); // normalize 
         let flipped = r_b !== nr_b; // a flag if normalize caused a flip or not
