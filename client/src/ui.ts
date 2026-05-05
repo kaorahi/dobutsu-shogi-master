@@ -326,7 +326,7 @@ export class UI {
         const {board, depth} = this.ui_state;
         const needs_swap = !this.is_white_turn();
         const white_board = this.revflip_maybe(board, needs_swap);
-        this.ui_state = {board, depth: this.ai.search(white_board)[0]};
+        this.ui_state = {board, depth: this.ai.search_depth(white_board)};
     }
 
     set_random_board(depth: number) {
@@ -505,7 +505,7 @@ export class UI {
             cell.addClass("possible");
             if (!this.analysis_mode) return;
             let r_nb = this.revflip_maybe(move.new_board, is_master_turn);
-            let depth = this.ai.search(r_nb)[0];
+            let depth = this.ai.search_depth(r_nb);
             let status = r_nb.gameover_status();
             const depth_text =
                   !this.analysis_mode ? "" :

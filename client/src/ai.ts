@@ -32,7 +32,7 @@ export class AI {
     }
 
     // Get the move indexes for a depth-4 (or more) boards
-    lookup_db(b: Board): [number, number[]] {
+    lookup_db(b: Board, depth_only: boolean): [number, number[]] {
         const nbs = b.next_boards();
         if (nbs === Result.Lose) return [0, []];
         if (nbs === Result.Win) return [1, []];
@@ -41,7 +41,7 @@ export class AI {
         if (v) return [v[0], [v[1]]];
         // lookup key-value
         const depth = this.lookup_depth(b);
-        if (depth <= lowest_depth_in_db) return [depth, []];
+        if (depth_only || depth <= lowest_depth_in_db) return [depth, []];
         const targets = nbs.filter(b2 =>
             this.lookup_depth(b2.reverse().normalize()) === depth - 1);
         return [depth, targets.map(b2 => nbs.indexOf(b2))];
@@ -78,18 +78,19 @@ export class AI {
     // Perform a shallow search to check low-depth boards omitted from
     // the database, while also referring to the database to handle
     // repetitions correctly (Sen-nichi-te).
-    private search_core(nr_b: Board, limit: number): [number, Board[]] {
+    private search_core(nr_b: Board, limit: number, depth_only: boolean): [number, Board[]] {
         const nr_nbs = nr_b.next_boards()
         // trivial cases
         if (nr_b.gameover_status() !== 0) return [0, [nr_b]];
         if (nr_nbs === Result.Lose) return [0, [nr_b]];
         if (nr_nbs === Result.Win) return [1, [this.calc_final_board(nr_b)]];
-        let [depth, idxes] = this.lookup_db(nr_b);
-        if (depth >= 0 && idxes.length > 0) return [depth, idxes.map(i => nr_nbs[i])];
+        let [depth, idxes] = this.lookup_db(nr_b, depth_only);
+        let done = depth >= 0 && (depth_only || idxes.length > 0);
+        if (done) return [depth, idxes.map(i => nr_nbs[i])];
         if (limit < 1) return [-1, nr_nbs.length > 0 ? nr_nbs : [nr_b]];
         // iteration
         const next_depth = (b: Board): number | undefined =>
-              this.search_core(b.reverse().normalize(), limit - 1)?.[0];
+              this.search_core(b.reverse().normalize(), limit - 1, depth_only)?.[0];
         const ds = nr_nbs.map(next_depth);
         const nump = (d: number | undefined): d is number => typeof d === 'number';
         const ps = ds.filter((d): d is number => nump(d) && d >= 0);
@@ -111,12 +112,20 @@ export class AI {
 
     // given a white board, returns a pair of depth and next black boards
     search(b: Board): [number, Board[]] {
+        return this.search_sub(b, false);
+    }
+
+    search_depth(b: Board): number {
+        return this.search_sub(b, true)[0];
+    }
+
+    search_sub(b: Board, depth_only: boolean): [number, Board[]] {
         let r_b = b.reverse(); // reverse black and white
         let nr_b = r_b.normalize(); // normalize 
         let flipped = r_b !== nr_b; // a flag if normalize caused a flip or not
 
         // find a next board
-        let [depth, nr_nbs] = this.search_core(nr_b, lowest_depth_in_db);
+        let [depth, nr_nbs] = this.search_core(nr_b, lowest_depth_in_db, depth_only);
 
         // invert the reverse and the normalization
         let r_nbs = nr_nbs.map(nr_nb => flipped ? nr_nb.flip() : nr_nb);
@@ -207,7 +216,7 @@ export class AI {
     // if wrong item found:
     // b = Board.from_hashstr("0040900a0a14053")
     // ui.enter() && (ui.set_board(b), ui.leave())
-    // ai.lookup_db(b)
+    // ai.lookup_db(b, false)
     // ai.verify_depth(b, 11, true)
     do_random_check(n: number) {
         const len = this.keys.length
