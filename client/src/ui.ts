@@ -1023,7 +1023,7 @@ export class UI {
         // [depth bar]
         const min_l = 0.0;
         const max_l = 0.4;
-        const l = Math.min(max_l, trans(next_depth, [0, max_depth], [min_l, max_l]));
+        const l = Math.min(max_l, trans(next_depth, [0, max_depth + 1e-5], [min_l, max_l]));
         const color_level = (b_next_eval === 0) ? 0.5 : (b_next_eval > 0) ? l : 1 - l;
         const li = $(elem);
         li.css("border-left-color", get_color(color_level));
