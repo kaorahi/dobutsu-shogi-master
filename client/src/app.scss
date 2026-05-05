@@ -240,6 +240,12 @@ td.cell {
       top: 0em;
     }
   }
+  div.cell.drop-current span.hint {
+    font-size: 2.4em;
+    backdrop-filter: blur(5px);
+    transition: 0.1s ease;
+    z-index: 2000;
+  }
   div.possible {
     background: rgba(255, 153, 153, 0.5);
   }
