@@ -137,9 +137,7 @@ export class EditModeController {
     }
 
     private transformBoard(transform: (board: Board) => Board) {
-        if (!this.host.edit_mode) return;
         if (!this.host.enter()) return;
-        this.closeContextMenu();
         const board = transform(this.buildBoardFromDom());
         this.host.set_board(board, true);
         this.host.leave();
