@@ -173,6 +173,9 @@ button {
   display: none;
   font-size: 0.8em;
 }
+button.highlight {
+  color: red;
+}
 .edit-mode-only {
   display: none;
 }
