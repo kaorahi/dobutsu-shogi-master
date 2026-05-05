@@ -7,8 +7,18 @@ export interface UIAnalysisHost {
     is_white_turn(): boolean;
     revflip_maybe(z: Board, flag: boolean): Board;
     revflip_maybe(z: Move, flag: boolean): Move;
+    revflip_maybe(z: Board | Move, flag: boolean): Board | Move;
     get_depth_and_best_moves(board?: Board, white_p?: boolean): [number, Move[]];
     query_move(piece: JQuery, query: any, cb: (move: Move) => void): void;
+}
+
+export function choose_principal_move(
+    host: UIAnalysisHost,
+    board = host.ui_state.board,
+    white_p = host.is_white_turn(),
+): Move | null {
+    const [_, best_moves] = host.get_depth_and_best_moves(board, white_p);
+    return best_moves[0] || null;
 }
 
 export function get_principal_variation(
@@ -33,9 +43,8 @@ export function get_principal_variation(
         if (seen.has(key)) break;
         seen.add(key);
         if (cur_board.gameover_status() !== 0) break;
-        const [depth, moves] = host.get_depth_and_best_moves(cur_board, cur_white_p);
-        if (depth === null || moves.length === 0) break;
-        const move = moves[0];
+        const move = choose_principal_move(host, cur_board, cur_white_p);
+        if (!move) break;
         pv.push(move);
         cur_board = move.new_board;
         cur_white_p = !cur_white_p;
@@ -76,13 +85,18 @@ export function get_hover_pv_move(host: UIAnalysisHost, piece: JQuery): Move | n
     const legal_moves: Move[] = [];
     host.query_move(piece, {}, (move) => legal_moves.push(move));
     if (legal_moves.length === 0) return null;
-    const [_, best_moves] = host.get_depth_and_best_moves();
-    const best_keys = new Set(best_moves.map(move => move_key(move)));
-    return legal_moves.find(move => best_keys.has(move_key(move))) || legal_moves[0];
-}
-
-function move_key(move: Move): string {
-    return move instanceof Normal ?
-          `N:${move.x},${move.y},${move.nx},${move.ny}` :
-          `D:${move.p},${move.nx},${move.ny}`;
+    const white_p = host.is_white_turn();
+    const rank = (depth: number): [number, number] => {
+        if (depth >= 0 && depth % 2 === 0) return [0, depth];  // win: shorter is better
+        if (depth < 0) return [1, 0];  // draw
+        return [2, -depth];  // lose: longer is better
+    };
+    return legal_moves.reduce((best, move) => {
+        if (!best) return move;
+        const d1 = host.get_depth_and_best_moves(move.new_board, !white_p)[0];
+        const d2 = host.get_depth_and_best_moves(best.new_board, !white_p)[0];
+        const [c1, s1] = rank(d1);
+        const [c2, s2] = rank(d2);
+        return (c1 < c2 || (c1 === c2 && s1 < s2)) ? move : best;
+    }, null as Move | null);
 }
