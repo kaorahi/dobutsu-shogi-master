@@ -107,7 +107,7 @@ export class UI {
 
     restore_positions(swap_side: boolean) {
         if (!this.enter()) return;
-        if (!window.confirm("はじめに戻す？")) return;
+        if (!window.confirm("はじめに戻す？")) return this.leave();
         const b = this.inital_board();
         this.set_board(this.revflip_maybe(this.inital_board(), swap_side));
         this.swap_side_p = swap_side;
