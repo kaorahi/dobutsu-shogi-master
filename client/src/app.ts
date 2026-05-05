@@ -41,12 +41,17 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
         "8": "initial_game_record8.txt.xz",
         "9": "initial_game_record9.txt.xz",
     }[init_game_file_switch || ""];
-    const [abuf, ibuf] = await Promise.all([
-        fetch_gunzip("unpruned_ai.txt.gz"),
-        init_game_file ? fetch_xz(init_game_file) : undefined,
-    ]);
-    const kbuf = await fetch_xz("keys.xz");
-    const vbuf = await fetch_xz("vals.xz");
+    let abuf, ibuf, kbuf, vbuf;
+    try {
+        abuf = await fetch_gunzip("unpruned_ai.txt.gz");
+        ibuf = init_game_file ? await fetch_xz(init_game_file) : undefined;
+        kbuf = await fetch_xz("keys.xz");
+        vbuf = await fetch_xz("vals.xz");
+    } catch {
+        clearInterval(loading_timer);
+        loading.text("ロード失敗");
+        throw new Error("loading failed");
+    }
     // build
     const ai_txt = new TextDecoder("utf-8").decode(abuf);
     const init_game_txt = new TextDecoder("utf-8").decode(ibuf);
