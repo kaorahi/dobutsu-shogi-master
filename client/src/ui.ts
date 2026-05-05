@@ -85,7 +85,16 @@ export class UI {
         $("button#autorun").click((e) => this.start_autorun());
         // click anywhere to stop autorun
         document.addEventListener("click", (e) => this.stop_autorun(), {capture: true});
-        $(document).on("keydown", (e) => this.stop_autorun());
+        $(document).on("keydown", (e) => {
+            this.stop_autorun();
+            const target = e.originalEvent?.target;
+            if (!(target instanceof Element)) return;
+            if (target.closest("input, textarea, [contenteditable='true']")) return;
+            switch (e.key) {
+            case '<': case ',': this.undo_turn(); break;
+            case '>': case '.': this.redo_turn(); break;
+            }
+        });
         $(document).on("paste", (e) => this.load_csa_kifu_from_clipboard(e));
         $("button#puzzle").click((e) =>
             this.set_random_board(this.puzzle_depth));
