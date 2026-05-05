@@ -245,6 +245,7 @@ dialog#loading {
   color: #000;
   border: none;
   animation: spin 30s linear infinite;
+  z-index: 3000;
 }
 @keyframes spin {
   0% {transform: rotate(0deg);}
