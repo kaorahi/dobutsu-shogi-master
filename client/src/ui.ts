@@ -651,7 +651,7 @@ export class UI {
         const state_before_nmove = { board: nb, depth: depth };
         this.ui_state = state_before_nmove;
         this.do_move(move, piece);
-        if (!nmove || this.analysis_mode) return this.leave();
+        if (!nmove || this.analysis_mode || !this.is_white_turn()) return this.leave();
         this.update_ui();
         this.update_records();
         $("span.piece").delay(300).promise().done(() => {
@@ -739,8 +739,10 @@ export class UI {
             this.ui_state = s;
             if (this.history.length > 0)
                 this.undo_turn_leave();
-            else
+            else if (this.is_white_turn())
                 this.do_master_turn_leave();
+            else
+                this.leave();
         }
         this.undo_turn_leave(callback);
     }
