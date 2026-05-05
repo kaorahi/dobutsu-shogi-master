@@ -294,14 +294,16 @@ export class UI {
     start_autorun() {
         if (!this.enter()) return;
         const autorun = () => {
-            const recur = () => this.do_master_turn_leave(autorun);
+            const recur = () => this.do_master_turn(autorun);
             if (this.autorun_running &&
-                this.ui_state.board.gameover_status() === 0)
+                this.ui_state.board.gameover_status() === 0) {
+                this.update_ui();
                 // "window" to avoid this TS error.
                 // error TS2322: Type 'Timeout' is not assignable to type 'number'.
                 this.autorun_timer = window.setTimeout(recur);
+            }
             else
-                this.stop_autorun_now_and_leave_actually();
+                this.stop_autorun_now_and_leave();
         }
         this.take_snapshot();
         this.analysis_mode = true;
@@ -315,7 +317,7 @@ export class UI {
         this.autorun_running = false;
     }
 
-    stop_autorun_now_and_leave_actually() {
+    stop_autorun_now_and_leave() {
         this.autorun_running = false; // necessary for auto stop by game end
         this.autorun_timer !== null && window.clearTimeout(this.autorun_timer);
         this.autorun_timer = null;
@@ -494,7 +496,15 @@ export class UI {
         });
     }
 
-    do_master_turn_leave(cont: (() => void) | null = null) {
+    do_master_turn_leave() {
+        this.do_master_turn_leave_or_callback(null);
+    }
+
+    do_master_turn(callback: () => void) {
+        this.do_master_turn_leave_or_callback(callback);
+    }
+
+    do_master_turn_leave_or_callback(callback: (() => void) | null = null) {
         let rev = !this.is_white_turn();
         let b = this.revflip_maybe(this.ui_state.board, rev);
         let [depth, nnb] = this.ai.search(b);
@@ -504,8 +514,11 @@ export class UI {
 
         $("span.piece").delay(300).promise().done(() => {
             this.do_move(nmove);
-            this.leave({ board: nmove.new_board, depth: depth - 1 });
-            if (cont) cont();
+            this.ui_state = { board: nmove.new_board, depth: depth - 1 };
+            if (callback)
+                callback();
+            else
+                this.leave();
         });
     }
 
@@ -617,8 +630,12 @@ export class UI {
 
     // stop changing the state
     leave(s: UIState | undefined = undefined) {
-        const dont_leave_actually = this.autorun_running; // ugly logic...
         if (s) this.ui_state = s;
+        this.update_ui();
+        this.locked = false;
+    }
+
+    update_ui() {
         if (!this.edit_mode && this.ui_state.depth === null) this.update_depth();
         let d = this.ui_state.depth as number;
         const gameover = this.ui_state.board.gameover_status();
@@ -710,8 +727,6 @@ export class UI {
         const puzzle_label = $("button#puzzle" + this.puzzle_depth).text();
         $("button#puzzle").text(`次問（${puzzle_label}）`);
         $("#depth-ckbox").prop("checked", this.show_depth_p);
-        if (dont_leave_actually) return;
-        this.locked = false;
     }
 
     // move a span element of a piece with animation
