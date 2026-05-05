@@ -166,7 +166,9 @@ export class UI {
     }
 
     set_board(board: Board, keep_history_p = false) {
-        keep_history_p || this.take_snapshot();
+        const snapshot_p = (this.history.length + this.future.length > 0) ||
+              this.ui_state.board.hashstr() !== this.initial_board().hashstr();
+        !keep_history_p && snapshot_p && this.take_snapshot();
         const self = this;
         let rest = $("span.piece");
         const move_piece = (piece: Piece, place: JQuery) => {
