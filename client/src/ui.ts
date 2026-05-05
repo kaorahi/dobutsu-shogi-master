@@ -97,6 +97,13 @@ export class UI {
                 $("#about-overlay").fadeOut("fast");
             });
         });
+        $("#control-dialog button").click((e) => $("#control-overlay").fadeOut("fast"));
+        $("button#show-control").click((e) => {
+            $("#control-dialog").click((e) => e.stopPropagation());
+            $("#control-overlay").fadeIn("fast").off().click(() => {
+                $("#control-overlay").fadeOut("fast");
+            });
+        });
         $("button#copy").click((e) => this.csa_io.copyToClipboard());
         $("button#prev-board").click((e) => this.rotate_snapshot(true));
         $("button#next-board").click((e) => this.rotate_snapshot());
@@ -679,9 +686,9 @@ export class UI {
             $("#record-box").children().hide();
             $("#record-controls").show();
             $("#record-controls").children().hide();
-            $("#record-controls").children(".edit-mode-only, #toggle-depth").show();
+            $(".edit-mode-only, .edit-mode-too").show();
             $("button").prop("disabled", true);
-            $("#record-controls .edit-mode-only, #piece-menu button, #toggle-depth").prop("disabled", false);
+            $(".edit-mode-only *, #piece-menu button, #toggle-depth").prop("disabled", false);
             $(".player, .master").toggleClass("to-play", true);
         } else {
             $("#record-box").children().show();

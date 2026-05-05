@@ -52,14 +52,17 @@ div#record-box {
     box-shadow: -1px 1px 2px black;
     cursor: pointer;
   }
+  button {
+    width: 100%;
+  }
+  button#prev-board, button#next-board, button#undo, button#redo {
+    width: 48%;
+  }
   p {
     padding: 0.5em;
   }
   p#dead-msg, p#won-msg {
     display: none;
-  }
-  p#move-navi {
-    font-size: 0.75em;
   }
 }
 div#record-controls {
@@ -94,7 +97,7 @@ div#record-container {
   }
 }
 
-div#about-overlay {
+div#about-overlay, div#control-overlay {
   z-index: 1;
   display: none;
   position: fixed;
@@ -114,6 +117,18 @@ div#about-dialog {
   padding: 1em 0em 0em 0em;
   ul {
     padding: 0em 0em 0em 2em;
+  }
+}
+div#control-dialog {
+  position: fixed;
+  width: 22em;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: #ffffff;
+  padding: 1em 0em 0em 0em;
+  button, p {
+    margin: 1em;
   }
 }
 p#about-image-container {
@@ -188,11 +203,6 @@ button#matta {
   position: absolute;
   left: 1em;
   bottom: 1em;
-}
-button.puzzle-button, button#toggle-depth {
-  font-size: 0.6em;
-  width: 2.6em;
-  padding: 0.1em;
 }
 
 p.name {
