@@ -146,6 +146,11 @@
         <button id="swap">後手番で</button>
         <button id="analysis-mode">人対人で</button>
         <button id="autorun">最善手順</button>
+        <button id="enter-edit-mode">自由配置</button>
+        <div class="edit-mode-only">駒をドラッグ<br>または右クリック</div>
+        <button id="confirm-edit-mode" class="edit-mode-only">配置確定</button>
+        <button id="edit-revflip" class="edit-mode-only">上下回転</button>
+        <button id="edit-flip" class="edit-mode-only">左右反転</button>
         <button id="puzzle">問題練習</button><br>
         <button class="puzzle-button" id="puzzle5">5手</button>
         <button class="puzzle-button" id="puzzle7">7手</button>
@@ -194,6 +199,12 @@
       </div>
     </div>
     <dialog id="loading" open>ロード中…</dialog>
+    <div id="piece-menu">
+      <button data-action="player">自駒にする</button>
+      <button data-action="master">敵駒にする</button>
+      <button data-action="promote">成りにする</button>
+      <button data-action="unpromote">成りを解除</button>
+    </div>
     <script type="module" src="app.ts"></script>
   </body>
 </html>

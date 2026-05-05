@@ -12,6 +12,7 @@ import "jquery-ui-touch-punch/jquery.ui.touch-punch";
 
 import {Board, Piece, Result, isResult} from "./board";
 import {AI} from "./ai";
+import {EditModeController} from "./edit_mode";
 import {Move, Normal, Drop} from "./move";
 
 type UIState = { board: Board, depth: number | null };
@@ -36,11 +37,13 @@ export class UI {
     locked: boolean;
 
     analysis_mode = false;
+    edit_mode = false;
     swap_side_p = false;
     puzzle_depth = 5;
     autorun_timer: number | null = null;
     autorun_running = false;
     snapshots: Snapshot[] = [];
+    edit_controller: EditModeController;
 
     is_white_turn(): boolean {
         const xor = (a: boolean, b: boolean): boolean => !!a !== !!b;
@@ -49,6 +52,7 @@ export class UI {
 
     constructor(public ai: AI, init_game_txt: string) {
         this.initialize_state();
+        this.edit_controller = new EditModeController(this);
 
         this.ui_state.board.update_rules(ai.rules);
         $("span#rules").text(ai.rules);
@@ -57,7 +61,7 @@ export class UI {
 
         $("span.piece").draggable({
             start: (event, ui) => { this.dragstart($(event.target) as JQuery<HTMLElement>); },
-            stop: (event, ui) => { this.dragstop(); },
+            stop: (event, ui) => { this.dragstop($(event.target) as JQuery<HTMLElement>); },
             revert: "invalid",
             revertDuration: 300,
             zIndex: 1000,
@@ -65,6 +69,13 @@ export class UI {
         });
         $("div.cell").droppable({
             drop: (event, ui) => { this.drop(ui.draggable, $(event.target) as JQuery<HTMLElement>); },
+            over: (event, ui) => { this.edit_controller.highlightDropTarget($(event.target) as JQuery<HTMLElement>); },
+            out: (event, ui) => { this.edit_controller.clearDropTarget($(event.target) as JQuery<HTMLElement>); },
+        });
+        $("div.hand").droppable({
+            drop: (event, ui) => { this.drop(ui.draggable, $(event.target) as JQuery<HTMLElement>); },
+            over: (event, ui) => { this.edit_controller.highlightDropTarget($(event.target) as JQuery<HTMLElement>); },
+            out: (event, ui) => { this.edit_controller.clearDropTarget($(event.target) as JQuery<HTMLElement>); },
         });
 
         $("ol#record").on("click", "li", (e) => {
@@ -87,6 +98,10 @@ export class UI {
         $("button#next-board").click((e) => this.rotate_snapshot());
 
         $("button#new-game").click((e) => this.restore_positions(false));
+        $("button#enter-edit-mode").click((e) => this.edit_controller.enterEditMode());
+        $("button#confirm-edit-mode").click((e) => this.edit_controller.confirmEditMode());
+        $("button#edit-revflip").click((e) => this.edit_controller.revflipBoard());
+        $("button#edit-flip").click((e) => this.edit_controller.flipBoard());
         $("button#swap").click((e) => this.restore_positions(true));
         $("button#analysis-mode").click((e) => {
             if (!this.enter()) return;
@@ -98,9 +113,11 @@ export class UI {
         document.addEventListener("click", (e) => this.stop_autorun(), {capture: true});
         $(document).on("keydown", (e) => {
             this.stop_autorun();
+            if (e.key === "Escape") this.edit_controller.closeContextMenu();
             const target = e.originalEvent?.target;
             if (!(target instanceof Element)) return;
             if (target.closest("input, textarea, [contenteditable='true']")) return;
+            if (this.edit_mode) return;
             switch (e.key) {
             case '<': case ',': this.undo_turn(); break;
             case '>': case '.': this.redo_turn(); break;
@@ -109,6 +126,16 @@ export class UI {
             }
         });
         $(document).on("paste", (e) => this.load_csa_kifu_from_clipboard(e));
+        $(document).on("click", (e) => {
+            const target = e.originalEvent?.target;
+            if (!(target instanceof Element) || !target.closest("#piece-menu"))
+                this.edit_controller.closeContextMenu();
+        });
+        $("span.piece").on("contextmenu", (e) => this.edit_controller.openContextMenu($(e.currentTarget), e));
+        $("#piece-menu").on("click", "button", (e) => {
+            const action = String($(e.currentTarget).data("action"));
+            this.edit_controller.applyContextMenuAction(action);
+        });
         $("button#puzzle").click((e) =>
             this.set_random_board(this.puzzle_depth));
         $(".puzzle-button").each((_, b) => {
@@ -130,6 +157,7 @@ export class UI {
 
     initialize_state() {
         this.analysis_mode = false;
+        this.edit_mode = false;
         this.set_swap_side_p(false);
         this.ui_state = { board: Board.init(), depth: null };
         this.history = [];
@@ -145,6 +173,7 @@ export class UI {
 
     restore_positions(swap_side: boolean) {
         if (!this.enter()) return;
+        this.edit_controller.closeContextMenu();
         this.set_board(this.revflip_maybe(this.initial_board(), swap_side));
         this.set_swap_side_p(swap_side);
         swap_side ? this.do_master_turn_leave() : this.leave();
@@ -559,6 +588,10 @@ export class UI {
     // Event handlers
 
     dragstart(piece: JQuery) {
+        if (this.edit_mode) {
+            this.edit_controller.dragstart(piece);
+            return;
+        }
         const is_master_turn = this.analysis_mode && this.is_white_turn();
         const turn = is_master_turn ? "master" : "player";
         if (!piece.hasClass(turn)) return;
@@ -580,14 +613,25 @@ export class UI {
         });
     }
 
-    dragstop() {
+    dragstop(piece?: JQuery) {
         // make all cells undroppable
         $("div.cell").droppable("disable");
-        $("div.cell").removeClass("possible");
+        $("div.hand").droppable("disable");
+        $("div.cell, div.hand").removeClass("possible");
+        this.edit_controller.clearDropTarget();
         $("span.hint").text("");
+        if (this.edit_mode && piece) {
+            const place = piece.parent();
+            piece.css("fontSize", place.hasClass("hand") ? "0.5em" : "1em");
+        }
     }
 
     drop(piece: JQuery, new_cell: JQuery) { // mouse drop
+        if (this.edit_mode) {
+            this.edit_controller.drop(piece, new_cell);
+            this.dragstop();
+            return;
+        }
         let [nx, ny] = this.get_position_from_cell(new_cell);
         // identify and execute a move corresponding to the drop
         this.query_move(piece, { nx: nx, ny: ny }, (move) => {
@@ -740,11 +784,12 @@ export class UI {
     leave(s: UIState | undefined = undefined) {
         const dont_leave_actually = this.autorun_running; // ugly logic...
         if (s) this.ui_state = s;
-        if (this.ui_state.depth === null) this.update_depth();
+        if (!this.edit_mode && this.ui_state.depth === null) this.update_depth();
         let d = this.ui_state.depth as number;
         const gameover = this.ui_state.board.gameover_status();
         $("span#player").removeClass();
-             if (gameover > 0) $("span#player").addClass("win");
+        if (this.edit_mode) $("span#player").addClass("draw");
+        else if (gameover > 0) $("span#player").addClass("win");
         else if (gameover < 0) $("span#player").addClass("level6");
         else if (d < 0) $("span#player").addClass("draw");
         else if (d % 2 !== 0) $("span#player").addClass("level1");
@@ -776,7 +821,10 @@ export class UI {
             $("span#about-image").removeClass("dead");
         }
         $("span#master-text").text(this.analysis_mode && !this.autorun_running ? "あなた" : "どうぶつしょうぎ名人'");
-        if (this.is_white_turn()) {
+        if (this.edit_mode) {
+            $(".piece").draggable("enable");
+        }
+        else if (this.is_white_turn()) {
             $(".piece.master").draggable("enable");
             $(".piece.player").draggable("disable");
         } else {
@@ -787,16 +835,32 @@ export class UI {
         const master_to_play = this.analysis_mode && this.is_white_turn();
         $(".player").toggleClass("to-play", gameover === 0 && !master_to_play);
         $(".master").toggleClass("to-play", gameover === 0 && master_to_play);
-        $("span#player").toggleClass("opposite", gameover === 0 && master_to_play);
+        $("span#player").toggleClass("opposite", !this.edit_mode && gameover === 0 && master_to_play);
         const url = new URL(window.location.href);
         const r_board = this.revflip_maybe(this.ui_state.board, this.is_white_turn());
         url.searchParams.set("board", r_board.hashstr());
         $("a#permalink").attr("href", url.toString());
-        $("button#matta").prop("disabled", this.history.length === 0);
-        $("button#undo").prop("disabled", this.history.length === 0);
-        $("button#redo").prop("disabled", this.future.length === 0);
-        $("button#prev-board").prop("disabled", this.snapshots.length === 0);
-        $("button#next-board").prop("disabled", this.snapshots.length === 0);
+        if (this.edit_mode) {
+            $("#record-box").children().hide();
+            $("#record-controls").show();
+            $("#record-controls").children().hide();
+            $("#record-controls").children(".edit-mode-only").show();
+            $("button").prop("disabled", true);
+            $("#record-controls .edit-mode-only, #piece-menu button").prop("disabled", false);
+            $(".player, .master").toggleClass("to-play", true);
+        } else {
+            $("#record-box").children().show();
+            $("#record-controls").children().show();
+            $("#record-controls .edit-mode-only").hide();
+            if (this.ai.supports_best_move_only())
+                $("button#swap, button#puzzle, .puzzle-button, button#analysis-mode, button#autorun").hide();
+            $("button").prop("disabled", false);
+            $("button#matta").prop("disabled", this.history.length === 0);
+            $("button#undo").prop("disabled", this.history.length === 0);
+            $("button#redo").prop("disabled", this.future.length === 0);
+            $("button#prev-board").prop("disabled", this.snapshots.length === 0);
+            $("button#next-board").prop("disabled", this.snapshots.length === 0);
+        }
         $("#move-count").text(this.current_move_count());
         if (dont_leave_actually) return;
         this.locked = false;
