@@ -627,7 +627,6 @@ export class UI {
     drop(piece: JQuery, new_cell: JQuery, e: JQueryEventObject) { // mouse drop
         if (this.edit_mode) {
             this.edit_controller.drop(piece, new_cell, e);
-            this.dragstop();
             return;
         }
         let [nx, ny] = this.get_position_from_cell(new_cell);
@@ -635,7 +634,6 @@ export class UI {
         this.query_move(piece, { nx: nx, ny: ny }, (move) => {
             this.do_turn(move, piece);
         });
-        this.dragstop();
     }
 
     play_best_move() {
