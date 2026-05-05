@@ -81,8 +81,8 @@ export class AI {
     private search_core(nr_b: Board, limit: number, depth_only: boolean): [number, Board[]] {
         const nr_nbs = nr_b.next_boards()
         // trivial cases
-        if (nr_b.gameover_status() !== 0) return [0, [nr_b]];
-        if (nr_nbs === Result.Lose) return [0, [nr_b]];
+        if (nr_b.gameover_status() !== 0) return [0, []];
+        if (nr_nbs === Result.Lose) return [0, []];
         if (nr_nbs === Result.Win) return [1, [this.calc_final_board(nr_b)]];
         let [depth, idxes] = this.lookup_db(nr_b, depth_only);
         console.assert(depth >= lowest_depth_in_db || depth < 0,
@@ -95,7 +95,7 @@ export class AI {
                        {depth_only, depth, lowest_depth_in_db, idxes});
         let done = depth >= 0 && (depth_only || idxes.length > 0);
         if (done) return [depth, idxes.map(i => nr_nbs[i])];
-        if (limit < 1) return [-1, nr_nbs.length > 0 ? nr_nbs : [nr_b]];
+        if (limit < 1) return [-1, nr_nbs];
         // iteration
         if (depth_only && depth < 0)
             limit = Math.min(limit, lowest_depth_in_db - 1);
@@ -104,20 +104,17 @@ export class AI {
         const ds = nr_nbs.map(next_depth);
         const nump = (d: number | undefined): d is number => typeof d === 'number';
         const ps = ds.filter((d): d is number => nump(d) && d >= 0);
-        const pick = (d: number): Board[] | false => {
-            const ret = nr_nbs.filter((b, k) => ds[k] === d);
-            return ret.length > 0 && ret;
-        }
+        const pick = (d: number): Board[] => nr_nbs.filter((b, k) => ds[k] === d);
         // prefer the shortest winning move...
         const winning_d = Math.min(...ps.filter(d => nump(d) && d % 2 === 0));
-        if (winning_d < Infinity) return [winning_d + 1, pick(winning_d) || [nr_b]];
+        if (winning_d < Infinity) return [winning_d + 1, pick(winning_d)];
         // ...or, uncertain moves
-        if (ds.indexOf(-1) >= 0) return [-1, pick(-1) || [nr_b]];
+        if (ds.indexOf(-1) >= 0) return [-1, pick(-1)];
         // ...or, the longest losing move
         const losing_d = Math.max(...ps.filter(d => nump(d) && d % 2 !== 0));
-        if (losing_d > -Infinity) return [losing_d + 1, pick(losing_d) || [nr_b]];
+        if (losing_d > -Infinity) return [losing_d + 1, pick(losing_d)];
         // no possible moves (for example, all pieces were captured)
-        return [-1, [nr_b]];
+        return [-1, []];
     }
 
     // given a white board, returns a pair of depth and next black boards
