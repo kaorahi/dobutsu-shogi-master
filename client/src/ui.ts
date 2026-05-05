@@ -318,9 +318,10 @@ export class UI {
     }
 
     update_depth() {
+        const {board, depth} = this.ui_state;
         const needs_swap = !this.is_white_turn();
-        const white_board = this.revflip_maybe(this.ui_state.board, needs_swap);
-        this.ui_state.depth = this.ai.search(white_board)[0];
+        const white_board = this.revflip_maybe(board, needs_swap);
+        this.ui_state = {board, depth: this.ai.search(white_board)[0]};
     }
 
     set_random_board(depth: number) {
