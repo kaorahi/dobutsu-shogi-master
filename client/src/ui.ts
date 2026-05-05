@@ -16,6 +16,14 @@ import {Move, Normal, Drop} from "./move";
 
 type UIState = { board: Board, depth: number | null };
 
+type Snapshot = [
+    UIState,
+    [UIState, Move | null | false, Move | null | false][],
+    [UIState, Move | null | false, Move | null | false][],
+    boolean,
+    boolean,
+];
+
 export class UI {
     // the current board and its depth
     ui_state: UIState;
@@ -32,6 +40,7 @@ export class UI {
     puzzle_depth = 5;
     autorun_timer: number | null = null;
     autorun_running = false;
+    snapshots: Snapshot[] = [];
 
     is_white_turn(): boolean {
         const xor = (a: boolean, b: boolean): boolean => !!a !== !!b;
@@ -74,6 +83,8 @@ export class UI {
             });
         });
         $("button#copy").click((e) => this.copy_csa_kifu_to_clipboard());
+        $("button#prev-board").click((e) => this.rotate_snapshot(true));
+        $("button#next-board").click((e) => this.rotate_snapshot());
 
         $("button#new-game").click((e) => this.restore_positions(false));
         $("button#swap").click((e) => this.restore_positions(true));
@@ -93,6 +104,8 @@ export class UI {
             switch (e.key) {
             case '<': case ',': this.undo_turn(); break;
             case '>': case '.': this.redo_turn(); break;
+            case '[': this.rotate_snapshot(true); break;
+            case ']': this.rotate_snapshot(); break;
             }
         });
         $(document).on("paste", (e) => this.load_csa_kifu_from_clipboard(e));
@@ -109,36 +122,42 @@ export class UI {
         this.dragstop();
 
         this.enter();
-        this.set_board(this.initial_board());
+        this.set_board(this.initial_board(), true);
         this.update_depth();
         this.leave();
     }
 
     initialize_state() {
         this.analysis_mode = false;
-        this.swap_side_p = false;
+        this.set_swap_side_p(false);
         this.ui_state = { board: Board.init(), depth: null };
         this.history = [];
         this.clear_future();
-        $("#player-side-mark").text("▲");
-        $("#master-side-mark").text("△");
     }
 
-    clear_future() {
+    clear_future(snapshot_p = false) {
+        if (snapshot_p && this.future.length > 0)
+            this.take_snapshot();
         this.future = [];
         $("ol#record").children().slice(this.current_move_count()).detach();
     }
 
     restore_positions(swap_side: boolean) {
         if (!this.enter()) return;
-        if (!window.confirm("はじめに戻す？")) return this.leave();
         this.set_board(this.revflip_maybe(this.initial_board(), swap_side));
+        this.set_swap_side_p(swap_side);
+        swap_side ? this.do_master_turn_leave() : this.leave();
+    }
+
+    set_swap_side_p(swap_side: boolean) {
         this.swap_side_p = swap_side;
         if (swap_side) {
             $("#player-side-mark").text("△");
             $("#master-side-mark").text("▲");
+        } else {
+            $("#player-side-mark").text("▲");
+            $("#master-side-mark").text("△");
         }
-        swap_side ? this.do_master_turn_leave() : this.leave();
     }
 
     initial_board(): Board {
@@ -147,6 +166,7 @@ export class UI {
     }
 
     set_board(board: Board, keep_history_p = false) {
+        keep_history_p || this.take_snapshot();
         const self = this;
         let rest = $("span.piece");
         const move_piece = (piece: Piece, place: JQuery) => {
@@ -198,7 +218,6 @@ export class UI {
     set_random_board(depth: number) {
         if (!this.enter()) return;
         const depths = depth < 20 ? [depth] : [0, 2, 4, 6, 8].map(k => depth + k);
-        this.initialize_state();
         this.set_board(this.ai.get_random_board(depths))
         this.leave();
     }
@@ -230,6 +249,45 @@ export class UI {
         this.autorun_running = false; // necessary for auto stop by game end
         this.autorun_timer !== null && window.clearTimeout(this.autorun_timer);
         this.autorun_timer = null;
+        this.leave();
+    }
+
+    // snapshot
+
+    rotate_snapshot(backward = false) {
+        const popped = backward ? this.snapshots.pop() : this.snapshots.shift();
+        if (!popped) return;
+        this.take_snapshot(backward);
+        this.restore_snapshot(popped);
+    }
+
+    take_snapshot(backward = false) {
+        const s: Snapshot = [
+            this.ui_state,
+            this.history.slice(),
+            this.future.slice(),
+            this.analysis_mode,
+            this.swap_side_p,
+        ];
+        backward ? this.snapshots.unshift(s) : this.snapshots.push(s);
+    }
+
+    restore_snapshot(s: Snapshot) {
+        if (!this.enter()) return;
+        this.initialize_state();
+        this.ui_state = s[0];
+        this.history = s[1];
+        this.future = s[2];
+        this.analysis_mode = s[3];
+        this.set_swap_side_p(s[4]);
+        this.set_board(this.ui_state.board, true);
+        let prev_li: JQuery<HTMLElement> | null = null;
+        const hs = [...this.history, ...this.future.toReversed()];
+        hs.forEach(([_, move, nmove], k) => {
+            move && (prev_li = this.add_to_record(move, prev_li, k + 1));
+            nmove && (prev_li = this.add_to_record(nmove, prev_li, k + 1));
+        });
+        this.update_records();
         this.leave();
     }
 
@@ -265,7 +323,6 @@ export class UI {
         // needs requestAnimationFrame twice in my environment to show "loading"
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                this.initialize_state();
                 this.set_board(this.initial_board());
                 this.analysis_mode = true;
                 try {
@@ -447,7 +504,7 @@ export class UI {
         let gameover = nb.gameover_status();
         let [depth, nnb] = (gameover === 0) ? this.ai.search(r_nb) : [-2, null];
         let nmove = nnb && !this.analysis_mode && Move.detect_move(nb, nnb);
-        this.clear_future();
+        this.clear_future(true);
         this.history.push([this.ui_state, move, nmove]);
 
         this.do_move(move, piece);
@@ -463,7 +520,7 @@ export class UI {
         let b = this.revflip_maybe(this.ui_state.board, rev);
         let [depth, nnb] = this.ai.search(b);
         let nmove = this.revflip_maybe(Move.detect_move(b, nnb), rev);
-        this.clear_future();
+        this.clear_future(true);
         this.history.push([this.ui_state, null, nmove]);
 
         $("span.piece").delay(300).promise().done(() => {
@@ -637,6 +694,8 @@ export class UI {
         $("button#matta").prop("disabled", this.history.length === 0);
         $("button#undo").prop("disabled", this.history.length === 0);
         $("button#redo").prop("disabled", this.future.length === 0);
+        $("button#prev-board").prop("disabled", this.snapshots.length === 0);
+        $("button#next-board").prop("disabled", this.snapshots.length === 0);
         $("#move-count").text(this.current_move_count());
         if (dont_leave_actually) return;
         this.locked = false;
@@ -661,7 +720,7 @@ export class UI {
         this.add_to_record(move);
     }
 
-    add_to_record(move: Move, prev_li?: JQuery<HTMLElement> | null): JQuery<HTMLElement> {
+    add_to_record(move: Move, prev_li?: JQuery<HTMLElement> | null, history_len: number | null = null): JQuery<HTMLElement> {
         // add a entry to the record
         if (!prev_li)
             prev_li = $("ol#record").children().last();
@@ -670,7 +729,7 @@ export class UI {
         let s = s1;
         if (s1.substring(1, 3) === s2.substring(1, 3))
             s = s1[0] + "同" + s1.substr(3);
-        let n = this.history.length;
+        let n = (history_len === null) ? this.history.length : history_len;
         const li = $("<li>").text(s).data("full-text", s1).data("history-len", n);
         $("ol#record").append(li);
         return li;
