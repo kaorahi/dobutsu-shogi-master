@@ -694,7 +694,8 @@ export class UI {
         const pv_text = pv_p ?
               format_principal_variation(this, this.ui_state.board, this.is_white_turn(), this.pv_hover_move) :
               "";
-        $("#pv").toggle(pv_p);
+        $("#pv").stop(true, true);
+        pv_p ? $("#pv").slideDown(100) : $("#pv").slideUp(100);
         $("#pv #pv-text").html(pv_text);
     }
 
@@ -891,7 +892,7 @@ export class UI {
             $(".edit-mode-only, #piece-menu button").prop("disabled", false);
             $(".player, .master").toggleClass("to-play", true);
         } else {
-            $("#record-box").children().show();
+            $("#record-box > *:not(#pv)").show();  // exclude #pv for animation
             $("#record-controls").children().show();
             $("#record-controls .edit-mode-only").hide();
             if (this.ai.supports_best_move_only())
