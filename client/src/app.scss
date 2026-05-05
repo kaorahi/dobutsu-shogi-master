@@ -382,5 +382,5 @@ span#player {
   &.draw   { background-position: -4em -36em; }
 }
 span#player.opposite {
-  transform: rotate(180deg);
+  transform: scaleY(-1);
 }

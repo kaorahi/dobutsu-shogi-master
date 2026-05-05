@@ -717,15 +717,19 @@ export class UI {
 
     // move a span element of a piece with animation
     animate_piece(piece: JQuery, old_place: JQuery, new_place: JQuery, fast: boolean) {
+        function size_for(is_hand: boolean): string {
+            return "" + (is_hand ? 0.5 : 1.0) + "em";
+        }
+        let size = size_for(old_place.hasClass("hand") || new_place.hasClass("hand"));
+        let final_size = size_for(new_place.hasClass("hand"));
+        piece.css("fontSize", size);
+        let start = piece.offset()!;
         new_place.append(piece);
-        let { left: old_off_x  , top: old_off_y   } = old_place.offset()!;
-        let { left: new_off_x  , top: new_off_y   } = new_place.offset()!;
-        let { left: piece_off_x, top: piece_off_y } = piece.offset()!;
-        let size = "" + (new_place.hasClass("hand") ? 0.5 : 1.0) + "em";
         piece.offset({
-            left: piece_off_x - new_off_x + old_off_x,
-            top : piece_off_y - new_off_y + old_off_y
-        }).animate({ left: 0, top: 0, fontSize: size }, fast ? 200 : 300);
+            left: start.left,
+            top : start.top
+        }).animate({ left: 0, top: 0 }, fast ? 200 : 300,
+                   () => piece.css("fontSize", final_size));
     }
 
     // perform a move forward
