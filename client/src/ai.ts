@@ -89,6 +89,8 @@ export class AI {
         if (done) return [depth, idxes.map(i => nr_nbs[i])];
         if (limit < 1) return [-1, nr_nbs.length > 0 ? nr_nbs : [nr_b]];
         // iteration
+        if (depth_only && depth < 0)
+            limit = Math.min(limit, lowest_depth_in_db - 1);
         const next_depth = (b: Board): number | undefined =>
               this.search_core(b.reverse().normalize(), limit - 1, depth_only)?.[0];
         const ds = nr_nbs.map(next_depth);
