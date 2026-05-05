@@ -73,14 +73,20 @@ export class UI {
         $("div.cell").droppable({
             tolerance: "pointer",
             drop: (event, ui) => { this.drop(ui.draggable, $(event.target) as JQuery<HTMLElement>, event); },
-            over: (event, ui) => { this.edit_controller.highlightDropTarget($(event.target) as JQuery<HTMLElement>); },
-            out: (event, ui) => { this.edit_controller.clearDropTarget($(event.target) as JQuery<HTMLElement>); },
+            over: (event, ui) => {
+                $("div.cell, div.hand").removeClass("drop-current");
+                $(event.target).addClass("drop-current");
+            },
+            out: (event, ui) => { $(event.target).removeClass("drop-current"); },
         });
         $("div.hand").droppable({
             tolerance: "pointer",
             drop: (event, ui) => { this.drop(ui.draggable, $(event.target) as JQuery<HTMLElement>, event); },
-            over: (event, ui) => { this.edit_controller.highlightDropTarget($(event.target) as JQuery<HTMLElement>); },
-            out: (event, ui) => { this.edit_controller.clearDropTarget($(event.target) as JQuery<HTMLElement>); },
+            over: (event, ui) => {
+                $("div.cell, div.hand").removeClass("drop-current");
+                $(event.target).addClass("drop-current");
+            },
+            out: (event, ui) => { $(event.target).removeClass("drop-current"); },
         });
 
         $("ol#record").on("click", "li", (e) => {
@@ -457,10 +463,7 @@ export class UI {
 
     dragstop(piece?: JQuery) {
         // make all cells undroppable
-        $("div.cell").droppable("disable");
-        $("div.hand").droppable("disable");
-        $("div.cell, div.hand").removeClass("possible");
-        this.edit_controller.clearDropTarget();
+        $("div.cell, div.hand").removeClass("possible").removeClass("drop-current").droppable("disable");
         $("span.hint").text("");
         if (this.edit_mode && piece) {
             const place = piece.parent();

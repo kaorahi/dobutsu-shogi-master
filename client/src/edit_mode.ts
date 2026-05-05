@@ -63,16 +63,6 @@ export class EditModeController {
         this.transformBoard((board) => board.flip());
     }
 
-    highlightDropTarget(place: JQuery) {
-        this.clearDropTarget();
-        if (this.host.edit_mode)
-            place.addClass("drop-current");
-    }
-
-    clearDropTarget(place = $("div.cell, div.hand")) {
-        place.removeClass("drop-current");
-    }
-
     openContextMenu(piece: JQuery, new_place: JQuery, e: JQueryEventObject) {
         if (!this.host.edit_mode || new_place.hasClass("hand")) return;
         this.closeContextMenu();
