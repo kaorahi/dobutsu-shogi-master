@@ -79,8 +79,11 @@ export class UI {
             scroll: false
         });
         $("span.piece").on("pointerover", e => this.hover_on_piece($(e.currentTarget) as JQuery<HTMLElement>));
-        $("span.piece").on("pointerleave pointercancel lostpointercapture", () => {
-            $(".ui-draggable-dragging").length === 0 && this.hide_hints();
+        $("span.piece").on("pointerleave pointercancel lostpointercapture", e => {
+            if ($(".ui-draggable-dragging").length > 0) return;
+            this.hide_hints();
+            $(e.currentTarget).hasClass("to-play") &&
+                this.update_principal_variation_display();
         });
         $("div.cell").droppable({
             tolerance: "pointer",
@@ -567,6 +570,7 @@ export class UI {
         // make all cells undroppable
         this.hide_hints();
         this.pv_drag_piece = null;
+        this.update_principal_variation_display();
         $("div.cell, div.hand").droppable("disable");
         if (this.edit_mode && piece) {
             const place = piece.parent();
@@ -579,7 +583,6 @@ export class UI {
         $("div.cell, div.hand").removeClass("possible drop-current winning draw best");
         $("span.hint").text("");
         this.pv_hover_move = null;
-        this.update_principal_variation_display();
     }
 
     update_drag_pv(piece: JQuery, target: JQuery<HTMLElement>) {
@@ -685,10 +688,11 @@ export class UI {
     }
 
     update_principal_variation_display() {
-        const pv_text = this.analysis_mode ?
+        const pv_p = this.analysis_mode && !this.edit_mode;
+        const pv_text = pv_p ?
               format_principal_variation(this, this.ui_state.board, this.is_white_turn(), 12, 10, this.pv_hover_move) :
               "";
-        $("p#pv").toggle(this.analysis_mode);
+        $("p#pv").toggle(pv_p);
         $("p#pv #pv-text").text(pv_text);
     }
 
