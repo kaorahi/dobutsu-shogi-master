@@ -80,7 +80,6 @@ export class AI {
     // the database, while also referring to the database to handle
     // repetitions correctly (Sen-nichi-te).
     private search_core(nr_b: Board, limit: number, depth_only: boolean): [number, Board[]] {
-        if (this.is_dummy_ai_mode()) return [-1, []];
         const nr_nbs = nr_b.next_boards()
         // trivial cases
         if (nr_b.gameover_status() !== 0) return [0, []];
@@ -161,10 +160,6 @@ export class AI {
 
     supports_best_move_only(): boolean {
         return this.vals.length === 0;
-    }
-
-    is_dummy_ai_mode(): boolean {
-        return this.supports_best_move_only() && Object.keys(this.db).length <= 1;
     }
 
     hashstr_of_key(key: bigint): string {

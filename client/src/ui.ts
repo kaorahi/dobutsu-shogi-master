@@ -226,11 +226,6 @@ export class UI {
         });
         this.dragstop();
 
-        if (this.ai.is_dummy_ai_mode()) {
-            $("button, .switch, #pv, .player-text *").hide();
-            $("button#undo, button#redo").show();
-        }
-
         this.enter();
         this.set_board(this.initial_board(true), true);
         this.update_depth();
@@ -843,7 +838,6 @@ export class UI {
     }
 
     update_ui() {
-        if (this.ai.is_dummy_ai_mode()) return this.update_move_count();
         if (this.ui_state.depth === null) this.update_depth();
         let d = this.ui_state.depth as number;
         const gameover = this.ui_state.board.gameover_status();
@@ -928,16 +922,12 @@ export class UI {
         $("button#autorun").prop("disabled", gameover !== 0);
         $("button#copy, button#download").prop("disabled", this.fresh_game_p(Board.init()));
         $("#depth-ckbox").prop("disabled", false);
+        $("#move-count").text(this.history.length);
         $("#analysis-ckbox").prop("checked", this.analysis_mode);
         $("#swap-ckbox").prop("checked", this.swap_side_p);
         this.update_principal_variation_display();
         this.update_coord_labels();
-        this.update_move_count();
-    }
-
-    update_move_count() {
         const hl = this.history.length
-        $("#move-count").text(hl);
         const v = hl === 0 ? $("li#record-before-first") : $("ol#record").children().eq(hl - 1);
         v.length > 0 && $("#container").css("flex-direction") === "row" &&
             v[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
