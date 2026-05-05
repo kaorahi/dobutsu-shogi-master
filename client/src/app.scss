@@ -69,8 +69,13 @@ div#record-box {
   button {
     width: 100%;
   }
-  button#prev-board, button#next-board {
+  button#prev-board, button#next-board, button#reveal-eval {
     width: 48%;
+  }
+  button#reveal-eval {
+    width: auto;
+    font-size: 75%;
+    padding: 0em 0.1em;
   }
   p {
     padding: 0.5em;

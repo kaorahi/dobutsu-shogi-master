@@ -212,6 +212,10 @@ export class UI {
             this.set_random_board(this.puzzle_depth = d);
             close_dialogs();
         });
+        $("button#reveal-eval").click((e) => {
+            this.update_records(true);
+            $(e.currentTarget).hide();
+        });
         this.dragstop();
 
         this.enter();
@@ -894,6 +898,7 @@ export class UI {
             $("button#next-board").prop("disabled", this.snapshots.length === 0);
             $("button#best-move").prop("disabled", gameover !== 0);
             $("#puzzle-container").toggle(this.puzzle_depth > 0);
+            $("button#reveal-eval").toggle(!this.analysis_mode);
         }
         $("button#autorun").prop("disabled", gameover !== 0);
         $("button#copy, button#download").prop("disabled", this.fresh_game_p(Board.init()));
@@ -1020,7 +1025,7 @@ export class UI {
         }
     }
 
-    update_records() {
+    update_records(force = false) {
         if (this.history.length + this.future.length > 10000) {
             $("li#record-before-first").css("border-left-color", "transparent");
             return;
@@ -1031,7 +1036,7 @@ export class UI {
         records.slice(mc).addClass("future-move");
         const hs = [...this.history, ...this.future.toReversed()];
         const max_depth = Math.max(this.ui_state.depth || 0, hs[0]?.[0].depth || 0, ...hs.map(h => h[2] || 0));
-        if (this.analysis_mode) {
+        if (this.analysis_mode || force) {
             this.update_record_item(-1, $("li#record-before-first")[0], max_depth, hs);
             $("ol#record").children()
                 .each((i, elem) => this.update_record_item(i, elem, max_depth, hs));
