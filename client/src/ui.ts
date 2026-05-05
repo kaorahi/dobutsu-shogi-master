@@ -555,11 +555,14 @@ export class UI {
         let nnb = r_nnb && this.revflip_maybe(r_nnb, master_p);
         let nmove = nnb && !this.analysis_mode && Move.detect_move(nb, nnb);
         this.clear_future(true);
-        this.history.push([this.ui_state, move, nmove]);
+        this.history.push([this.ui_state, move, null]);
 
         this.do_move(move, piece);
-        if (!nmove || this.analysis_mode) return this.leave({ board: nb, depth: depth})
+        const state_before_nmove = { board: nb, depth: depth};
+        if (!nmove || this.analysis_mode) return this.leave(state_before_nmove);
         $("span.piece").delay(300).promise().done(() => {
+            // history must be updated before do_move
+            this.history.push([state_before_nmove, nmove, null]);
             this.do_move(nmove);
             this.leave({ board: nmove.new_board, depth: depth - 1 });
         });
