@@ -171,6 +171,15 @@ export class UI {
         !keep_history_p && snapshot_p && this.take_snapshot();
         const self = this;
         let rest = $("span.piece");
+        self.set_board_sub(board, rest);
+        // state
+        keep_history_p || self.initialize_state();
+        self.ui_state = { board, depth: null };
+        self.update_depth();
+    }
+
+    set_board_sub(board: Board, rest: JQuery) {
+        const self = this;
         const move_piece = (piece: Piece, place: JQuery) => {
             const kind = Piece.kind(piece);
             if (kind === Piece.Empty) return;
@@ -205,10 +214,6 @@ export class UI {
             move_piece(Piece.Lion, self.get_empty_hand(true));
             break;
         }
-        // state
-        keep_history_p || self.initialize_state();
-        self.ui_state = { board, depth: null };
-        self.update_depth();
     }
 
     update_depth() {
