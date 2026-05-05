@@ -633,6 +633,26 @@ export class UI {
         return [depth, white_moves.map(m => this.revflip_maybe(m, rev))];
     }
 
+    get_principal_variation(board = this.ui_state.board, white_p = this.is_white_turn(), max_plies = 12): Move[] {
+        const pv: Move[] = [];
+        const seen = new Set<string>();
+        let cur_board = board;
+        let cur_white_p = white_p;
+        for (let ply = 0; ply < max_plies; ply++) {
+            const key = `${cur_white_p ? "w" : "b"}:${cur_board.hashstr()}`;
+            if (seen.has(key)) break;
+            seen.add(key);
+            if (cur_board.gameover_status() !== 0) break;
+            const [depth, moves] = this.get_depth_and_best_moves(cur_board, cur_white_p);
+            if (depth === null || moves.length === 0) break;
+            const move = moves[0];
+            pv.push(move);
+            cur_board = move.new_board;
+            cur_white_p = !cur_white_p;
+        }
+        return pv;
+    }
+
     highlight_best_move_piece() {
         const [_, moves] = this.get_depth_and_best_moves();
         moves.forEach(move => {
@@ -799,6 +819,12 @@ export class UI {
             $("span#about-image").removeClass("dead");
         }
         $("span#msg").removeClass("obsolete").toggleClass("censored", hide_depth_p);
+        const pv_text = this.analysis_mode ?
+              this.get_principal_variation().map(move =>
+                  this.revflip_maybe(move, this.swap_side_p).toString()).join(" -> ") || "-" :
+              "";
+        $("p#pv").toggle(this.analysis_mode);
+        $("p#pv #pv-text").text(pv_text);
         const title_text = this.swap_side_p ?
               "（後手から見た盤面）" : "どうぶつしょうぎ名人'";
         $("span#title-text").text(title_text);

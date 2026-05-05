@@ -88,6 +88,16 @@ div#record-container {
   overflow-y: auto;
   font-size: 0.75em;
 }
+p#pv {
+  display: none;
+  padding: 0.25em 0.5em 0.5em;
+  font-size: 0.8em;
+  line-height: 1.35;
+  word-break: break-word;
+}
+p#pv .label {
+  font-weight: bold;
+}
 @media (min-aspect-ratio: 1/1) {
   div#container {
     -webkit-justify-content: center;
