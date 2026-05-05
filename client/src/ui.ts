@@ -84,6 +84,11 @@ export class UI {
         // click anywhere to stop autorun
         document.addEventListener("click", (e) => this.stop_autorun(), {capture: true});
         $(document).on("keydown", (e) => this.stop_autorun());
+        $(document).on("paste", (e) => {
+            const oe = e.originalEvent as ClipboardEvent;
+            const text = oe.clipboardData?.getData("text") ?? "";
+            this.paste(text);
+        });
         $("button#puzzle").click((e) =>
             this.set_random_board(this.puzzle_depth));
         $(".puzzle-button").each((_, b) => {
@@ -219,6 +224,74 @@ export class UI {
         this.autorun_timer !== null && window.clearTimeout(this.autorun_timer);
         this.autorun_timer = null;
         this.leave();
+    }
+
+    paste(text: string) {
+        if (!this.enter()) return;
+        $("#loading").show();
+        // needs requestAnimationFrame twice in my environment to show "loading"
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                this.initialize_state();
+                this.set_board(this.initial_board());
+                this.analysis_mode = true;
+                try {
+                    let prev_li: JQuery<HTMLElement> | null = null;
+                    let is_white_turn = false;
+                    text.split(/\r?\n/).forEach(line => {
+                        const move = this.csa2move(line.trim(), is_white_turn);
+                        if (!move) return;
+                        this.history.push([this.ui_state, null, move]);
+                        this.ui_state = { board: move.new_board, depth: null };
+                        prev_li = this.add_to_record(move, prev_li);
+                        is_white_turn = !is_white_turn;
+                    });
+                } catch {} finally {
+                    $("#loading").hide();
+                    this.goto_history_len_leave(0);
+                }
+            });
+        });
+    }
+
+    csa2move(s: string, is_white_turn: boolean) : Move | null {
+        // Kifu format: See this page.
+        // https://www.tanaka.ecc.u-tokyo.ac.jp/ktanaka/dobutsushogi/index.html
+        // (example)
+        // +C4C3KI
+        // -B2B3HI
+        // +C3B3KI
+        // -00A2HI
+        try {
+            const piece_name = ["", "LI", "ZO", "KI", "HI", "NI"];  // L,E,G,C,H
+            const col_name = ["A", "B", "C"];
+            const s2xy = (sq: string): { x: number; y: number } | null => {
+                const i = col_name.indexOf(sq[0]);
+                const j = Number(sq[1]);
+                if (i < 0 || Number.isNaN(j)) return null;
+                return { x: 2 - i, y: 4 - j };
+            };
+            const sign = s[0];
+            const from_str = s.slice(1, 3);
+            const to_str = s.slice(3, 5);
+            const piece_str = s.slice(5, 7);
+            const from = from_str === "00" ? null : s2xy(from_str);
+            const to = s2xy(to_str);
+            if (!to) return null;
+            const black_board = this.revflip_maybe(this.ui_state.board, is_white_turn);
+            const moves = Move.possible_moves(black_board, false).map(m => this.revflip_maybe(m, is_white_turn));
+            if (from) {
+                const query = {x: from.x, y: from.y, nx: to.x, ny: to.y};
+                return moves.find(move => move.match_p(query)) || null;
+            } else {
+                const p = piece_name.indexOf(piece_str) as Piece;
+                const piece = (sign === '+') ? p : Piece.opponent[p];
+                const query = {p: piece, nx: to.x, ny: to.y};
+                return moves.find(move => move.match_p(query)) || null;
+            }
+        } catch {
+            return null;
+        }
     }
 
 
@@ -403,6 +476,9 @@ export class UI {
 
     goto_history_len(n: number) {
         if (!this.enter()) return;
+        this.goto_history_len_leave(n);
+    }
+    goto_history_len_leave(n: number) {
         const hs = [...this.history, ...this.future.toReversed()];
         const prev = Math.max(n - 1, 0);
         this.history = hs.slice(0, prev);
