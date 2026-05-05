@@ -24,7 +24,7 @@ export class CsaIO {
             requestAnimationFrame(() => {
                 try {
                     this.ui.set_board(this.textToBoard(text));
-                    this.ui.analysis_mode = true;
+                    this.ui.analysis_mode = false;
                     let prev_li: JQuery<HTMLElement> | null = null;
                     let is_white_turn = false;
                     const lines = text.split(/\r?\n/)
