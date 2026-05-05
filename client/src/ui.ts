@@ -103,14 +103,15 @@ export class UI {
         $("#record-before-first").click((e) => this.goto_history_len(0));
         $("button#about").click((e) => $("#about-overlay").fadeIn("fast"));
         $("#about-dialog").click((e) => e.stopPropagation());
-        $("#about-overlay").click(() => $("#about-overlay").fadeOut("fast"));
-        $("#control-dialog button").click((e) => $("#control-overlay").fadeOut("fast"));
+        const close_dialogs = () => $(".dialog-overlay").fadeOut("fast");
+        $("#about-overlay").click(close_dialogs);
+        $("#control-dialog button").click(close_dialogs);
         $("button#show-control").click((e) => {
             $("#control-dialog input").val("");
             $("#control-overlay").fadeIn("fast");
         });
         $("#control-dialog").click((e) => e.stopPropagation());
-        $("#control-overlay").click(() => $("#control-overlay").fadeOut("fast"));
+        $("#control-overlay").click(close_dialogs);
         $("button#copy").click((e) => this.csa_io.copyToClipboard());
         $("button#copy-url").click((e) => {
             const url = new URL(window.location.href);
@@ -152,7 +153,7 @@ export class UI {
         });
         $(document).on("paste", (e) => {
             this.csa_io.loadFromClipboard(e);
-            $("#control-overlay, #about-overlay").fadeOut("fast");
+            close_dialogs();
         });
         $(document).on("click", (e) => {
             const target = e.originalEvent?.target;
