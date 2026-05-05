@@ -26,7 +26,7 @@ export class EditModeController {
 
     dragstart(piece: JQuery) {
         this.closeContextMenu();
-        piece.css("fontSize", "0.5em");
+        this.normalizePieceGeometry(piece, true);  // avoid overflow
         $("div.cell").droppable("enable");
         $("div.cell").addClass("possible");
         $("div.hand").droppable("enable");
@@ -56,7 +56,6 @@ export class EditModeController {
         const old_place = piece.parent();
         if (old_place.is(new_place)) {
             this.normalizePieceForPlace(piece, new_place);
-            piece.css({ left: 0, top: 0, fontSize: new_place.hasClass("hand") ? "0.5em" : "1em" });
             this.syncBoardFromDom();
             return this.host.leave();
         }
@@ -65,14 +64,12 @@ export class EditModeController {
         if (target_piece.length > 0) {
             old_place.append(target_piece);
             this.normalizePieceForPlace(target_piece, old_place);
-            target_piece.css({ left: 0, top: 0, fontSize: old_place.hasClass("hand") ? "0.5em" : "1em" });
             if (new_place.hasClass("hand") && this.host.get_piece_id_from_piece(target_piece) === Piece.Lion)
                 target_piece.toggleClass("master").toggleClass("player");
         }
 
         new_place.append(piece);
         this.normalizePieceForPlace(piece, new_place);
-        piece.css({ left: 0, top: 0, fontSize: new_place.hasClass("hand") ? "0.5em" : "1em" });
         if (old_place.hasClass("hand") && this.host.get_piece_id_from_piece(piece) === Piece.Lion)
             piece.toggleClass("master").toggleClass("player");
         this.syncBoardFromDom();
@@ -146,11 +143,18 @@ export class EditModeController {
     }
 
     private normalizePieceForPlace(piece: JQuery, place: JQuery) {
-        if (!place.hasClass("hand")) return;
-        piece.removeClass("promoted");
-        const player_p = String(place.attr("id")).startsWith("player");
-        piece.toggleClass("player", player_p);
-        piece.toggleClass("master", !player_p);
+        const isHand = place.hasClass("hand");
+        this.normalizePieceGeometry(piece, isHand);
+        if (isHand) {
+            piece.removeClass("promoted");
+            const player_p = String(place.attr("id")).startsWith("player");
+            piece.toggleClass("player", player_p);
+            piece.toggleClass("master", !player_p);
+        }
+    }
+
+    private normalizePieceGeometry(piece: JQuery, isHand: boolean) {
+        piece.css({ left: 0, top: 0, fontSize: isHand ? "0.5em" : "1em" });
     }
 
     private syncBoardFromDom() {
