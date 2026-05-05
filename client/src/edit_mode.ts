@@ -46,29 +46,12 @@ export class EditModeController {
 
     drop(piece: JQuery, new_place: JQuery, e: JQueryEventObject) {
         if (!this.host.enter()) return;
-        this.openContextMenu(piece, new_place, e);
-        if (new_place.hasClass("hand") && this.host.get_piece_id_from_piece(piece) === Piece.Lion)
-            return this.host.leave();
-        const old_place = piece.parent();
-        if (old_place.is(new_place)) {
-            this.normalizePieceForPlace(piece, new_place);
-            this.syncBoardFromDom();
-            return this.host.leave();
-        }
-
-        const target_piece = new_place.children("span.piece").first();
-        if (target_piece.length > 0) {
-            old_place.append(target_piece);
-            this.normalizePieceForPlace(target_piece, old_place);
-            if (new_place.hasClass("hand") && this.host.get_piece_id_from_piece(target_piece) === Piece.Lion)
-                target_piece.toggleClass("master").toggleClass("player");
-        }
-
-        new_place.append(piece);
-        this.normalizePieceForPlace(piece, new_place);
-        if (old_place.hasClass("hand") && this.host.get_piece_id_from_piece(piece) === Piece.Lion)
-            piece.toggleClass("master").toggleClass("player");
+        const occupant = new_place.children("span.piece").last();
+        if (occupant.length > 0)
+            this.movePiece(occupant, piece.parent());
+        this.movePiece(piece, new_place);
         this.syncBoardFromDom();
+        this.openContextMenu(piece, new_place, e);
         this.host.leave();
     }
 
@@ -136,6 +119,16 @@ export class EditModeController {
         this.closeContextMenu();
         this.syncBoardFromDom();
         this.host.leave();
+    }
+
+    private movePiece(piece: JQuery, new_place: JQuery) {
+        const isLionRevived = piece.parent().hasClass("hand") &&
+              new_place.hasClass("cell") &&
+              this.host.get_piece_id_from_piece(piece) === Piece.Lion;
+        if (isLionRevived)
+            piece.toggleClass("master").toggleClass("player");
+        new_place.append(piece);
+        this.normalizePieceForPlace(piece, new_place);
     }
 
     private normalizePieceForPlace(piece: JQuery, place: JQuery) {
