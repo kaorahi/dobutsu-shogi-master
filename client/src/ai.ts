@@ -224,10 +224,12 @@ export class AI {
 
     // in debug console: ai.do_random_check(1000)
     // if wrong item found:
-    // b = Board.from_hashstr("0040900a0a14053")
-    // ui.enter() && (ui.set_board(b), ui.leave())
-    // ai.lookup_db(b, false)
-    // ai.verify_depth(b, 5, true)
+    //   b = Board.from_hashstr("0040900a0a14053")
+    //   ui.enter() && (ui.set_board(b), ui.leave())
+    //   ai.lookup_db(b, false)
+    //   ai.verify_depth(b, 5, true)
+    // also:
+    //   [["000b0029c41a003", 78], ["400b00290c1a030", 69], ["4100b029031a000", -1], ["0040900a0a14053", 5], ["0400b210c430090" , -1]].filter(([h, d]) => !ai.verify_depth(Board.from_hashstr(h), d)).slice(0, 1).map(([h, d]) => ai.verify_depth(Board.from_hashstr(h), d, true)).length === 0 ? 'OK' : 'NG'
     do_random_check(n: number) {
         const len = this.keys.length
         for (let i = 0; i < n; i++) {
