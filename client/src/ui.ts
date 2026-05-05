@@ -242,11 +242,14 @@ export class UI {
         return s ? Board.from_hashstr(s) : Board.init();
     }
 
+    fresh_game_p(init_board: Board): boolean {
+        return (this.history.length + this.future.length === 0) &&
+            this.ui_state.board.hashstr() === init_board.hashstr();
+    }
+
     set_board(board: Board, keep_history_p = false, keep_state_p = false) {
         this.hide_hints();
-        const snapshot_p = (this.history.length + this.future.length > 0) ||
-              this.ui_state.board.hashstr() !== this.initial_board().hashstr();
-        !keep_history_p && snapshot_p && this.take_snapshot();
+        !keep_history_p && !this.fresh_game_p(this.initial_board()) && this.take_snapshot();
         const self = this;
         const gameover_status = board.gameover_status();
         let rest = $("span.piece");
@@ -842,6 +845,8 @@ export class UI {
             $("button#best-move").prop("disabled", gameover !== 0);
             $("#puzzle-container").toggle(this.puzzle_depth > 0);
         }
+        $("button#autorun").prop("disabled", gameover !== 0);
+        $("button#copy, button#download").prop("disabled", this.fresh_game_p(Board.init()));
         $("#depth-ckbox").prop("disabled", false);
         $("#move-count").text(this.history.length);
         $("#analysis-ckbox").prop("checked", this.analysis_mode);
