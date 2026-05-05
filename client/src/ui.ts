@@ -177,7 +177,7 @@ export class UI {
     initialize_state() {
         this.analysis_mode = false;
         this.edit_mode = false;
-        this.set_swap_side_p(false);
+        this.swap_side_p = false;
         this.ui_state = { board: Board.init(), depth: null };
         this.history = [];
         this.clear_future();
@@ -194,19 +194,8 @@ export class UI {
         if (!this.enter()) return;
         this.edit_controller.closeContextMenu();
         this.set_board(this.revflip_maybe(this.initial_board(), swap_side));
-        this.set_swap_side_p(swap_side);
-        swap_side ? this.do_master_turn_leave() : this.leave();
-    }
-
-    set_swap_side_p(swap_side: boolean) {
         this.swap_side_p = swap_side;
-        if (swap_side) {
-            $("#player-side-mark").text("△");
-            $("#master-side-mark").text("▲");
-        } else {
-            $("#player-side-mark").text("▲");
-            $("#master-side-mark").text("△");
-        }
+        swap_side ? this.do_master_turn_leave() : this.leave();
     }
 
     initial_board(): Board {
@@ -360,7 +349,7 @@ export class UI {
         this.history = s[1];
         this.future = s[2];
         this.analysis_mode = s[3];
-        this.set_swap_side_p(s[4]);
+        this.swap_side_p = s[4];
         this.set_board(this.ui_state.board, true);
         let prev_li: JQuery<HTMLElement> | null = null;
         const hs = [...this.history, ...this.future.toReversed()];
@@ -668,6 +657,13 @@ export class UI {
             $("span#about-image").removeClass("dead");
         }
         $("span#master-text").text(this.analysis_mode && !this.autorun_running ? "あなた" : "どうぶつしょうぎ名人'");
+        if (this.swap_side_p) {
+            $("#player-side-mark").text("△");
+            $("#master-side-mark").text("▲");
+        } else {
+            $("#player-side-mark").text("▲");
+            $("#master-side-mark").text("△");
+        }
         if (this.edit_mode) {
             $(".piece").draggable("enable");
         }
