@@ -227,7 +227,7 @@ export class UI {
         this.dragstop();
 
         this.enter();
-        this.set_board(this.initial_board(), true);
+        this.set_board(this.initial_board(true), true);
         this.update_depth();
         this.leave();
         init_game_txt && this.csa_io.loadFromText(init_game_txt);
@@ -261,8 +261,8 @@ export class UI {
         swap_p ? this.do_master_turn_leave() : this.leave();
     }
 
-    initial_board(): Board {
-        const s = new URLSearchParams(window.location.search).get("board");
+    initial_board(from_url = false): Board {
+        const s = from_url && new URLSearchParams(window.location.search).get("board");
         return s ? Board.from_hashstr(s) : Board.init();
     }
 
