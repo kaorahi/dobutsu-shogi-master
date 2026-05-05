@@ -504,6 +504,7 @@ export class UI {
         $("a#permalink").attr("href", url.toString());
         $("button#undo").prop("disabled", this.history.length === 0);
         $("button#redo").prop("disabled", this.future.length === 0);
+        $("#move-count").text(this.current_move_count());
         if (dont_leave_actually) return;
         this.locked = false;
     }
