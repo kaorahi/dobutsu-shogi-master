@@ -73,24 +73,34 @@ div#record-box {
     display: flex;
     gap: 0.5em;
   }
-  button#prev-board, button#next-board, button#reveal-eval {
+  button#prev-board, button#next-board {
     width: auto;
     flex: 1;
+  }
+  #record-controls {
+    flex: 0 0 auto;
+    padding: 0.5em;
+    > * {
+      margin-bottom: 0.5em;
+    }
+    > *:last-child {
+      margin-bottom: 0;
+    }
+  }
+  #record-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.5em;
   }
   button#reveal-eval {
     width: auto;
     font-size: 75%;
     padding: 0em 0.1em;
   }
-  p {
-    padding: 0.5em;
-  }
-  p#dead-msg, p#won-msg {
+  #dead-msg, #won-msg {
     display: none;
   }
-}
-div#record-controls {
-  flex: 0 0 auto;
 }
 div#record-container {
   flex: 1 1 auto;
@@ -98,7 +108,7 @@ div#record-container {
   overflow-y: auto;
   font-size: 0.75em;
 }
-p#pv {
+div#pv {
   display: none;
   box-sizing: border-box;
   flex: 0 0 auto;
@@ -122,7 +132,7 @@ p#pv {
     margin: 1em 0em;
     width: 9em;
   }
-  p#pv {
+  div#pv {
     height: calc(1.35em * 3 + 0.25em + 0.5em);
   }
 }
@@ -136,9 +146,26 @@ p#pv {
   div#record-box {
     margin: 1em;
     width: 20em;
+    #record-controls {
+      > * {
+        margin-bottom: 1.25em;
+      }
+      > *:last-child {
+        margin-bottom: 0em;
+      }
+    }
+    #record-status {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      padding-top: 0em;
+    }
   }
-  p#pv {
+  div#pv {
     height: calc(1.35em * 2 + 0.25em + 0.5em);
+    margin-top: 0em;
+    margin-bottom: 0em;
+    padding-top: 0em;
+    padding-bottom: 0em;
   }
 }
 

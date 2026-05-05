@@ -694,8 +694,8 @@ export class UI {
         const pv_text = pv_p ?
               format_principal_variation(this, this.ui_state.board, this.is_white_turn(), this.pv_hover_move) :
               "";
-        $("p#pv").toggle(pv_p);
-        $("p#pv #pv-text").html(pv_text);
+        $("#pv").toggle(pv_p);
+        $("#pv #pv-text").html(pv_text);
     }
 
     highlight_best_move_piece() {
@@ -809,8 +809,8 @@ export class UI {
         this.locked = true;
         $("span#msg").addClass("obsolete");
         $("span.piece").draggable("disable");
-        $("p#dead-msg").hide();
-        $("p#won-msg").hide();
+        $("#dead-msg").hide();
+        $("#won-msg").hide();
         $("span#master").addClass("thinking");
         $("#depth-ckbox").prop("disabled", true);
         return true;
@@ -850,10 +850,10 @@ export class UI {
         if (msg) {
             $("span#msg #gameover").text(msg);
             if (gameover * (this.swap_side_p ? -1 : 1) > 0) {
-                $("p#won-msg").show();
+                $("#won-msg").show();
                 $("span#about-image").removeClass("dead");
             } else {
-                $("p#dead-msg").show();
+                $("#dead-msg").show();
                 $("span#about-image").addClass("dead");
             }
             $("span#last").text($("#record").children().length);
@@ -888,7 +888,7 @@ export class UI {
             $("#record-controls").children().hide();
             $(".edit-mode-only, .edit-mode-too").show();
             $("button").prop("disabled", true);
-            $(".edit-mode-only *, #piece-menu button").prop("disabled", false);
+            $(".edit-mode-only, #piece-menu button").prop("disabled", false);
             $(".player, .master").toggleClass("to-play", true);
         } else {
             $("#record-box").children().show();
@@ -903,7 +903,7 @@ export class UI {
             $("button#prev-board").prop("disabled", this.snapshots.length === 0);
             $("button#next-board").prop("disabled", this.snapshots.length === 0);
             $("button#best-move").prop("disabled", gameover !== 0);
-            $("#puzzle-container").toggle(this.puzzle_depth > 0);
+            $("button#puzzle").toggle(this.puzzle_depth > 0);
             $("button#reveal-eval").toggle(!this.analysis_mode);
         }
         $("button#autorun").prop("disabled", gameover !== 0);

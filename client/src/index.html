@@ -150,27 +150,34 @@
       </div>
       <div id="record-box">
         <div id="record-controls">
-        <p id="best-move-container"><button id="best-move">最善手</button></p>
-        <p id="prevnext-board-container"><button id="prev-board">前盤</button><button id="next-board">次盤</button></p>
-        <p><button id="show-control">☗メニュー</button></p>
-        <p id="puzzle-container"><button id="puzzle">次問（5手）</button></p>
-        <p class="edit-mode-too"><label class="switch"><input type="checkbox" class="switch" id="analysis-ckbox"><span class="switch-slider"></span><span class="switch-label">検討モード</span></label></p>
-        <p class="edit-mode-only"><button id="confirm-edit-mode" class="highlight">配置確定</button></p>
-        <p class="edit-mode-only"><button id="edit-revflip">上下回転</button></p>
-        <p class="edit-mode-only"><button id="edit-flip">左右反転</button></p>
+          <button id="best-move">最善手</button>
+          <div id="prevnext-board-container">
+            <button id="prev-board">前盤</button>
+            <button id="next-board">次盤</button>
+          </div>
+          <button id="show-control">☗メニュー</button>
+          <button id="puzzle">次問（5手）</button>
+          <label class="switch edit-mode-too">
+            <input type="checkbox" class="switch" id="analysis-ckbox">
+            <span class="switch-slider"></span>
+            <span class="switch-label">検討モード</span>
+          </label>
+          <button id="confirm-edit-mode" class="highlight edit-mode-only">配置確定</button>
+          <button id="edit-revflip" class="edit-mode-only">上下回転</button>
+          <button id="edit-flip" class="edit-mode-only">左右反転</button>
         </div>
-        <p id="pv" hidden><span class="label">読筋</span> <span id="pv-text"></span></p>
-        <p><span id="move-count">0</span>手 <button id="reveal-eval">評価</button></p>
+        <div id="pv" hidden><span class="label">読筋</span> <span id="pv-text"></span></div>
+        <div id="record-status">
+          <span><span id="move-count">0</span>手</span>
+          <button id="reveal-eval">評価</button>
+        </div>
         <div id="record-container">
-        <p>
-        <ol><li value="0" id="record-before-first"><span class="depth"></span>原図</li></ol>
-        <ol id="record"></ol>
-        </p>
-        <p id="dead-msg">まで<span id="last">XX</span>手にて<br />後手の勝ち</p>
-        <p id="won-msg">まで<span id="last">XX</span>手にて<br />先手の勝ち</p>
+          <ol><li value="0" id="record-before-first"><span class="depth"></span>原図</li></ol>
+          <ol id="record"></ol>
+          <div id="dead-msg">まで<span id="last">XX</span>手にて<br>後手の勝ち</div>
+          <div id="won-msg">まで<span id="last">XX</span>手にて<br>先手の勝ち</div>
         </div>
       </div>
-    </div>
     <div class="dialog-overlay" id="about-overlay">
       <div id="about-dialog">
         <ul>
