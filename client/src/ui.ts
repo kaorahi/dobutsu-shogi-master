@@ -992,42 +992,61 @@ export class UI {
         if (i < 0)
             next_depth = depth;
         if (next_depth === null) return;
-        // abs_ = "from the first player", rel_ = "from the player of the move"
-        const player_sign = i % 2 === 0 ? +1 : -1;  // + = first player
-        const abs_next_gos = move === null ? 0 : move.new_board.gameover_status();  // + = the first player wins
-        const rel_next_gos = player_sign * abs_next_gos;  // + = the move player wins
-        if (rel_next_gos !== 0)
-            next_depth = 0;
-        // [rest moves]
+        // util
+        const biggest = 7777777;
+        const is_big = (x: number): boolean => x > biggest * 0.5;
+        const parity_sign = (k: number): number => k % 2 === 0 ? +1 : -1;
+        const linearlize = (d: number | null, game_over_status: number): number =>
+              (game_over_status !== 0) ? Math.sign(game_over_status) * biggest :
+              (d === null || d < 0) ? 0 : parity_sign(d) * (biggest - d);
+        const trans = (x: number, [a0, b0]: number[], [a1, b1]: number[]): number =>
+              a1 + (x - a0) / (b0 - a0) * (b1 - a1);  // map [a0, b0] to [a1, b1]
+        // viewpoints:
+        // b_ = from the bottom player whose side is displayed in bottom
+        // f_ = from the first player who played the first move in the game
+        // m_ = from the move player who played this move
+        // conversion:
+        // b_ <=(swap_sign)=> f_ <=(player_sign)=> m_
+        // keep "positive = win" to avoid confusion.
+        const player_sign = parity_sign(i);
+        const swap_sign = this.swap_side_p ? -1 : +1;
+        const b_next_gos = move === null ? 0 : move.new_board.gameover_status();
+        const m_next_gos = b_next_gos * swap_sign * player_sign;
+        const m_eval = - linearlize(depth, 0);  // even depth = lose
+        const m_next_eval = linearlize(next_depth, m_next_gos);
+        const b_next_eval = m_next_eval * player_sign * swap_sign;
+        // [depth bar]
         const min_l = 0.0;
         const max_l = 0.4;
-        const l = Math.min(min_l + (next_depth / max_depth) * (max_l - min_l), max_l)
-        const abs_leading_p = abs_next_gos > 0 ? true : abs_next_gos < 0 ? false :
-              (next_depth % 2 === Math.abs(i) % 2);  // true = the first player wins
-        const depth_color = next_depth < 0 ? get_color(0.5) :
-              abs_leading_p === this.swap_side_p ? get_color(1 - l) : get_color(l);
+        const l = Math.min(max_l, trans(next_depth, [0, max_depth], [min_l, max_l]));
+        const color_level = (b_next_eval === 0) ? 0.5 : (b_next_eval > 0) ? l : 1 - l;
         const li = $(elem);
-        li.css("border-left-color", depth_color);
-        // [bad move marks]
+        li.css("border-left-color", get_color(color_level));
+        // [bad move mark]
         const mv = li.children(".move");
         if (mv.length === 0 || depth === null) return;
-        const outcome = (d: number): number => d < 0 ? 0 : d % 2 === 0 ? -1 : +1;
-        const rel_o0 = outcome(depth);  // + = the move player wins
-        const rel_o1 = rel_next_gos !== 0 ? Math.sign(rel_next_gos) : - outcome(next_depth);  // + = the move player wins
-        const rel_outcome_loss = rel_o0 - rel_o1;  // + = loss for the move player
-        const rel_moves_loss = - rel_o0 * (depth - next_depth - 1);  // + = loss for the move player
-        mv.toggleClass("outcome-loss", rel_outcome_loss > 0)
-            .toggleClass("moves-loss", rel_outcome_loss === 0 && rel_moves_loss > 0);
-        // [tooltips]
-        const outcome_text = (o: number, d: number): string =>
-              [`${Math.max(d, 0)}手負`, "引分", `${Math.max(d, 0)}手勝`][o + 1];
-        const rel_ot0 = outcome_text(rel_o0, depth);
-        const rel_ot1 = rel_next_gos < 0 ? "負" : rel_next_gos > 0 ? "勝" : outcome_text(rel_o1, next_depth + 1);
-        const tooltip: string | false =
-              (rel_outcome_loss > 0 || rel_moves_loss > 0) && `${rel_ot0}→${rel_ot1}`;
-        tooltip && li.attr("title", tooltip).tooltip({
+        const m_optimal_next_eval = m_eval + Math.sign(m_eval);
+        const m_regret = m_optimal_next_eval - m_next_eval;
+        const m_big_regret_p = is_big(m_regret);
+        mv.toggleClass("outcome-loss", m_big_regret_p)
+            .toggleClass("moves-loss", !m_big_regret_p && m_regret > 0);
+        // [tooltip]
+        if (m_regret === 0) return;
+        const m_outcome = (d: number, ev: number, gos: number): string => [
+            "負",
+            [`${d}手負`, "引分", `${d}手勝`][Math.sign(ev) + 1],
+            "勝",
+        ][Math.sign(gos) + 1];
+        const m_o = m_outcome(depth, m_eval, 0);
+        const m_next_o = m_outcome(next_depth + 1, m_next_eval, m_next_gos);
+        const tooltip = `${m_o}→${m_next_o}`;
+        li.attr("title", tooltip).tooltip({
             show: 100, hide: 100,
-            position: { my: "left top", at: "left+50 bottom+50", collision: "flipfit" },
+            position: {
+                my: "left top",
+                at: "left+50 bottom+50",
+                collision: "flipfit"
+            },
         });
     }
 }
