@@ -493,10 +493,11 @@ export class UI {
 
         // add a entry to the record
         let s1 = move.toString(this.swap_side_p);
-        let s2 = $("ol#record").children().last().text();
+        let s2 = $("ol#record").children().last().data("full-text") || "";
+        let s = s1;
         if (s1.substring(1, 3) === s2.substring(1, 3))
-            s1 = s1[0] + "同" + s1.substr(3);
-        $("ol#record").append($("<li>").addClass(piece ? "player-text" : "master-text").text(s1));
+            s = s1[0] + "同" + s1.substr(3);
+        $("ol#record").append($("<li>").addClass(piece ? "player-text" : "master-text").text(s).data("full-text", s1));
     }
 
     // perform a move backward
