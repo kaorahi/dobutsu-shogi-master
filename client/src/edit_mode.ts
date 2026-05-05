@@ -1,15 +1,21 @@
 import {Board, Piece} from "./board";
-import type {UI} from "./ui";
+import type {UI, UIHistoryItem} from "./ui";
 
 export class EditModeController {
     context_menu_piece: JQuery | null = null;
     pre_edit_state: UI["ui_state"] | null = null;
+    pre_edit_history: UIHistoryItem[] = [];
+    pre_edit_future: UIHistoryItem[] = [];
 
     constructor(private host: UI) {}
 
     enterEditMode() {
         if (!this.host.enter()) return;
         this.pre_edit_state = this.host.ui_state;
+        this.pre_edit_history = this.host.history;
+        this.pre_edit_future = this.host.future;
+        this.host.history = [];
+        this.host.future = [];
         this.host.edit_mode = true;
         this.host.leave();
     }
@@ -21,6 +27,8 @@ export class EditModeController {
         const board = this.host.ui_state.board;
         // trick to take snapshot in set_board
         this.pre_edit_state && (this.host.ui_state = this.pre_edit_state);
+        this.host.history = this.pre_edit_history;
+        this.host.future = this.pre_edit_future;
         this.host.set_board(board, false, true);
         this.host.leave();
     }

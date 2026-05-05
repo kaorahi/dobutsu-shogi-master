@@ -24,7 +24,7 @@ import {
 
 type UIState = { board: Board, depth: number | null };
 
-type UIHistoryItem = [UIState, Move, number | null];
+export type UIHistoryItem = [UIState, Move, number | null];
 
 type Snapshot = [
     string,
