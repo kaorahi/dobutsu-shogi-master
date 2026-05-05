@@ -162,6 +162,15 @@ export class UI {
             for (let p of [k, Piece.opponent[k]])
                 for (let h = board.hand(p); h > 0; h--)
                     move_piece(p, self.get_empty_hand(Piece.mine_p(p)));
+        // lion is missing in "board" if captured
+        switch (board.gameover_status()) {
+        case -1:  // master wins (capture)
+            move_piece(Piece.opponent[Piece.Lion], self.get_empty_hand(false));
+            break;
+        case +1:  // player wins (capture)
+            move_piece(Piece.Lion, self.get_empty_hand(true));
+            break;
+        }
         // state
         keep_history_p || self.initialize_state();
         self.ui_state = { board, depth: null };
