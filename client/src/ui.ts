@@ -154,7 +154,10 @@ export class UI {
             case ']': this.rotate_snapshot(); break;
             }
         });
-        $(document).on("paste", (e) => this.csa_io.loadFromClipboard(e));
+        $(document).on("paste", (e) => {
+            this.csa_io.loadFromClipboard(e);
+            $("#control-overlay, #about-overlay").fadeOut("fast");
+        });
         $(document).on("click", (e) => {
             const target = e.originalEvent?.target;
             if (!(target instanceof Element) || !target.closest("#piece-menu"))
