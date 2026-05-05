@@ -98,7 +98,7 @@ export class UI {
         });
 
         $("button").button();
-        $("button#matta").click((e) => this.undo_turn(true));
+        $("button#matta").click((e) => this.matta());
         $("button#hint").click((e) => this.highlight_best_move_piece());
         $("button#undo").click((e) => this.undo_turn());
         $("button#redo").click((e) => this.redo_turn());
@@ -611,24 +611,34 @@ export class UI {
         });
     }
 
-    // revoke the previous two turns (master's and player's)
-    undo_turn(destructive: boolean = false) {
+    undo_turn() {
         if (!this.enter()) return;
+        this.undo_turn_leave();
+    }
+
+    undo_turn_leave(callback?: (s: UIState) => void) {
         let prev = this.history.pop();
         if (!prev) return this.leave();
         this.future.push(prev);
         let [prev_state, move, nmove] = prev;
-
+        if (!move) return this.leave();
         $("span.piece").promise().done(() => {
-            if (move) {
-                this.undo_move(move);
-                this.leave(prev_state);
-            } else {
-                this.ui_state = prev_state;
-                this.swap_side_p && !this.analysis_mode && destructive ?
-                    this.do_master_turn_leave() : this.leave();
-            }
+            this.undo_move(move);
+            callback ? callback(prev_state) : this.leave(prev_state);
         });
+    }
+
+    // revoke the previous two turns (master's and player's)
+    matta() {
+        if (!this.enter()) return;
+        const callback = (s: UIState) => {
+            this.ui_state = s;
+            if (this.history.length > 0)
+                this.undo_turn_leave();
+            else
+                this.do_master_turn_leave();
+        }
+        this.undo_turn_leave(callback);
     }
 
     redo_turn() {
