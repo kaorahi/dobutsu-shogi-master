@@ -26,8 +26,10 @@ export function get_principal_variation(
     board = host.ui_state.board,
     white_p = host.is_white_turn(),
     max_plies = 12,
+    max_millisec = 10,
     first_move: Move | null = null,
 ): Move[] {
+    const deadline = Date.now() + max_millisec;
     const pv: Move[] = [];
     const seen = new Set<string>();
     let cur_board = board;
@@ -38,7 +40,7 @@ export function get_principal_variation(
         cur_board = first_move.new_board;
         cur_white_p = !cur_white_p;
     }
-    for (let ply = 0; ply < rest_plies; ply++) {
+    for (let ply = 0; ply < rest_plies && Date.now() < deadline; ply++) {
         const key = `${cur_white_p ? "w" : "b"}:${cur_board.hashstr()}`;
         if (seen.has(key)) break;
         seen.add(key);
@@ -57,6 +59,7 @@ export function format_principal_variation(
     board = host.ui_state.board,
     white_p = host.is_white_turn(),
     max_plies = 12,
+    max_millisec = 10,
     first_move: Move | null = null,
 ): string {
     const names: Record<string, string> = {
@@ -69,7 +72,7 @@ export function format_principal_variation(
     const abbreviate = (s: string): string =>
           s.replace(/ライオン|ぞう|きりん|ひよこ|にわとり/g, name => names[name]);
     let prev_text = "";
-    return get_principal_variation(host, board, white_p, max_plies, first_move)
+    return get_principal_variation(host, board, white_p, max_plies, max_millisec, first_move)
         .map(move => {
             const full_text = host.revflip_maybe(move, host.swap_side_p).toString();
             let text = full_text;

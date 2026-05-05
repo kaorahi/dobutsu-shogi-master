@@ -686,7 +686,7 @@ export class UI {
 
     update_principal_variation_display() {
         const pv_text = this.analysis_mode ?
-              format_principal_variation(this, this.ui_state.board, this.is_white_turn(), 12, this.pv_hover_move) :
+              format_principal_variation(this, this.ui_state.board, this.is_white_turn(), 12, 10, this.pv_hover_move) :
               "";
         $("p#pv").toggle(this.analysis_mode);
         $("p#pv #pv-text").text(pv_text);
