@@ -375,8 +375,9 @@ export class UI {
 
     start_autorun() {
         if (!this.enter()) return;
+        const stop_p = () => this.autorun_running === false;
         const autorun = () => {
-            const recur = () => this.do_master_turn(autorun);
+            const recur = () => this.do_master_turn(stop_p, autorun);
             if (this.autorun_running &&
                 this.ui_state.board.gameover_status() === 0) {
                 this.update_ui();
@@ -676,24 +677,25 @@ export class UI {
     }
 
     do_master_turn_leave() {
-        this.do_master_turn_leave_or_callback(null);
+        this.do_master_turn_leave_or_callback();
     }
 
-    do_master_turn(callback: () => void) {
-        this.do_master_turn_leave_or_callback(callback);
+    do_master_turn(stop_p: () => boolean, callback: () => void) {
+        this.do_master_turn_leave_or_callback(stop_p, callback);
     }
 
-    do_master_turn_leave_or_callback(callback: (() => void) | null = null) {
+    do_master_turn_leave_or_callback(stop_p: (() => boolean) | null = null, callback: (() => void) | null = null) {
         const fin = callback || (() => this.leave());
         let [depth, nmoves] = this.get_depth_and_best_moves();
         let nmove = random_choice(nmoves);
         if (depth === null || nmoves.length === 0 || !nmove) return fin();
         const depth_after_nmove = Math.max(-1, depth - 1);
-        this.clear_future(true);
-        this.history.push([this.ui_state, nmove, depth_after_nmove]);
 
         $("span.piece").delay(300).promise().done(() => {
+            if (stop_p && stop_p()) return fin();
             // state & history must be updated before do_move
+            this.clear_future(true);
+            this.history.push([this.ui_state, nmove, depth_after_nmove]);
             this.ui_state = { board: nmove.new_board, depth: depth_after_nmove};
             this.do_move(nmove);
             fin();
