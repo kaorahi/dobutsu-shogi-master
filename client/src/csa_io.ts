@@ -18,6 +18,7 @@ export class CsaIO {
 
     loadFromText(text: string) {
         if (!this.ui.enter()) return;
+        const too_long_to_calculate_depths = 1000;
         $("#loading").show();
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
@@ -26,12 +27,23 @@ export class CsaIO {
                     this.ui.analysis_mode = true;
                     let prev_li: JQuery<HTMLElement> | null = null;
                     let is_white_turn = false;
-                    text.split(/\r?\n/).forEach(line => {
-                        const depth = null;
+                    const lines = text.split(/\r?\n/)
+                    lines.forEach((line, k) => {
                         const move = this.textToMove(line.trim(), is_white_turn);
                         if (!move) return;
-                        this.ui.history.push([this.ui.ui_state, move, depth]);
-                        this.ui.ui_state = { board: move.new_board, depth };
+                        const state_before_move = this.ui.ui_state;
+                        const state_after_move = { board: move.new_board, depth: null };
+                        this.ui.ui_state = state_after_move;
+                        // tentatively push dummy history
+                        // because update_depth relies on history length
+                        this.ui.history.push([state_before_move, move, null]);
+                        if (lines.length < too_long_to_calculate_depths) {
+                            this.ui.update_depth();
+                            const depth_after_move = this.ui.ui_state.depth;
+                            // replace dummy history with correct history
+                            this.ui.history.pop();
+                            this.ui.history.push([state_before_move, move, depth_after_move]);
+                        }
                         prev_li = this.ui.add_to_record(move, prev_li);
                         is_white_turn = !is_white_turn;
                     });
