@@ -69,11 +69,8 @@ export class EditModeController {
             place.addClass("drop-current");
     }
 
-    clearDropTarget(place?: JQuery) {
-        if (place)
-            place.removeClass("drop-current");
-        else
-            $("div.cell, div.hand").removeClass("drop-current");
+    clearDropTarget(place = $("div.cell, div.hand")) {
+        place.removeClass("drop-current");
     }
 
     openContextMenu(piece: JQuery, new_place: JQuery, e: JQueryEventObject) {
