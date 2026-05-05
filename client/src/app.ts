@@ -18,6 +18,7 @@ async function fetch_gunzip(url: string) {
 }
 
 async function main(): Promise<{ ai: AI; ui: UI }> {
+    $("#record-box").css("opacity", 0);
     const loading = $("#loading");
     const res = await fetch("rules.txt", { cache: "no-store" });
     const rules_txt = res.ok ? (await res.text()).trim() : 'val1n';
@@ -50,6 +51,7 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
     const ai = new AI(rules_txt, ai_txt, keys, vals);
     const ui = new UI(ai, init_game_txt);
     loading.hide();
+    $("#record-box").css("opacity", 1);
     return {ai, ui};
 }
 
