@@ -205,7 +205,7 @@ export class UI {
         return s ? Board.from_hashstr(s) : Board.init();
     }
 
-    set_board(board: Board, keep_history_p = false) {
+    set_board(board: Board, keep_history_p = false, keep_swap_p = false) {
         const snapshot_p = (this.history.length + this.future.length > 0) ||
               this.ui_state.board.hashstr() !== this.initial_board().hashstr();
         !keep_history_p && snapshot_p && this.take_snapshot();
@@ -218,7 +218,9 @@ export class UI {
         // (2) then move rest pieces
         self.set_board_sub(board1, rest1, gameover_status, false);
         // state
+        const swap_p = self.swap_side_p;  // cleared in initialize_state
         keep_history_p || self.initialize_state();
+        keep_swap_p && (self.swap_side_p = swap_p);
         self.ui_state = { board, depth: null };
         self.update_depth();
     }

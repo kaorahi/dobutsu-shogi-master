@@ -26,7 +26,7 @@ export class EditModeController {
         this.host.edit_mode = false;
         if (pre_edit_state)
             this.host.ui_state = pre_edit_state;
-        this.host.set_board(edited_board);
+        this.host.set_board(edited_board, false, true);
         this.host.leave();
     }
 
