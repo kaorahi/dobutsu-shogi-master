@@ -76,34 +76,35 @@ export class AI {
     // Perform a shallow search to check low-depth boards omitted from
     // the database, while also referring to the database to handle
     // repetitions correctly (Sen-nichi-te).
-    private search_core(nr_b: Board, limit: number): [number, Board] {
+    private search_core(nr_b: Board, limit: number): [number, Board[]] {
         const nr_nbs = nr_b.next_boards()
         // trivial cases
-        if (nr_b.gameover_status() !== 0) return [0, nr_b];
-        if (nr_nbs === Result.Lose) return [0, nr_b];
-        if (nr_nbs === Result.Win) return [1, this.calc_final_board(nr_b)];
+        if (nr_b.gameover_status() !== 0) return [0, [nr_b]];
+        if (nr_nbs === Result.Lose) return [0, [nr_b]];
+        if (nr_nbs === Result.Win) return [1, [this.calc_final_board(nr_b)]];
         let [depth, idxes] = this.lookup_db(nr_b);
-        let idx = random_choice(idxes);
-        if (depth >= 0 && idx !== undefined && idx >= 0) return [depth, nr_nbs[idx]];
-        if (limit < 1) return [-1, random_choice(nr_nbs) || nr_b];
+        if (depth >= 0 && idxes.length > 0) return [depth, idxes.map(i => nr_nbs[i])];
+        if (limit < 1) return [-1, nr_nbs.length > 0 ? nr_nbs : [nr_b]];
         // iteration
         const next_depth = (b: Board): number | undefined =>
               this.search_core(b.reverse().normalize(), limit - 1)?.[0];
         const ds = nr_nbs.map(next_depth);
         const nump = (d: number | undefined): d is number => typeof d === 'number';
         const ps = ds.filter((d): d is number => nump(d) && d >= 0);
-        const pick = (d: number): Board | undefined =>
-              random_choice(nr_nbs.filter((b, k) => ds[k] === d))
+        const pick = (d: number): Board[] | false => {
+            const ret = nr_nbs.filter((b, k) => ds[k] === d);
+            return ret.length > 0 && ret;
+        }
         // prefer the shortest winning move...
         const winning_d = Math.min(...ps.filter(d => nump(d) && d % 2 === 0));
-        if (winning_d < Infinity) return [winning_d + 1, pick(winning_d) || nr_b];
+        if (winning_d < Infinity) return [winning_d + 1, pick(winning_d) || [nr_b]];
         // ...or, uncertain moves
-        if (ds.indexOf(-1) >= 0) return [-1, pick(-1) || nr_b];
+        if (ds.indexOf(-1) >= 0) return [-1, pick(-1) || [nr_b]];
         // ...or, the longest losing move
         const losing_d = Math.max(...ps.filter(d => nump(d) && d % 2 !== 0));
-        if (losing_d > -Infinity) return [losing_d + 1, pick(losing_d) || nr_b];
+        if (losing_d > -Infinity) return [losing_d + 1, pick(losing_d) || [nr_b]];
         // no possible moves (for example, all pieces were captured)
-        return [-1, nr_b];
+        return [-1, [nr_b]];
     }
 
     // given a white board, returns a pair of depth and next black board
@@ -114,7 +115,7 @@ export class AI {
 
         // find a next board
         let lowest_depth_in_database = 4;
-        let [depth, nr_nb] = this.search_core(nr_b, lowest_depth_in_database);
+        let [depth, [nr_nb]] = this.search_core(nr_b, lowest_depth_in_database);
 
         // invert the reverse and the normalization
         let r_nb = flipped ? nr_nb.flip() : nr_nb;
