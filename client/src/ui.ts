@@ -12,6 +12,7 @@ import "jquery-ui-touch-punch/jquery.ui.touch-punch";
 
 import {Board, Piece, Result, isResult} from "./board";
 import {AI} from "./ai";
+import {CsaIO} from "./csa_io";
 import {EditModeController} from "./edit_mode";
 import {Move, Normal, Drop} from "./move";
 
@@ -43,6 +44,7 @@ export class UI {
     autorun_timer: number | null = null;
     autorun_running = false;
     snapshots: Snapshot[] = [];
+    csa_io: CsaIO;
     edit_controller: EditModeController;
 
     is_white_turn(): boolean {
@@ -52,6 +54,7 @@ export class UI {
 
     constructor(public ai: AI, init_game_txt: string) {
         this.initialize_state();
+        this.csa_io = new CsaIO(this);
         this.edit_controller = new EditModeController(this);
 
         this.ui_state.board.update_rules(ai.rules);
@@ -93,7 +96,7 @@ export class UI {
                 $("#about-overlay").fadeOut("fast");
             });
         });
-        $("button#copy").click((e) => this.copy_csa_kifu_to_clipboard());
+        $("button#copy").click((e) => this.csa_io.copyToClipboard());
         $("button#prev-board").click((e) => this.rotate_snapshot(true));
         $("button#next-board").click((e) => this.rotate_snapshot());
 
@@ -125,7 +128,7 @@ export class UI {
             case ']': this.rotate_snapshot(); break;
             }
         });
-        $(document).on("paste", (e) => this.load_csa_kifu_from_clipboard(e));
+        $(document).on("paste", (e) => this.csa_io.loadFromClipboard(e));
         $(document).on("click", (e) => {
             const target = e.originalEvent?.target;
             if (!(target instanceof Element) || !target.closest("#piece-menu"))
@@ -152,7 +155,7 @@ export class UI {
         this.set_board(this.initial_board(), true);
         this.update_depth();
         this.leave();
-        init_game_txt && this.load_csa_kifu_text(init_game_txt);
+        init_game_txt && this.csa_io.loadFromText(init_game_txt);
     }
 
     initialize_state() {
@@ -350,183 +353,6 @@ export class UI {
         this.update_records();
         this.leave();
     }
-
-    // copy & paste (CSA-like Kifu)
-    // See this page for the format.
-    // https://www.tanaka.ecc.u-tokyo.ac.jp/ktanaka/dobutsushogi/index.html
-    // (example)
-    // +C4C3KI
-    // -B2B3HI
-    // +C3B3KI
-    // -00A2HI
-
-    copy_csa_kifu_to_clipboard() {
-        this.copy_to_clipboard(this.csa_kifu_text());
-        $("body").stop(true, true).fadeTo(150, 0.1).fadeTo(150, 1);
-    }
-
-    load_csa_kifu_from_clipboard(e: JQuery.TriggeredEvent) {
-            const oe = e.originalEvent as ClipboardEvent;
-            const text = oe.clipboardData?.getData("text") ?? "";
-            this.load_csa_kifu_text(text);
-    }
-
-    csa_kifu_text(): string {
-        const b = this.history[0]?.[0].board || this.ui_state.board;
-        const is_standard = b.hashstr() === Board.init().hashstr();
-        const board_text = is_standard ? "" : this.board2csa(b, true);
-        const hs = [...this.history, ...this.future.toReversed()];
-        const moves = hs.flatMap(z => z.slice(1)).filter(m => m) as Move[];
-        return board_text + moves.map(m => this.move2csa(m) + "\n").join("");
-    }
-
-    load_csa_kifu_text(text: string) {
-        if (!this.enter()) return;
-        $("#loading").show();
-        // needs requestAnimationFrame twice in my environment to show "loading"
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                try {
-                    this.set_board(this.csa2board(text));
-                    this.analysis_mode = true;
-                    let prev_li: JQuery<HTMLElement> | null = null;
-                    let is_white_turn = false;
-                    text.split(/\r?\n/).forEach(line => {
-                        const move = this.csa2move(line.trim(), is_white_turn);
-                        if (!move) return;
-                        this.history.push([this.ui_state, null, move]);
-                        this.ui_state = { board: move.new_board, depth: null };
-                        prev_li = this.add_to_record(move, prev_li);
-                        is_white_turn = !is_white_turn;
-                    });
-                } catch {} finally {
-                    $("#loading").hide();
-                    this.goto_history_len_leave(0);
-                }
-            });
-        });
-    }
-
-    board2csa(board: Board, is_black_turn: boolean): string {
-        // ref. http://www2.computer-shogi.org/protocol/record_v3.html
-        const seq = (n: number): number[] => Array.from({ length: n }, (_, k) => k);
-        const piece_name = ["", "LI", "ZO", "KI", "HI", "NI"];
-        const csa_piece_kind = (p: Piece): string => piece_name[Piece.kind(p)];
-        const csa_piece_sign = (p: Piece): string =>
-              p === Piece.Empty ? " " : Piece.mine_p(p) ? "+" : "-";
-        const csa_piece = (p: Piece): string =>
-              csa_piece_sign(p) + (csa_piece_kind(p) || "* ");
-        const my_pieces = [Piece.Elephant, Piece.Giraffe, Piece.Chick];
-        const opponent_pieces = my_pieces.map((p: Piece) => Piece.opponent[p]);
-        // board
-        const csa_row = (y: number) =>
-              `P${y + 1}` + seq(3).map(x => csa_piece(board.get(2 - x, 3 - y))).join("") + "\n";
-        const board_text = seq(4).map(csa_row).join("");
-        // hands
-        const csa_hands = (ps: Piece[]) => {
-            const body = ps.map(p => ("00" + csa_piece_kind(p)).repeat(board.hand(p))).join("");
-            return (body === "") ? "" : "P" + csa_piece_sign(ps[0]) + body + "\n";
-        }
-        const hands_text = csa_hands(my_pieces) + csa_hands(opponent_pieces);
-        // turn
-        const turn_text = (is_black_turn ? "+" : "-") + "\n";
-        return board_text + hands_text + turn_text;
-    }
-
-    csa2board(text: string): Board {
-        const piece_name = ["", "LI", "ZO", "KI", "HI", "NI"];
-        const c2mypiece = (t: string) => piece_name.indexOf(t) as Piece;
-        const opp = (p: Piece, sign: string) => (sign === "+") ? p : Piece.opponent[p];
-        const c2p = (piece_str: string): Piece | null => {
-            const m = piece_str.match(/^([-+])(..)$/);
-            return m ?  opp(c2mypiece(m[2]), m[1]) : null;
-        };
-        let board = Board.init();
-        let white_turn_p = false;
-        const parse_line = (s: string) => {
-            if (s === "-")
-                white_turn_p = true;
-            const m_row = s.match(/^P([1-4])(...)(...)(...)$/);
-            if (m_row) {
-                const y = 4 - Number(m_row[1]);
-                m_row.slice(2, 5).forEach((piece_str: string, idx: number) => {
-                    const x = 2 - idx;
-                    const p = c2p(piece_str);
-                    board = board.del(x, y);
-                    if (p !== null)
-                        board = board.put(x, y, p);
-                });
-            }
-            const m_hands = s.match(/^P([-+])((00..)+)$/);
-            if (m_hands) {
-                const sign = m_hands[1];
-                let rest = m_hands[2];
-                let m: RegExpMatchArray | null;
-                while (m = rest.match(/^00(..)(.*)$/)) {
-                    rest = m[2];
-                    const myp = c2mypiece(m[1]);
-                    board = (sign === "+") ? board.inc_hand(myp) :
-                        board.revflip().inc_hand(myp).revflip();
-                }
-            }
-        };
-        text.split(/\r?\n/).forEach(line => parse_line(line));
-        return white_turn_p ? board.revflip() : board;
-    }
-
-    move2csa(m: Move): string {
-        const piece_name = ["", "LI", "ZO", "KI", "HI", "NI"];
-        const col_name = ["A", "B", "C"];
-        const xy2s = (x: number, y: number): string => `${col_name[2-x]}${4-y}`;
-        const np = m.new_board.get(m.nx, m.ny);
-        const s = Piece.mine_p(np) ? "+" : "-"
-        const from = (m instanceof Drop) ? "00" : xy2s(m.x, m.y);
-        const to = xy2s(m.nx, m.ny);
-        return s + from + to + piece_name[Piece.kind(np)];
-    }
-
-    csa2move(s: string, is_white_turn: boolean) : Move | null {
-        try {
-            const piece_name = ["", "LI", "ZO", "KI", "HI", "NI"];  // L,E,G,C,H
-            const col_name = ["A", "B", "C"];
-            const s2xy = (sq: string): { x: number; y: number } | null => {
-                const i = col_name.indexOf(sq[0]);
-                const j = Number(sq[1]);
-                if (i < 0 || Number.isNaN(j)) return null;
-                return { x: 2 - i, y: 4 - j };
-            };
-            const sign = s[0];
-            const from_str = s.slice(1, 3);
-            const to_str = s.slice(3, 5);
-            const piece_str = s.slice(5, 7);
-            const from = from_str === "00" ? null : s2xy(from_str);
-            const to = s2xy(to_str);
-            if (!to) return null;
-            const black_board = this.revflip_maybe(this.ui_state.board, is_white_turn);
-            const moves = Move.possible_moves(black_board, false).map(m => this.revflip_maybe(m, is_white_turn));
-            if (from) {
-                const query = {x: from.x, y: from.y, nx: to.x, ny: to.y};
-                return moves.find(move => move.match_p(query)) || null;
-            } else {
-                const p = piece_name.indexOf(piece_str) as Piece;
-                const piece = (sign === '+') ? p : Piece.opponent[p];
-                const query = {p: piece, nx: to.x, ny: to.y};
-                return moves.find(move => move.match_p(query)) || null;
-            }
-        } catch {
-            return null;
-        }
-    }
-
-    copy_to_clipboard(text: string) {
-        const $textarea = $("<textarea>").val(text).css({ position: "fixed", left: "-9999px", top: "0" }).appendTo("body");
-        const textarea = $textarea[0] as HTMLTextAreaElement;
-        textarea.focus();
-        textarea.select();
-        try { document.execCommand("copy"); } catch {};
-        $textarea.remove();
-    }
-
 
     // Helpers for manipulating DOMs
 
