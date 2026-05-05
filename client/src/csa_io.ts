@@ -56,11 +56,14 @@ export class CsaIO {
     }
 
     toText(): string {
-        const b = this.ui.history[0]?.[0].board || this.ui.ui_state.board;
+        const swap_p = this.ui.swap_side_p;
+        const b0 = this.ui.history[0]?.[0].board || this.ui.ui_state.board;
+        const b = this.ui.revflip_maybe(b0, swap_p);
         const is_standard = b.hashstr() === Board.init().hashstr();
         const board_text = is_standard ? "" : this.boardToText(b, true);
         const hs = [...this.ui.history, ...this.ui.future.toReversed()];
-        const moves = hs.map(z => z[1]).filter(m => m) as Move[];
+        const moves0 = hs.map(z => z[1]).filter(m => m) as Move[];
+        const moves = moves0.map(m => this.ui.revflip_maybe(m, swap_p));
         return board_text + moves.map(m => this.moveToText(m) + "\n").join("");
     }
 
