@@ -107,25 +107,24 @@ div#about-overlay, div#control-overlay {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.75);
 }
-div#about-dialog {
+div#about-dialog, div#control-dialog {
   position: fixed;
-  width: 20em;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+  max-height: 95vh;
+  overflow-y: auto;
   background: #ffffff;
+}
+div#about-dialog {
+  width: 20em;
   padding: 1em 1em 0em 0em;
   ul {
     padding: 0em 0em 0em 2em;
   }
 }
 div#control-dialog {
-  position: fixed;
   width: 22em;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  background: #ffffff;
   padding: 1em 0em 0em 0em;
   button, p {
     margin: 1em;
