@@ -89,7 +89,7 @@ export class UI {
         $("button#new-game").click((e) => this.restore_positions(false));
         $("button#swap").click((e) => this.restore_positions(true));
         $("button#analysis-mode").click((e) => {
-            this.enter();
+            if (!this.enter()) return;
             this.analysis_mode = true;
             this.leave();
         });
