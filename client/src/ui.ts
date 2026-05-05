@@ -94,7 +94,7 @@ export class UI {
         });
 
         $("ol#record").on("click", "li", (e) => {
-            this.goto_history_len($(e.currentTarget).data("history-len"));
+            this.goto_history_len($(e.currentTarget).index() + 1);
         });
 
         $("button").button();
@@ -403,8 +403,8 @@ export class UI {
         this.set_board(this.ui_state.board, true);
         let prev_li: JQuery<HTMLElement> | null = null;
         const hs = [...this.history, ...this.future.toReversed()];
-        hs.forEach(([_, move], k) => {
-            move && (prev_li = this.add_to_record(move, prev_li, k + 1));
+        hs.forEach(([_, move]) => {
+            move && (prev_li = this.add_to_record(move, prev_li));
         });
         this.update_records();
         this.leave();
@@ -848,7 +848,7 @@ export class UI {
         this.add_to_record(move);
     }
 
-    add_to_record(move: Move, prev_li?: JQuery<HTMLElement> | null, history_len: number | null = null): JQuery<HTMLElement> {
+    add_to_record(move: Move, prev_li?: JQuery<HTMLElement> | null): JQuery<HTMLElement> {
         // add a entry to the record
         if (!prev_li)
             prev_li = $("ol#record").children().last();
@@ -857,8 +857,7 @@ export class UI {
         let s = s1;
         if (s1.substring(1, 3) === s2.substring(1, 3))
             s = s1[0] + "同" + s1.substr(3);
-        let n = (history_len === null) ? this.history.length : history_len;
-        const li = $("<li>").text(s).data("full-text", s1).data("history-len", n);
+        const li = $("<li>").text(s).data("full-text", s1);
         $("ol#record").append(li);
         return li;
     }
