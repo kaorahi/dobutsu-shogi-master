@@ -815,6 +815,10 @@ export class UI {
         $("#analysis-ckbox").prop("checked", this.analysis_mode);
         $("#swap-ckbox").prop("checked", this.swap_side_p);
         this.update_coord_labels();
+        const hl = this.history.length
+        const v = hl === 0 ? $("li#record-before-first") : $("ol#record").children().eq(hl - 1);
+        v.length > 0 && $("#container").css("flex-direction") === "row" &&
+            v[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
     update_coord_labels() {
