@@ -17,6 +17,10 @@ import {AI} from "./ai";
 import {CsaIO} from "./csa_io";
 import {EditModeController} from "./edit_mode";
 import {get_color} from "./colormap";
+import {
+    format_principal_variation,
+    get_hover_pv_move,
+} from "./ui_pv";
 
 type UIState = { board: Board, depth: number | null };
 
@@ -488,7 +492,7 @@ export class UI {
         if (this.analysis_mode && !this.edit_mode && !this.locked && piece.hasClass("to-play")) {
             this.highlight_droppable_cells(piece);
             this.highlight_best_move_piece();
-            this.pv_hover_move = this.get_hover_pv_move(piece);
+            this.pv_hover_move = get_hover_pv_move(this, piece);
             this.update_principal_variation_display();
         }
     }
@@ -664,77 +668,9 @@ export class UI {
         return [depth, white_moves.map(m => this.revflip_maybe(m, rev))];
     }
 
-    get_principal_variation(board = this.ui_state.board, white_p = this.is_white_turn(), max_plies = 12): Move[] {
-        return this.get_principal_variation_from_move(board, white_p, max_plies, null);
-    }
-
-    get_principal_variation_from_move(board = this.ui_state.board, white_p = this.is_white_turn(), max_plies = 12, first_move: Move | null = null): Move[] {
-        const pv: Move[] = [];
-        const seen = new Set<string>();
-        let cur_board = board;
-        let cur_white_p = white_p;
-        const rest_plies = first_move ? Math.max(max_plies - 1, 0) : max_plies;
-        if (first_move) {
-            pv.push(first_move);
-            cur_board = first_move.new_board;
-            cur_white_p = !cur_white_p;
-        }
-        for (let ply = 0; ply < rest_plies; ply++) {
-            const key = `${cur_white_p ? "w" : "b"}:${cur_board.hashstr()}`;
-            if (seen.has(key)) break;
-            seen.add(key);
-            if (cur_board.gameover_status() !== 0) break;
-            const [depth, moves] = this.get_depth_and_best_moves(cur_board, cur_white_p);
-            if (depth === null || moves.length === 0) break;
-            const move = moves[0];
-            pv.push(move);
-            cur_board = move.new_board;
-            cur_white_p = !cur_white_p;
-        }
-        return pv;
-    }
-
-    format_principal_variation(board = this.ui_state.board, white_p = this.is_white_turn(), max_plies = 12, first_move: Move | null = null): string {
-        const names: Record<string, string> = {
-            "ライオン": "ラ",
-            "ぞう": "ぞ",
-            "きりん": "き",
-            "ひよこ": "ひ",
-            "にわとり": "に",
-        };
-        const abbreviate = (s: string): string =>
-              s.replace(/ライオン|ぞう|きりん|ひよこ|にわとり/g, name => names[name]);
-        let prev_text = "";
-        return this.get_principal_variation_from_move(board, white_p, max_plies, first_move)
-            .map(move => {
-                const full_text = this.revflip_maybe(move, this.swap_side_p).toString();
-                let text = full_text;
-                if (prev_text.substring(1, 3) === full_text.substring(1, 3))
-                    text = full_text[0] + "同" + full_text.substr(3);
-                prev_text = full_text;
-                return abbreviate(text);
-            })
-            .join("");
-    }
-
-    get_hover_pv_move(piece: JQuery): Move | null {
-        const legal_moves: Move[] = [];
-        this.query_move(piece, {}, (move) => legal_moves.push(move));
-        if (legal_moves.length === 0) return null;
-        const [_, best_moves] = this.get_depth_and_best_moves();
-        const best_keys = new Set(best_moves.map(move => this.move_key(move)));
-        return legal_moves.find(move => best_keys.has(this.move_key(move))) || legal_moves[0];
-    }
-
-    move_key(move: Move): string {
-        return move instanceof Normal ?
-              `N:${move.x},${move.y},${move.nx},${move.ny}` :
-              `D:${move.p},${move.nx},${move.ny}`;
-    }
-
     update_principal_variation_display() {
         const pv_text = this.analysis_mode ?
-              this.format_principal_variation(this.ui_state.board, this.is_white_turn(), 12, this.pv_hover_move) :
+              format_principal_variation(this, this.ui_state.board, this.is_white_turn(), 12, this.pv_hover_move) :
               "";
         $("p#pv").prop("hidden", !this.analysis_mode);
         $("p#pv #pv-text").text(pv_text);

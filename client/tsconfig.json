@@ -15,6 +15,7 @@
         "src/move.ts",
         "src/ai.ts",
         "src/app.ts",
+        "src/ui_pv.ts",
         "src/ui.ts",
         "test/ai.test.ts",
         "test/board.test.ts",
