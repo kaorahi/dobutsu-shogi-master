@@ -693,7 +693,7 @@ export class UI {
               format_principal_variation(this, this.ui_state.board, this.is_white_turn(), 12, 10, this.pv_hover_move) :
               "";
         $("p#pv").toggle(pv_p);
-        $("p#pv #pv-text").text(pv_text);
+        $("p#pv #pv-text").html(pv_text);
     }
 
     highlight_best_move_piece() {

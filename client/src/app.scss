@@ -95,13 +95,18 @@ div#record-container {
 }
 p#pv {
   display: none;
+  box-sizing: border-box;
+  flex: 0 0 auto;
   padding: 0.25em 0.5em 0.5em;
   font-size: 0.8em;
   line-height: 1.35;
-  word-break: break-word;
-}
-p#pv .label {
-  font-weight: bold;
+  word-break: normal;
+  .label {
+    font-weight: bold;
+  }
+  .pv-move {
+    white-space: nowrap;
+  }
 }
 @media (min-aspect-ratio: 1/1) {
   div#container {
@@ -111,6 +116,9 @@ p#pv .label {
   div#record-box {
     margin: 1em 0em;
     width: 9em;
+  }
+  p#pv {
+    height: calc(1.35em * 3 + 0.25em + 0.5em);
   }
 }
 @media (max-aspect-ratio: 1/1) {
@@ -123,6 +131,9 @@ p#pv .label {
   div#record-box {
     margin: 1em;
     width: 20em;
+  }
+  p#pv {
+    height: calc(1.35em * 2 + 0.25em + 0.5em);
   }
 }
 

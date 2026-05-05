@@ -79,9 +79,9 @@ export function format_principal_variation(
             if (prev_text.substring(1, 3) === full_text.substring(1, 3))
                 text = full_text[0] + "同" + full_text.substr(3);
             prev_text = full_text;
-            return abbreviate(text);
+            return `<span class="pv-move">${abbreviate(text)}</span>`;
         })
-        .join("");
+        .join("<wbr>");
 }
 
 export function get_hover_pv_move(host: UIAnalysisHost, piece: JQuery): Move | null {
