@@ -18,9 +18,10 @@ export class EditModeController {
         if (!this.host.enter()) return;
         this.closeContextMenu();
         this.host.edit_mode = false;
-        // restore board before set_board() for snapshot in it
+        const board = this.host.ui_state.board;
+        // trick to take snapshot in set_board
         this.pre_edit_state && (this.host.ui_state = this.pre_edit_state);
-        this.host.set_board(this.buildBoardFromDom(), false, true);
+        this.host.set_board(board, false, true);
         this.host.leave();
     }
 
@@ -138,7 +139,7 @@ export class EditModeController {
 
     private transformBoard(transform: (board: Board) => Board) {
         if (!this.host.enter()) return;
-        const board = transform(this.buildBoardFromDom());
+        const board = transform(this.host.ui_state.board);
         this.host.set_board(board, true);
         this.host.leave();
     }
