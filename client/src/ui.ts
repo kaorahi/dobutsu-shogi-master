@@ -661,9 +661,18 @@ export class UI {
             "ひよこ": "ひ",
             "にわとり": "に",
         };
+        const abbreviate = (s: string): string =>
+              s.replace(/ライオン|ぞう|きりん|ひよこ|にわとり/g, name => names[name]);
+        let prev_text = "";
         return this.get_principal_variation(board, white_p, max_plies)
-            .map(move => this.revflip_maybe(move, this.swap_side_p).toString()
-                 .replace(/ライオン|ぞう|きりん|ひよこ|にわとり/g, name => names[name]))
+            .map(move => {
+                const full_text = this.revflip_maybe(move, this.swap_side_p).toString();
+                let text = full_text;
+                if (prev_text.substring(1, 3) === full_text.substring(1, 3))
+                    text = full_text[0] + "同" + full_text.substr(3);
+                prev_text = full_text;
+                return abbreviate(text);
+            })
             .join("");
     }
 
