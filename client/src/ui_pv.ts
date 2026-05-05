@@ -91,7 +91,7 @@ export function get_hover_pv_move(host: UIAnalysisHost, piece: JQuery): Move | n
         if (depth < 0) return [1, 0];  // draw
         return [2, -depth];  // lose: longer is better
     };
-    return legal_moves.reduce((best, move) => {
+    const hover_move = legal_moves.reduce((best, move) => {
         if (!best) return move;
         const d1 = host.get_depth_and_best_moves(move.new_board, !white_p)[0];
         const d2 = host.get_depth_and_best_moves(best.new_board, !white_p)[0];
@@ -99,4 +99,15 @@ export function get_hover_pv_move(host: UIAnalysisHost, piece: JQuery): Move | n
         const [c2, s2] = rank(d2);
         return (c1 < c2 || (c1 === c2 && s1 < s2)) ? move : best;
     }, null as Move | null);
+    const [_, best_moves] = host.get_depth_and_best_moves();
+    const best_move = best_moves[0] || null;
+    return best_move && hover_move && move_source_key(best_move) === move_source_key(hover_move)
+        ? null
+        : hover_move;
+}
+
+function move_source_key(move: Move): string {
+    return move instanceof Normal
+        ? `N:${move.x},${move.y}`
+        : `D:${move.p}`;
 }
