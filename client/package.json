@@ -3,7 +3,7 @@
   "name": "dobutsu-shogi",
   "version": "1.0.0",
   "scripts": {
-    "pretest": "tsc",
+    "pretest": "tsc && printf '{\"type\":\"commonjs\"}\n' > out/package.json",
     "test": "nyc --reporter=html --reporter=text mocha out/test",
     "prebuild": "tsc",
     "build": "vite build --emptyOutDir",
