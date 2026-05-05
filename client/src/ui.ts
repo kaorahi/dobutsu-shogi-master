@@ -479,7 +479,7 @@ export class UI {
     // Event handlers
 
     hover_on_piece(piece: JQuery) {
-        if (this.analysis_mode && !this.edit_mode && piece.hasClass("to-play")) {
+        if (this.analysis_mode && !this.edit_mode && !this.locked && piece.hasClass("to-play")) {
             this.highlight_droppable_cells(piece);
             this.highlight_best_move_piece();
         }
