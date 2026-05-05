@@ -24,7 +24,7 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
     const start_time = Date.now();
     const loading_timer = setInterval(() => {
         const sec = Math.floor((Date.now() - start_time) / 1000);
-        $("#loading-count").text(sec);
+        $("#loading-count").text(` (${sec})`);
     }, 1000);
     // fetch
     const res = await fetch("rules.txt", { cache: "no-store" });
@@ -49,7 +49,7 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
         vbuf = await fetch_xz("vals.xz");
     } catch {
         clearInterval(loading_timer);
-        loading.text("ロード失敗");
+        loading.text("ロード失敗").css("animation", "none");
         throw new Error("loading failed");
     }
     // build
@@ -66,6 +66,7 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
     // finalize
     clearInterval(loading_timer);
     loading.hide();
+    $("#loading-count").text(``);
     $("#record-box, p.name.player-text").css("opacity", 1);
     return {ai, ui};
 }
