@@ -12,10 +12,11 @@ if ('onpointerenter' in window) {
 import "jquery-ui-touch-punch/jquery.ui.touch-punch";
 
 import {Board, Piece, Result, isResult} from "./board";
+import {Move, Normal, Drop} from "./move";
 import {AI} from "./ai";
 import {CsaIO} from "./csa_io";
 import {EditModeController} from "./edit_mode";
-import {Move, Normal, Drop} from "./move";
+import {get_color} from "./colormap";
 
 type UIState = { board: Board, depth: number | null };
 
@@ -978,13 +979,13 @@ export class UI {
         if (rel_next_gos !== 0)
             next_depth = 0;
         // [rest moves]
-        const min_l = 70;  // 50 = pure color
-        const max_l = 90;  // 100 = white
-        const l = Math.round(Math.min(min_l + (next_depth / max_depth) * (max_l - min_l), max_l))
+        const min_l = 0.0;
+        const max_l = 0.4;
+        const l = Math.min(min_l + (next_depth / max_depth) * (max_l - min_l), max_l)
         const abs_leading_p = abs_next_gos > 0 ? true : abs_next_gos < 0 ? false :
               (next_depth % 2 === Math.abs(i) % 2);  // true = the first player wins
-        const depth_color = next_depth < 0 ? "hsl(60deg 100% 75%)" :
-              `hsl(${abs_leading_p ? 0: 240}deg 100% ${l}%)`;
+        const depth_color = next_depth < 0 ? get_color(0.5) :
+              abs_leading_p === this.swap_side_p ? get_color(1 - l) : get_color(l);
         const li = $(elem);
         li.css("border-left-color", depth_color);
         // [bad move marks]
