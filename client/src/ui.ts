@@ -50,7 +50,6 @@ export class UI {
     pv_hover_move: Move | null = null;
     pv_drag_piece: JQuery | null = null;
     puzzle_depth = -1;
-    autorun_timer: number | null = null;
     autorun_running = false;
     snapshots: Snapshot[] = [];
     snapshot_id = this.get_snapshot_id();
@@ -375,37 +374,26 @@ export class UI {
 
     start_autorun() {
         if (!this.enter()) return;
-        const stop_p = () => this.autorun_running === false;
-        const autorun = () => {
-            const recur = () => this.do_master_turn(stop_p, autorun);
-            if (this.autorun_running &&
-                this.ui_state.board.gameover_status() === 0) {
-                this.update_ui();
-                this.update_records();
-                // "window" to avoid this TS error.
-                // error TS2322: Type 'Timeout' is not assignable to type 'number'.
-                this.autorun_timer = window.setTimeout(recur);
-            }
-            else
-                this.stop_autorun_now_and_leave();
-        }
         this.take_snapshot();
         this.analysis_mode = true;
         this.autorun_running = true;
-        autorun();
+        this.do_autorun_leave();
+    }
+
+    do_autorun_leave() {
+        if (this.ui_state.board.gameover_status() !== 0)
+            this.autorun_running = false;
+        if (!this.autorun_running) return this.leave();
+        this.do_master_turn_now();
+        this.update_ui();
+        this.update_records();
+        $("span.piece").promise().done(() => this.do_autorun_leave());
     }
 
     stop_autorun() {
         if (this.autorun_running)
             $("body").stop(true, true).fadeTo(150, 0.1).fadeTo(150, 1);
         this.autorun_running = false;
-    }
-
-    stop_autorun_now_and_leave() {
-        this.autorun_running = false; // necessary for auto stop by game end
-        this.autorun_timer !== null && window.clearTimeout(this.autorun_timer);
-        this.autorun_timer = null;
-        this.leave();
     }
 
     // snapshot
@@ -676,30 +664,27 @@ export class UI {
         });
     }
 
-    do_master_turn_leave() {
-        this.do_master_turn_leave_or_callback();
+    do_master_turn_leave(delay_millisec = 300) {
+        const proc = this.master_turn_proc();
+        $("span.piece").delay(delay_millisec).promise().done(() => (proc(), this.leave()));
     }
 
-    do_master_turn(stop_p: () => boolean, callback: () => void) {
-        this.do_master_turn_leave_or_callback(stop_p, callback);
+    do_master_turn_now() {
+        this.master_turn_proc()();
     }
 
-    do_master_turn_leave_or_callback(stop_p: (() => boolean) | null = null, callback: (() => void) | null = null) {
-        const fin = callback || (() => this.leave());
+    master_turn_proc(): () => void {
         let [depth, nmoves] = this.get_depth_and_best_moves();
         let nmove = random_choice(nmoves);
-        if (depth === null || nmoves.length === 0 || !nmove) return fin();
+        if (depth === null || nmoves.length === 0 || !nmove) return () => {};
         const depth_after_nmove = Math.max(-1, depth - 1);
-
-        $("span.piece").delay(300).promise().done(() => {
-            if (stop_p && stop_p()) return fin();
+        return () => {
             // state & history must be updated before do_move
             this.clear_future(true);
             this.history.push([this.ui_state, nmove, depth_after_nmove]);
             this.ui_state = { board: nmove.new_board, depth: depth_after_nmove};
             this.do_move(nmove);
-            fin();
-        });
+        }
     }
 
     get_depth_and_best_moves(board = this.ui_state.board, white_p = this.is_white_turn()): [number, Move[]] {
