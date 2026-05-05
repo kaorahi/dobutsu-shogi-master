@@ -40,7 +40,6 @@ export class UI {
     analysis_mode = false;
     edit_mode = false;
     swap_side_p = false;
-    show_depth_p = false;
     puzzle_depth = -1;
     autorun_timer: number | null = null;
     autorun_running = false;
@@ -120,12 +119,6 @@ export class UI {
         $("#analysis-ckbox").on("change", () => {
             if (!this.enter()) return;
             this.analysis_mode = $("#analysis-ckbox").prop("checked");
-            this.show_depth_p = this.analysis_mode;
-            this.leave();
-        });
-        $("#depth-ckbox").on("change", () => {
-            if (!this.enter()) return;
-            this.show_depth_p = $("#depth-ckbox").prop("checked");
             this.leave();
         });
         $("#swap-ckbox").on("change", () => this.swap_view($("#swap-ckbox").prop("checked")));
@@ -202,7 +195,7 @@ export class UI {
         return s ? Board.from_hashstr(s) : Board.init();
     }
 
-    set_board(board: Board, keep_history_p = false, keep_swap_p = false) {
+    set_board(board: Board, keep_history_p = false, keep_state_p = false) {
         const snapshot_p = (this.history.length + this.future.length > 0) ||
               this.ui_state.board.hashstr() !== this.initial_board().hashstr();
         !keep_history_p && snapshot_p && this.take_snapshot();
@@ -215,9 +208,9 @@ export class UI {
         // (2) then move rest pieces
         self.set_board_sub(board1, rest1, gameover_status, false);
         // state
-        const swap_p = self.swap_side_p;  // cleared in initialize_state
+        const {analysis_mode, swap_side_p} = self;  // cleared in initialize_state
         keep_history_p || self.initialize_state();
-        keep_swap_p && (self.swap_side_p = swap_p);
+        keep_state_p && Object.assign(self, {analysis_mode, swap_side_p});
         self.ui_state = { board, depth: null };
         self.update_depth();
     }
@@ -288,7 +281,6 @@ export class UI {
         if (!this.enter()) return;
         const depths = depth < 20 ? [depth] : [0, 2, 4, 6, 8].map(k => depth + k);
         this.set_board(this.ai.get_random_board(depths))
-        this.show_depth_p = false;
         this.leave();
     }
 
@@ -453,7 +445,7 @@ export class UI {
             let r_nb = this.revflip_maybe(move.new_board, is_master_turn);
             let depth = this.ai.search(r_nb)[0];
             const depth_text =
-                  !this.show_depth_p ? "" :
+                  !this.analysis_mode ? "" :
                   depth < 0 ? "-" :
                   depth === 0 ? "!" :
                   depth === 1 ? "x" :
@@ -658,7 +650,7 @@ export class UI {
         if (this.edit_mode) $("span#player").addClass("draw");
         else if (gameover > 0) $("span#player").addClass("win");
         else if (gameover < 0) $("span#player").addClass("level6");
-        else if (d < 0 || !this.show_depth_p) $("span#player").addClass("draw");
+        else if (d < 0 || !this.analysis_mode) $("span#player").addClass("draw");
         else if (d % 2 !== 0) $("span#player").addClass("level1");
         else if (d >= 70) $("span#player").addClass("level1");
         else if (d >= 40) $("span#player").addClass("level2");
@@ -683,7 +675,7 @@ export class UI {
             $("span#last").text($("#record").children().length);
         }
         else {
-            const rest = !this.show_depth_p ? "？" : d >= 0 ? d : "∞";
+            const rest = !this.analysis_mode ? "？" : d >= 0 ? d : "∞";
             $("span#msg").text("あと" + rest + "手");
             if (d <= 10) $("#player").addClass("dying");
             $("span#about-image").removeClass("dead");
@@ -738,7 +730,6 @@ export class UI {
         const puzzle_label = $("button#puzzle" + this.puzzle_depth).text();
         $("button#puzzle").text(`次問（${puzzle_label}）`);
         $("#analysis-ckbox").prop("checked", this.analysis_mode);
-        $("#depth-ckbox").prop("checked", this.show_depth_p);
         $("#swap-ckbox").prop("checked", this.swap_side_p);
         this.update_coord_labels();
     }

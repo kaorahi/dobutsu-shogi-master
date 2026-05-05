@@ -147,7 +147,7 @@
         <p><button id="prev-board">前盤</button><button id="next-board">次盤</button></p>
         <p><button id="show-control">☗メニュー</button></p>
         <p id="puzzle-container"><button id="puzzle">次問（5手）</button></p>
-        <p class="edit-mode-too"><label class="switch"><input type="checkbox" class="switch" id="depth-ckbox"><span class="switch-slider"></span><span class="switch-label">ヒント表示</span></label></p>
+        <p class="edit-mode-too"><label class="switch"><input type="checkbox" class="switch" id="analysis-ckbox"><span class="switch-slider"></span><span class="switch-label">検討モード</span></label></p>
         <p class="edit-mode-only"><button id="confirm-edit-mode" class="highlight">配置確定</button></p>
         <p class="edit-mode-only"><button id="edit-revflip">上下回転</button></p>
         <p class="edit-mode-only"><button id="edit-flip">左右反転</button></p>
@@ -191,10 +191,9 @@
       <div id="control-dialog">
         <button id="new-game">もう一局</button>
         <button id="swap">後手番で</button>
-        <label class="switch"><input type="checkbox" class="switch" id="analysis-ckbox"><span class="switch-slider"></span><span class="switch-label">☗検討モード</span></label>
-        <button id="autorun">最善手順</button>
-        <button id="enter-edit-mode">自由配置</button>
         <label class="switch"><input type="checkbox" class="switch" id="swap-ckbox"><span class="switch-slider"></span><span class="switch-label">後手視点</span></label>
+        <button id="enter-edit-mode">自由配置</button>
+        <button id="autorun">最善手順</button>
         <p>問題練習</p>
         <button class="puzzle-button" id="puzzle5">5手</button>
         <button class="puzzle-button" id="puzzle7">7手</button>
