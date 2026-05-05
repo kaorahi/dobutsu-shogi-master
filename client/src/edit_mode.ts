@@ -27,24 +27,20 @@ export class EditModeController {
     dragstart(piece: JQuery) {
         this.closeContextMenu();
         this.normalizePieceGeometry(piece, true);  // avoid overflow
-        $("div.cell").droppable("enable");
-        $("div.cell").addClass("possible");
-        $("div.hand").droppable("enable");
-        $("div.hand").addClass("possible");
-        const from_hand = piece.parent().hasClass("hand");
-        if (from_hand) {
-            $("div.cell, div.hand").filter((_, elem) => {
+        $("div.cell").addClass("possible").droppable("enable");
+        $("div.hand").addClass("possible").droppable("enable");
+        if (this.host.get_piece_id_from_piece(piece) === Piece.Lion) {
+            $("div.hand").removeClass("possible").droppable("disable");
+        }
+        if (piece.parent().hasClass("hand")) {
+            $("div.cell, div.hand").each((_, elem) => {
                 const cell = $(elem);
                 const occupant = cell.children("span.piece").last();
-                return occupant.length > 0 && this.host.get_piece_id_from_piece(occupant) === Piece.Lion;
-            }).each((_, elem) => {
-                $(elem).droppable("disable");
-                $(elem).removeClass("possible");
+                const inhibited = occupant.length > 0 &&
+                      this.host.get_piece_id_from_piece(occupant) === Piece.Lion;
+                if (inhibited)
+                    cell.removeClass("possible").droppable("disable");
             });
-        }
-        if (this.host.get_piece_id_from_piece(piece) === Piece.Lion) {
-            $("div.hand").droppable("disable");
-            $("div.hand").removeClass("possible");
         }
     }
 
