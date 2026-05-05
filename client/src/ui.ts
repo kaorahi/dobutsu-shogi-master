@@ -907,8 +907,6 @@ export class UI {
             $("#record-box > *:not(#pv)").show();  // exclude #pv for animation
             $("#record-controls").children().show();
             $("#record-controls .edit-mode-only").hide();
-            if (this.ai.supports_best_move_only())
-                $("button#swap, button#puzzle, #puzzle-select, #analysis-ckbox, button#autorun").hide();
             $("button").prop("disabled", false);
             $("button#matta").prop("disabled", this.history.length === 0);
             $("button#undo").prop("disabled", this.history.length === 0);

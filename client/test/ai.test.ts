@@ -25,7 +25,7 @@ async function load_ai(): Promise<AI> {
     }
     const is_8bit = vals_ab.byteLength === keys.length;
     const vals = is_8bit ? new Uint8Array(vals_ab) : new Uint16Array(vals_ab);
-    return new AI(rules_txt.trim(), "", keys, vals);
+    return new AI(rules_txt.trim(), keys, vals);
 }
 
 describe("AI", function () {

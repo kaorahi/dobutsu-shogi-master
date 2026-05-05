@@ -7,23 +7,16 @@ const lowest_depth_in_db = 4;
 export class AI {
     rules: string = 'val1n';
     private search_cache: [string, boolean, [number, Board[]]][] = [];
-    // An oracle data base that maps a possible board to a move that AI should
-    // choose to win.
-    private db: Record<string, [number, number]> = {};
     // A larger dataset that maps each board to its depth.
     // It contains all reachable boards with depth > 3, enabling more flexible play.
     private keys: BigUint64Array;
     private vals: Uint8Array | Uint16Array;
 
     // Decodes the pre-calculated data base
-    constructor(rules: string, buf: string, keys: BigUint64Array, vals: Uint8Array | Uint16Array) {
+    constructor(rules: string, keys: BigUint64Array, vals: Uint8Array | Uint16Array) {
         this.rules = rules;
         this.keys = keys;
         this.vals = vals;
-        buf.split(/\r?\n/).forEach(line => {
-            const [board_hashstr, depth, move_idx] = line.split(/\s+/);
-            this.db[board_hashstr] = [Number(depth), Number(move_idx)];
-        });
     }
 
     lookup_depth(b: Board): number {
@@ -37,9 +30,6 @@ export class AI {
         const nbs = b.next_boards();
         if (nbs === Result.Lose) return [0, []];
         if (nbs === Result.Win) return [1, []];
-        // lookup db
-        const v = this.db[b.hashstr()];
-        if (v) return [v[0], [v[1]]];
         // lookup key-value
         const depth = this.lookup_depth(b);
         if (depth_only || depth <= lowest_depth_in_db) return [depth, []];
@@ -158,16 +148,11 @@ export class AI {
         return [depth, nbs];
     }
 
-    supports_best_move_only(): boolean {
-        return this.vals.length === 0;
-    }
-
     hashstr_of_key(key: bigint): string {
         return key.toString(16).padStart(15, "0");
     }
 
     get_random_board(depths: number[]): Board {
-        if (this.supports_best_move_only()) return Board.init();
         const len = this.keys.length;
         const max_trial = 99999;
         const count_my_pieces = (b: Board): number => {

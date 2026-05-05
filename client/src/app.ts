@@ -9,14 +9,6 @@ async function fetch_xz(url: string) {
     return await new Response(new XzReadableStream(res.body)).arrayBuffer();
 }
 
-async function fetch_gunzip(url: string) {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok || !res.body) return new ArrayBuffer(0);
-  const ds = new DecompressionStream("gzip");
-  const ab = await new Response(res.body.pipeThrough(ds)).arrayBuffer();
-  return ab;
-}
-
 async function main(): Promise<{ ai: AI; ui: UI }> {
     // initialize UI
     $("#record-box, p.name.player-text").css("opacity", 0);
@@ -41,9 +33,8 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
         "8": "initial_game_record8.txt.xz",
         "9": "initial_game_record9.txt.xz",
     }[init_game_file_switch || ""];
-    let abuf, ibuf, kbuf, vbuf;
+    let ibuf, kbuf, vbuf;
     try {
-        abuf = await fetch_gunzip("unpruned_ai.txt.gz");
         ibuf = init_game_file ? await fetch_xz(init_game_file) : undefined;
         kbuf = await fetch_xz("keys.xz");
         vbuf = await fetch_xz("vals.xz");
@@ -53,7 +44,6 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
         throw new Error("loading failed");
     }
     // build
-    const ai_txt = new TextDecoder("utf-8").decode(abuf);
     const init_game_txt = new TextDecoder("utf-8").decode(ibuf);
     const keys = new BigUint64Array(kbuf);
     for (let i = 1; i < keys.length; i++) {
@@ -61,7 +51,7 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
     }
     const is_8bit = vbuf.byteLength === keys.length;
     const vals = is_8bit ? new Uint8Array(vbuf) : new Uint16Array(vbuf);
-    const ai = new AI(rules_txt, ai_txt, keys, vals);
+    const ai = new AI(rules_txt, keys, vals);
     const ui = new UI(ai, init_game_txt);
     // finalize
     clearInterval(loading_timer);
