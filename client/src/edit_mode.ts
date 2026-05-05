@@ -51,7 +51,8 @@ export class EditModeController {
             this.movePiece(occupant, piece.parent());
         this.movePiece(piece, new_place);
         this.syncBoardFromDom();
-        this.openContextMenu(piece, new_place, e);
+        if (new_place.hasClass("cell"))
+            this.openContextMenu(piece, e);
         this.host.leave();
     }
 
@@ -63,8 +64,7 @@ export class EditModeController {
         this.transformBoard((board) => board.flip());
     }
 
-    openContextMenu(piece: JQuery, new_place: JQuery, e: JQueryEventObject) {
-        if (!this.host.edit_mode || new_place.hasClass("hand")) return;
+    openContextMenu(piece: JQuery, e: JQueryEventObject) {
         this.closeContextMenu();
         const kind = this.host.get_piece_id_from_piece(piece);
         if (kind === Piece.Lion) return;
@@ -96,8 +96,7 @@ export class EditModeController {
             piece.removeClass("player").addClass("master");
             break;
         case "promote":
-            if (!piece.parent().hasClass("hand") && this.host.get_piece_id_from_piece(piece) === Piece.Chick)
-                piece.addClass("promoted");
+            piece.addClass("promoted");
             break;
         case "unpromote":
             piece.removeClass("promoted");
