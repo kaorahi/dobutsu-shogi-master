@@ -7,7 +7,7 @@ export class CsaIO {
 
     copyToClipboard() {
         this.copyText(this.toText());
-        $("body").stop(true, true).fadeTo(150, 0.1).fadeTo(150, 1);
+        wink();
     }
 
     loadFromClipboard(e: JQuery.TriggeredEvent) {
@@ -165,4 +165,11 @@ export class CsaIO {
         try { document.execCommand("copy"); } catch {}
         $textarea.remove();
     }
+}
+
+let last_wink_animation: Animation | null = null;
+function wink() {
+    const keyframes = [{scale: 1}, {scale: 0.7}, {scale: 1}];
+    last_wink_animation?.finish();
+    last_wink_animation = $("#container")[0].animate(keyframes, 400);
 }

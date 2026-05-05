@@ -109,6 +109,7 @@ export class UI {
         });
         $("#control-dialog button").click((e) => $("#control-overlay").fadeOut("fast"));
         $("button#show-control").click((e) => {
+            $("#control-dialog input").val("");
             $("#control-dialog").click((e) => e.stopPropagation());
             $("#control-overlay").fadeIn("fast").off().click(() => {
                 $("#control-overlay").fadeOut("fast");
