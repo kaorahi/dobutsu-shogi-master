@@ -707,6 +707,8 @@ export class UI {
             $("button#next-board").prop("disabled", this.snapshots.length === 0);
         }
         $("#move-count").text(this.current_move_count());
+        const puzzle_label = $("button#puzzle" + this.puzzle_depth).text();
+        $("button#puzzle").text(`次問（${puzzle_label}）`);
         $("button#toggle-depth").toggleClass("highlight", !this.show_depth_p);
         if (dont_leave_actually) return;
         this.locked = false;
