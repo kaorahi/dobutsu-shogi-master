@@ -55,7 +55,7 @@ div#record-box {
   button {
     width: 100%;
   }
-  button#prev-board, button#next-board, button#undo, button#redo {
+  button#prev-board, button#next-board {
     width: 48%;
   }
   p {
@@ -200,15 +200,20 @@ button#about {
   top: 1em;
 }
 button#matta {
-  position: absolute;
-  left: 1em;
-  bottom: 1em;
+  margin-right: auto;
 }
 
 p.name {
   text-align: center;
   vertical-align: middle;
   line-height: 3em;
+}
+
+p.name.player-text {
+  width: 20em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
 }
 
 table {

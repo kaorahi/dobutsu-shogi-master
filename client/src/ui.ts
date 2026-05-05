@@ -693,9 +693,9 @@ export class UI {
         else if (d >=  2) $("span#player").addClass("level5");
         else if (d === 0) $("span#player").addClass("level6");
         const msg = [
-            "トライされた", "ライオン取られた",
+            "トライ", "キャッチ",
             null,
-            "ライオン取った", "トライした",
+            "キャッチ！", "トライ！",
         ][gameover + 2];
         if (msg) {
             $("span#msg").text(msg);

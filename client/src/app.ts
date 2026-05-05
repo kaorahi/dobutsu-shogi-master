@@ -19,7 +19,7 @@ async function fetch_gunzip(url: string) {
 
 async function main(): Promise<{ ai: AI; ui: UI }> {
     // initialize UI
-    $("#record-box").css("opacity", 0);
+    $("#record-box, p.name.player-text").css("opacity", 0);
     const loading = $("#loading");
     const start_time = Date.now();
     const loading_timer = setInterval(() => {
@@ -66,7 +66,7 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
     // finalize
     clearInterval(loading_timer);
     loading.hide();
-    $("#record-box").css("opacity", 1);
+    $("#record-box, p.name.player-text").css("opacity", 1);
     return {ai, ui};
 }
 
