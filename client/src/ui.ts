@@ -653,6 +653,20 @@ export class UI {
         return pv;
     }
 
+    format_principal_variation(board = this.ui_state.board, white_p = this.is_white_turn(), max_plies = 12): string {
+        const names: Record<string, string> = {
+            "ライオン": "ラ",
+            "ぞう": "ぞ",
+            "きりん": "き",
+            "ひよこ": "ひ",
+            "にわとり": "に",
+        };
+        return this.get_principal_variation(board, white_p, max_plies)
+            .map(move => this.revflip_maybe(move, this.swap_side_p).toString()
+                 .replace(/ライオン|ぞう|きりん|ひよこ|にわとり/g, name => names[name]))
+            .join("");
+    }
+
     highlight_best_move_piece() {
         const [_, moves] = this.get_depth_and_best_moves();
         moves.forEach(move => {
@@ -819,12 +833,6 @@ export class UI {
             $("span#about-image").removeClass("dead");
         }
         $("span#msg").removeClass("obsolete").toggleClass("censored", hide_depth_p);
-        const pv_text = this.analysis_mode ?
-              this.get_principal_variation().map(move =>
-                  this.revflip_maybe(move, this.swap_side_p).toString()).join(" -> ") || "-" :
-              "";
-        $("p#pv").toggle(this.analysis_mode);
-        $("p#pv #pv-text").text(pv_text);
         const title_text = this.swap_side_p ?
               "（後手から見た盤面）" : "どうぶつしょうぎ名人'";
         $("span#title-text").text(title_text);
@@ -865,6 +873,9 @@ export class UI {
             $("button#next-board").prop("disabled", this.snapshots.length === 0);
             $("button#best-move").prop("disabled", gameover !== 0);
             $("#puzzle-container").toggle(this.puzzle_depth > 0);
+            const pv_text = this.analysis_mode ? this.format_principal_variation() : "";
+            $("p#pv").toggle(this.analysis_mode);
+            $("p#pv #pv-text").text(pv_text);
         }
         $("button#autorun").prop("disabled", gameover !== 0);
         $("button#copy, button#download").prop("disabled", this.fresh_game_p(Board.init()));
