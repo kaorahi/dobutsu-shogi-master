@@ -160,7 +160,9 @@ export class UI {
             const url = new URL(window.location.href);
             const r_board = this.revflip_maybe(this.ui_state.board, this.is_white_turn());
             url.searchParams.set("board", r_board.hashstr());
-            this.csa_io.copyToClipboard(url.toString());
+            const url_str = url.toString();
+            this.csa_io.copyToClipboard(url_str);
+            toast(url_str, 5000);
         });
         $("button#prev-board").click((e) => this.rotate_snapshot(true));
         $("button#next-board").click((e) => this.rotate_snapshot());
