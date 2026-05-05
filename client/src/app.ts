@@ -21,12 +21,26 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
     const loading = $("#loading");
     const res = await fetch("rules.txt", { cache: "no-store" });
     const rules_txt = res.ok ? (await res.text()).trim() : 'val1n';
-    const [abuf, kbuf, vbuf] = await Promise.all([
+    const init_game_file_switch = new URLSearchParams(window.location.search).get("tmp_load_initial_game_record_txt_xz");
+    const init_game_file = {
+        "1": "initial_game_record1.txt.xz",
+        "2": "initial_game_record2.txt.xz",
+        "3": "initial_game_record3.txt.xz",
+        "4": "initial_game_record4.txt.xz",
+        "5": "initial_game_record5.txt.xz",
+        "6": "initial_game_record6.txt.xz",
+        "7": "initial_game_record7.txt.xz",
+        "8": "initial_game_record8.txt.xz",
+        "9": "initial_game_record9.txt.xz",
+    }[init_game_file_switch || ""];
+    const [abuf, kbuf, vbuf, ibuf] = await Promise.all([
         fetch_gunzip("unpruned_ai.txt.gz"),
         fetch_xz("keys.xz"),
         fetch_xz("vals.xz"),
+        init_game_file ? fetch_xz(init_game_file) : undefined,
     ]);
     const ai_txt = new TextDecoder("utf-8").decode(abuf);
+    const init_game_txt = new TextDecoder("utf-8").decode(ibuf);
     const keys = new BigUint64Array(kbuf);
     for (let i = 1; i < keys.length; i++) {
         keys[i] = keys[i] + keys[i - 1];
@@ -34,7 +48,7 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
     const is_8bit = vbuf.byteLength === keys.length;
     const vals = is_8bit ? new Uint8Array(vbuf) : new Uint16Array(vbuf);
     const ai = new AI(rules_txt, ai_txt, keys, vals);
-    const ui = new UI(ai);
+    const ui = new UI(ai, init_game_txt);
     loading.hide();
     return {ai, ui};
 }

@@ -47,7 +47,7 @@ export class UI {
         return xor(this.swap_side_p, this.current_move_count() % 2 !== 0);
     }
 
-    constructor(public ai: AI) {
+    constructor(public ai: AI, init_game_txt: string) {
         this.initialize_state();
 
         this.ui_state.board.update_rules(ai.rules);
@@ -125,6 +125,7 @@ export class UI {
         this.set_board(this.initial_board(), true);
         this.update_depth();
         this.leave();
+        init_game_txt && this.load_csa_kifu_text(init_game_txt);
     }
 
     initialize_state() {
