@@ -83,7 +83,7 @@ export class UI {
         });
         $("span.piece").on("pointerenter", e => this.hover_on_piece($(e.currentTarget) as JQuery<HTMLElement>));
         $("span.piece").on("pointerleave pointercancel lostpointercapture", e => {
-            if ($(".ui-draggable-dragging").length > 0) return;
+            if ($(".ui-draggable-dragging").length > 0 || this.pv_drag_piece) return;
             this.hide_hints();
             $(e.currentTarget).hasClass("to-play") &&
                 this.update_principal_variation_display();
@@ -510,7 +510,7 @@ export class UI {
     // Event handlers
 
     hover_on_piece(piece: JQuery) {
-        if (this.analysis_mode && !this.edit_mode && !this.locked && piece.hasClass("to-play")) {
+        if (this.analysis_mode && !this.edit_mode && !this.pv_drag_piece && !this.locked && piece.hasClass("to-play")) {
             this.highlight_droppable_cells(piece);
             this.highlight_best_move_piece();
             this.pv_hover_move = get_hover_pv_move(this, piece);
