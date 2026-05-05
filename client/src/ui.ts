@@ -49,7 +49,7 @@ export class UI {
 
     is_white_turn(): boolean {
         const xor = (a: boolean, b: boolean): boolean => !!a !== !!b;
-        return xor(this.swap_side_p, this.current_move_count() % 2 !== 0);
+        return xor(this.swap_side_p, this.history.length % 2 !== 0);
     }
 
     constructor(public ai: AI, init_game_txt: string) {
@@ -221,7 +221,7 @@ export class UI {
         if (snapshot_p && this.future.length > 0)
             this.take_snapshot();
         this.future = [];
-        $("ol#record").children().slice(this.current_move_count()).detach();
+        $("ol#record").children().slice(this.history.length).detach();
     }
 
     restore_positions(swap_side: boolean) {
@@ -808,7 +808,7 @@ export class UI {
             $("#puzzle-container").toggle(this.puzzle_depth > 0);
         }
         $("#depth-ckbox").prop("disabled", false);
-        $("#move-count").text(this.current_move_count());
+        $("#move-count").text(this.history.length);
         $("#analysis-ckbox").prop("checked", this.analysis_mode);
         $("#swap-ckbox").prop("checked", this.swap_side_p);
         this.update_coord_labels();
@@ -929,14 +929,10 @@ export class UI {
 
     update_records() {
         if (this.history.length + this.future.length > 10000) return;
-        const mc = this.current_move_count();
+        const mc = this.history.length;
         const records = $("ol#record").children();
         records.slice(0, mc).removeClass("future-move");
         records.slice(mc).addClass("future-move");
-    }
-
-    current_move_count(): number {
-        return this.history.length;
     }
 }
 
