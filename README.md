@@ -6,7 +6,7 @@
 
 ## デモ
 
-* [お試し版](https://kaorahi.github.io/dobutsu-shogi-master/)
+* [お試し版](https://kaorahi.github.io/dobutsu-shogi-master/) … 現行ルール, 変種ルール, 長周期千日手
 
 ## 追加機能
 
