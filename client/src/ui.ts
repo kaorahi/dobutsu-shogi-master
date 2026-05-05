@@ -219,7 +219,7 @@ export class UI {
         });
         $("button#reveal-eval").click((e) => {
             this.update_records(true);
-            $(e.currentTarget).hide();
+            $(e.currentTarget).css("visibility", "hidden");
         });
         this.dragstop();
 
@@ -905,7 +905,7 @@ export class UI {
             $("button#next-board").prop("disabled", this.snapshots.length === 0);
             $("button#best-move").prop("disabled", gameover !== 0);
             $("button#puzzle").toggle(this.puzzle_depth > 0);
-            $("button#reveal-eval").toggle(!this.analysis_mode);
+            $("button#reveal-eval").css("visibility", this.analysis_mode ? "hidden" : "visible");
         }
         $("button#autorun").prop("disabled", gameover !== 0);
         $("button#copy, button#download").prop("disabled", this.fresh_game_p(Board.init()));

@@ -92,6 +92,9 @@ div#record-box {
     align-items: center;
     gap: 0.5em;
     padding: 0.5em;
+    #count {
+      font-size: 0.75em;
+    }
   }
   button#reveal-eval {
     width: auto;
