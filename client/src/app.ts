@@ -55,7 +55,7 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
     const ui = new UI(ai, init_game_txt);
     // finalize
     clearInterval(loading_timer);
-    loading.hide();
+    init_game_txt || loading.hide();
     $("#loading-count").text(``);
     $("#record-box, p.name.player-text").css("opacity", 1);
     return {ai, ui};
