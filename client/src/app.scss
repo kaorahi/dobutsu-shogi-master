@@ -40,6 +40,12 @@ div#record-box {
   padding: 0em;
   ol {
     padding: 0em 0em 0em 2em;
+    li.future-move {
+      color: rgba(0,0,0,0.2);
+    }
+    li.future-move:hover {
+      color: #990000;
+    }
   }
   p {
     padding: 0.5em;

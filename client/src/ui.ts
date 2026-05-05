@@ -35,7 +35,7 @@ export class UI {
 
     is_white_turn(): boolean {
         const xor = (a: boolean, b: boolean): boolean => !!a !== !!b;
-        return xor(this.swap_side_p, $("#record").children().length % 2 !== 0);
+        return xor(this.swap_side_p, this.current_move_count() % 2 !== 0);
     }
 
     constructor(public ai: AI) {
@@ -102,10 +102,14 @@ export class UI {
         this.swap_side_p = false;
         this.ui_state = { board: Board.init(), depth: -1 };
         this.history = [];
-        this.future = [];
-        $("ol#record").children().detach();
+        this.clear_future();
         $("#player-side-mark").text("▲");
         $("#master-side-mark").text("△");
+    }
+
+    clear_future() {
+        this.future = [];
+        $("ol#record").children().slice(this.current_move_count()).detach();
     }
 
     restore_positions(swap_side: boolean) {
@@ -310,8 +314,8 @@ export class UI {
         let gameover = nb.gameover_status();
         let [depth, nnb] = (gameover === 0) ? this.ai.search(r_nb) : [-2, null];
         let nmove = nnb && !this.analysis_mode && Move.detect_move(nb, nnb);
+        this.clear_future();
         this.history.push([this.ui_state, move, nmove]);
-        this.future = [];
 
         this.do_move(move, piece);
         if (!nmove || this.analysis_mode) return this.leave({ board: nb, depth: depth})
@@ -326,8 +330,8 @@ export class UI {
         let b = this.revflip_maybe(this.ui_state.board, rev);
         let [depth, nnb] = this.ai.search(b);
         let nmove = this.revflip_maybe(Move.detect_move(b, nnb), rev);
+        this.clear_future();
         this.history.push([this.ui_state, null, nmove]);
-        this.future = [];
 
         $("span.piece").delay(300).promise().done(() => {
             this.do_move(nmove);
@@ -366,12 +370,12 @@ export class UI {
         let [_cur_state, move, nmove] = next;
 
         if (move) {
-            this.do_move(move);
+            this.redo_move(move);
             this.ui_state = { board: move.new_board, depth: -1 };
         }
         $("span.piece").promise().done(() => {
             if (nmove) {
-                this.do_move(nmove);
+                this.redo_move(nmove);
                 this.ui_state = { board: nmove.new_board, depth: -1 };
             }
             this.update_depth();
@@ -495,6 +499,22 @@ export class UI {
 
     // perform a move forward
     do_move(move: Move, piece: JQuery | undefined = undefined) {
+        this.do_move_sub(move, piece);
+        // add a entry to the record
+        let s1 = move.toString(this.swap_side_p);
+        let s2 = $("ol#record").children().last().data("full-text") || "";
+        let s = s1;
+        if (s1.substring(1, 3) === s2.substring(1, 3))
+            s = s1[0] + "同" + s1.substr(3);
+        $("ol#record").append($("<li>").text(s).data("full-text", s1));
+    }
+
+    redo_move(move: Move) {
+        this.do_move_sub(move);
+        this.update_records();
+    }
+
+    do_move_sub(move: Move, piece: JQuery | undefined = undefined) {
         let new_cell = this.get_cell(move.nx, move.ny);
         if (move instanceof Normal) {
             if (move.captured_piece() !== Piece.Empty) {
@@ -519,14 +539,6 @@ export class UI {
             let [hand, piece_] = piece ? [piece.parent(), piece] : this.get_hand_piece(move.p);
             this.animate_piece(piece_, hand, new_cell, false);
         }
-
-        // add a entry to the record
-        let s1 = move.toString(this.swap_side_p);
-        let s2 = $("ol#record").children().last().data("full-text") || "";
-        let s = s1;
-        if (s1.substring(1, 3) === s2.substring(1, 3))
-            s = s1[0] + "同" + s1.substr(3);
-        $("ol#record").append($("<li>").text(s).data("full-text", s1));
     }
 
     // perform a move backward
@@ -556,8 +568,19 @@ export class UI {
             this.animate_piece(piece, new_cell, hand, true);
         }
 
-        // remove a record entry
-        $("ol#record").children().last().detach();
+        this.update_records();
+    }
+
+    update_records() {
+        const mc = this.current_move_count();
+        const records = $("ol#record").children();
+        records.slice(0, mc).removeClass("future-move");
+        records.slice(mc).addClass("future-move");
+    }
+
+    current_move_count(): number {
+        const f = (m: Move | null | false): number => (m ? 1 : 0);
+        return this.history.reduce((acc, [_s, m, nm]) => acc + f(m) + f(nm), 0);
     }
 }
 
