@@ -328,7 +328,7 @@ span.piece {
     background-color: #ddddff;
     border-color: #9999ff;
   }
-  &.best-move {
+  &.best-move, &.best-move.player.to-play:hover, &.best-move.master.to-play:hover {
     background-color: #fff;
   }
   &.lion.player           { background-position:  0em -0em; }

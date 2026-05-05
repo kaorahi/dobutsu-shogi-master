@@ -468,12 +468,15 @@ export class UI {
     // Event handlers
 
     hover_on_piece(piece: JQuery) {
-        this.analysis_mode && !this.edit_mode &&
+        if (this.analysis_mode && !this.edit_mode && piece.hasClass("to-play")) {
             this.highlight_droppable_cells(piece);
+            this.highlight_best_move_piece();
+        }
     }
 
     unhover_on_piece(piece: JQuery) {
         this.unhighlight_droppable_cells();
+        this.unhighlight_best_move_piece();
     }
 
     dragstart(piece: JQuery) {
@@ -514,6 +517,7 @@ export class UI {
     dragstop(piece?: JQuery) {
         // make all cells undroppable
         this.unhighlight_droppable_cells();
+        this.unhighlight_best_move_piece();
         $("div.cell, div.hand").droppable("disable");
         if (this.edit_mode && piece) {
             const place = piece.parent();
