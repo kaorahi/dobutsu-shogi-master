@@ -58,6 +58,9 @@ div#record-box {
   p#dead-msg, p#won-msg {
     display: none;
   }
+  p#move-navi {
+    font-size: 0.75em;
+  }
 }
 div#record-controls {
   flex: 0 0 auto;
@@ -159,14 +162,9 @@ button#about {
   right: 1em;
   top: 1em;
 }
-button#undo {
+button#matta {
   position: absolute;
-  left: 0em;
-  bottom: 1em;
-}
-button#redo {
-  position: absolute;
-  left: 4em;
+  left: 1em;
   bottom: 1em;
 }
 button.puzzle-button {

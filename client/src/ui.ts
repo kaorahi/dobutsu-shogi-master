@@ -63,6 +63,7 @@ export class UI {
         });
 
         $("button").button();
+        $("button#matta").click((e) => this.undo_turn(true));
         $("button#undo").click((e) => this.undo_turn());
         $("button#redo").click((e) => this.redo_turn());
         $("#record-before-first").click((e) => this.goto_history_len(0));
@@ -465,7 +466,7 @@ export class UI {
 
 
     // revoke the previous two turns (master's and player's)
-    undo_turn() {
+    undo_turn(destructive: boolean = false) {
         if (!this.enter()) return;
         let prev = this.history.pop();
         if (!prev) return this.leave();
@@ -479,7 +480,7 @@ export class UI {
                 this.leave(prev_state);
             } else {
                 this.ui_state = prev_state;
-                this.swap_side_p && !this.analysis_mode ?
+                this.swap_side_p && !this.analysis_mode && destructive ?
                     this.do_master_turn_leave() : this.leave();
             }
         });
@@ -624,6 +625,7 @@ export class UI {
         const r_board = this.revflip_maybe(this.ui_state.board, this.is_white_turn());
         url.searchParams.set("board", r_board.hashstr());
         $("a#permalink").attr("href", url.toString());
+        $("button#matta").prop("disabled", this.history.length === 0);
         $("button#undo").prop("disabled", this.history.length === 0);
         $("button#redo").prop("disabled", this.future.length === 0);
         $("#move-count").text(this.current_move_count());
