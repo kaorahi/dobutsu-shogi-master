@@ -660,7 +660,7 @@ export class UI {
         ][gameover + 2];
         if (msg) {
             $("span#msg").text(msg);
-            if (gameover > 0) {
+            if (gameover * (this.swap_side_p ? -1 : 1) > 0) {
                 $("p#won-msg").show();
                 $("span#about-image").removeClass("dead");
             } else {
@@ -674,14 +674,6 @@ export class UI {
             $("span#msg").text("あと" + rest + "手");
             if (d <= 10) $("#player").addClass("dying");
             $("span#about-image").removeClass("dead");
-        }
-        $("span#master-text").text(this.analysis_mode && !this.autorun_running ? "あなた" : "どうぶつしょうぎ名人'");
-        if (this.swap_side_p) {
-            $("#player-side-mark").text("△");
-            $("#master-side-mark").text("▲");
-        } else {
-            $("#player-side-mark").text("▲");
-            $("#master-side-mark").text("△");
         }
         if (this.edit_mode) {
             $(".piece").draggable("enable");
