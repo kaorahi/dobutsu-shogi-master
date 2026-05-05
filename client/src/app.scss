@@ -205,12 +205,6 @@ button#matta {
   bottom: 1em;
 }
 
-input[type="checkbox"] {
-  width: 1.0em;
-  height: 1.0em;
-  accent-color: #222222;
-}
-
 p.name {
   text-align: center;
   vertical-align: middle;
@@ -390,4 +384,68 @@ span#player {
 }
 span#player.opposite {
   transform: scaleY(-1);
+}
+
+$sw-width: 2.8em;
+$sw-height: 1.6em;
+$sw-gap: 0.12em;
+$sw-label-gap: 0.6em;
+$sw-on-color: #333;
+$sw-off-color: #ccc;
+$sw-knob-color: #fff;
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: $sw-label-gap;
+  cursor: pointer;
+  font-size: 0.75em;
+  line-height: 1;
+  vertical-align: middle;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+
+    &:checked + .switch-slider {
+      background: $sw-on-color;
+
+      &::before {
+        transform: translateX($sw-width - $sw-height);
+      }
+    }
+
+    &:focus-visible + .switch-slider {
+      outline: 2px solid rgba(0, 0, 0, 0.35);
+      outline-offset: 0.15em;
+    }
+  }
+
+  .switch-slider {
+    position: relative;
+    flex: 0 0 auto;
+    width: $sw-width;
+    height: $sw-height;
+    background: $sw-off-color;
+    border-radius: 999em;
+    transition: background 0.3s;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: $sw-gap;
+      left: $sw-gap;
+      width: calc(#{$sw-height} - #{$sw-gap} * 2);
+      height: calc(#{$sw-height} - #{$sw-gap} * 2);
+      background: $sw-knob-color;
+      border-radius: 50%;
+      box-shadow: 0 0.08em 0.24em rgba(0, 0, 0, 0.2);
+      transition: transform 0.1s
+    }
+  }
+  .switch-label {
+    user-select: none;
+    font-size: 1em;
+  }
 }
