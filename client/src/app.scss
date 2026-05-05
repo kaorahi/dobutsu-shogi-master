@@ -403,6 +403,10 @@ $sw-on-color: #333;
 $sw-off-color: #ccc;
 $sw-knob-color: #fff;
 
+span#msg.obsolete {
+  opacity: 0.4;
+}
+
 .switch {
   display: inline-flex;
   align-items: center;

@@ -654,7 +654,7 @@ export class UI {
     enter(): boolean {
         if (this.locked) return false;
         this.locked = true;
-        $("span#msg").text("計算中……");
+        $("span#msg").addClass("obsolete");
         $("span.piece").draggable("disable");
         $("p#dead-msg").hide();
         $("p#won-msg").hide();
@@ -708,6 +708,7 @@ export class UI {
             if (d <= 10) $("#player").addClass("dying");
             $("span#about-image").removeClass("dead");
         }
+        $("span#msg").removeClass("obsolete");
         const title_text = this.swap_side_p ?
               "（後手から見た盤面）" : "どうぶつしょうぎ名人'";
         $("span#title-text").text(title_text);
