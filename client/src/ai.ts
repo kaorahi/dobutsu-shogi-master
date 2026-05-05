@@ -85,6 +85,14 @@ export class AI {
         if (nr_nbs === Result.Lose) return [0, [nr_b]];
         if (nr_nbs === Result.Win) return [1, [this.calc_final_board(nr_b)]];
         let [depth, idxes] = this.lookup_db(nr_b, depth_only);
+        console.assert(depth >= lowest_depth_in_db || depth < 0,
+                       "depth check: %o", {depth, lowest_depth_in_db});
+        console.assert(depth_only ||
+                       depth > lowest_depth_in_db && idxes.length > 0 ||
+                       depth === lowest_depth_in_db && idxes.length === 0 ||
+                       depth < 0 && idxes.length === 0,
+                       "idxes check: %o",
+                       {depth_only, depth, lowest_depth_in_db, idxes});
         let done = depth >= 0 && (depth_only || idxes.length > 0);
         if (done) return [depth, idxes.map(i => nr_nbs[i])];
         if (limit < 1) return [-1, nr_nbs.length > 0 ? nr_nbs : [nr_b]];
