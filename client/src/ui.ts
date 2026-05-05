@@ -757,7 +757,7 @@ export class UI {
         let [_cur_state, move, depth] = next;
 
         if (move) {
-            this.redo_move(move);
+            this.do_move_sub(move, undefined, true);
             this.ui_state = { board: move.new_board, depth };
         }
         $("span.piece").promise().done(() => {
@@ -978,11 +978,7 @@ export class UI {
         return li;
     }
 
-    redo_move(move: Move) {
-        this.do_move_sub(move);
-    }
-
-    do_move_sub(move: Move, piece: JQuery | undefined = undefined) {
+    do_move_sub(move: Move, piece: JQuery | undefined = undefined, fast = false) {
         this.hide_hints();
         let new_cell = this.get_cell(move.nx, move.ny);
         if (move instanceof Normal) {
@@ -990,7 +986,7 @@ export class UI {
                 // move a captured piece into hand
                 let [new_cell, piece] = this.get_cell_piece(move.nx, move.ny);
                 let hand = this.get_empty_hand(piece.hasClass("master"));
-                this.animate_piece(piece, new_cell, hand, false);
+                this.animate_piece(piece, new_cell, hand, fast);
 
                 // a captured piece becomes the opponent's, promotion is revoked
                 piece.toggleClass("master");
@@ -1001,12 +997,12 @@ export class UI {
             // move a piece
             let [old_cell, piece] = this.get_cell_piece(move.x, move.y);
             if (move.promotion_p()) piece.addClass("promoted");
-            this.animate_piece(piece, old_cell, new_cell, false);
+            this.animate_piece(piece, old_cell, new_cell, fast);
         }
         else {
             // drop a piece
             let [hand, piece_] = piece ? [piece.parent(), piece] : this.get_hand_piece(move.p);
-            this.animate_piece(piece_, hand, new_cell, false);
+            this.animate_piece(piece_, hand, new_cell, fast);
         }
     }
 
