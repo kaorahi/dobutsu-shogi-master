@@ -149,7 +149,11 @@ export class AI {
         const trivial = (b: Board): boolean => {
             const checked = b.reverse().next_boards() === Result.Win;
             const dominant = count_my_pieces(b) >= 4;
-            return checked || dominant;
+            const unpromoted = [0, 1, 2].some(x => {
+                const p = b.get(x, 0);
+                return !Piece.mine_p(p) && Piece.kind(p) == Piece.Chick;
+            });
+            return checked || dominant || unpromoted;
         }
         for (let t = 0; t < max_trial; t++) {
             const i = Math.floor(Math.random() * len);
