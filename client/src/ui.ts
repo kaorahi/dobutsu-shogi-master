@@ -92,6 +92,7 @@ export class UI {
         $("button#matta").click((e) => this.undo_turn(true));
         $("button#undo").click((e) => this.undo_turn());
         $("button#redo").click((e) => this.redo_turn());
+        $("button#best-move").click((e) => this.enter() && this.do_master_turn_leave());
         $("#record-before-first").click((e) => this.goto_history_len(0));
         $("button#about").click((e) => {
             $("#about-dialog").click((e) => e.stopPropagation());
@@ -427,7 +428,7 @@ export class UI {
             this.edit_controller.dragstart(piece);
             return;
         }
-        const is_master_turn = this.analysis_mode && this.is_white_turn();
+        const is_master_turn = this.is_white_turn();
         const turn = is_master_turn ? "master" : "player";
         if (!piece.hasClass(turn)) return;
         if (this.ui_state.board.gameover_status() !== 0) return;
@@ -693,7 +694,7 @@ export class UI {
             $(".piece.player").draggable("enable");
         }
         $("span#master").removeClass("thinking");
-        const master_to_play = this.analysis_mode && this.is_white_turn();
+        const master_to_play = this.is_white_turn();
         $(".player").toggleClass("to-play", gameover === 0 && !master_to_play);
         $(".master").toggleClass("to-play", gameover === 0 && master_to_play);
         $("span#player").toggleClass("opposite", !this.edit_mode && gameover === 0 && master_to_play);
@@ -721,6 +722,7 @@ export class UI {
             $("button#redo").prop("disabled", this.future.length === 0);
             $("button#prev-board").prop("disabled", this.snapshots.length === 0);
             $("button#next-board").prop("disabled", this.snapshots.length === 0);
+            $("button#best-move").prop("disabled", gameover !== 0);
             $("#puzzle-container").toggle(this.puzzle_depth > 0);
         }
         $("#depth-ckbox").prop("disabled", false);
