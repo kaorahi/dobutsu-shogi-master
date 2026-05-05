@@ -755,13 +755,10 @@ export class UI {
         if (!next) return this.leave();
         this.history.push(next);
         let [_cur_state, move, depth] = next;
-
-        if (move) {
+        if (!move) return this.leave();
+        $("span.piece").promise().done(() => {
             this.do_move_sub(move, undefined, true);
             this.ui_state = { board: move.new_board, depth };
-        }
-        $("span.piece").promise().done(() => {
-            this.update_depth();
             this.leave();
         });
     }
