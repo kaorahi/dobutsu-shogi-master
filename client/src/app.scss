@@ -69,14 +69,6 @@ div#record-box {
   button {
     width: 100%;
   }
-  #prevnext-board-container {
-    display: flex;
-    gap: 0.5em;
-  }
-  button#prev-board, button#next-board {
-    width: auto;
-    flex: 1;
-  }
   #record-controls {
     flex: 0 0 auto;
     padding: 0.5em;
@@ -85,6 +77,16 @@ div#record-box {
     }
     > *:last-child {
       margin-bottom: 0;
+    }
+    .button-row {
+      display: flex;
+      gap: 0.5em;
+      button {
+        width: auto;
+        flex: 1;
+        padding-left: 0em;
+        padding-right: 0em;
+      }
     }
   }
   #record-status {
@@ -121,9 +123,6 @@ div#pv {
   word-break: normal;
   .label {
     font-weight: bold;
-  }
-  .pv-move {
-    white-space: nowrap;
   }
 }
 @media (min-aspect-ratio: 1/1) {
@@ -519,6 +518,10 @@ span#msg {
   &.obsolete {
     opacity: 0.4;
   }
+}
+
+.nowrap {
+  white-space: nowrap;
 }
 
 .switch {

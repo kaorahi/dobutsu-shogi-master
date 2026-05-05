@@ -147,15 +147,18 @@
           <span id="player" class="level1"></span>
         </p>
         <button id="show-control">メニュー</button>
+    <div id="toast"><p id="toast-message"></p></div>
       </div>
       <div id="record-box">
         <div id="record-controls">
-          <button id="best-move">最善手</button>
-          <div id="prevnext-board-container">
+          <div class="button-row">
+            <button id="best-move">最善手</button>
+            <button id="puzzle"></button>
+          </div>
+          <div class="button-row">
             <button id="prev-board">前盤</button>
             <button id="next-board">次盤</button>
           </div>
-          <button id="puzzle">次問（5手）</button>
           <label class="switch edit-mode-too">
             <input type="checkbox" class="switch" id="analysis-ckbox">
             <span class="switch-slider"></span>
@@ -241,7 +244,6 @@
       <button data-action="promote">成り</button>
       <button data-action="unpromote">不成り</button>
     </div>
-    <div id="toast"><p id="toast-message"></p></div>
     <script type="module" src="app.ts"></script>
   </body>
 </html>

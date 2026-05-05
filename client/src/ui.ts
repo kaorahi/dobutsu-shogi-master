@@ -218,7 +218,7 @@ export class UI {
             const d = Number(target.val());
             if (d < 0) return;
             $('#puzzle-select').prop('selectedIndex', 0);
-            $("button#puzzle").text(`次問（${puzzle_label}）`);
+            $("button#puzzle").html(`<span class="nowrap">次問</span><wbr><span class="nowrap">（${puzzle_label}）</br>`);
             this.set_random_board(this.puzzle_depth = d);
             close_dialogs();
         });
