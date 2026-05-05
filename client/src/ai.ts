@@ -29,21 +29,20 @@ export class AI {
         return i >= 0 ? this.vals[i] : -1;
     }
 
-    // Get the move index for a depth-4 (or more) boards
-    lookup_db(b: Board): [number, number] {
+    // Get the move indexes for a depth-4 (or more) boards
+    lookup_db(b: Board): [number, number[]] {
+        const nbs = b.next_boards();
         // lookup db
         const v = this.db[b.hashstr()];
-        if (v) return v;
+        if (v) return [v[0], [v[1]]];
         // lookup key-value
         const depth = this.lookup_depth(b);
         const target_depth = depth > 0 ? depth - 1 : depth;
-        const nbs = b.next_boards();
-        if (nbs === Result.Lose) return [0, -1];
-        if (nbs === Result.Win) return [1, -1];
+        if (nbs === Result.Lose) return [0, []];
+        if (nbs === Result.Win) return [1, []];
         const targets = nbs.filter(b2 =>
             this.lookup_depth(b2.reverse().normalize()) === target_depth);
-        const nb = random_choice(targets);
-        return [depth, nb ? nbs.indexOf(nb) : -1];
+        return [depth, targets.map(b2 => nbs.indexOf(b2))];
     }
 
     // Make a board in that the opponent's lion is captured
@@ -83,8 +82,9 @@ export class AI {
         if (nr_b.gameover_status() !== 0) return [0, nr_b];
         if (nr_nbs === Result.Lose) return [0, nr_b];
         if (nr_nbs === Result.Win) return [1, this.calc_final_board(nr_b)];
-        let [depth, idx] = this.lookup_db(nr_b);
-        if (depth >= 0 && idx >= 0) return [depth, nr_nbs[idx]];
+        let [depth, idxes] = this.lookup_db(nr_b);
+        let idx = random_choice(idxes);
+        if (depth >= 0 && idx !== undefined && idx >= 0) return [depth, nr_nbs[idx]];
         if (limit < 1) return [-1, random_choice(nr_nbs) || nr_b];
         // iteration
         const next_depth = (b: Board): number | undefined =>
