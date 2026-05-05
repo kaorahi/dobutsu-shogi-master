@@ -107,22 +107,22 @@ export class AI {
         return [-1, [nr_b]];
     }
 
-    // given a white board, returns a pair of depth and next black board
-    search(b: Board): [number, Board] {
+    // given a white board, returns a pair of depth and next black boards
+    search(b: Board): [number, Board[]] {
         let r_b = b.reverse(); // reverse black and white
         let nr_b = r_b.normalize(); // normalize 
         let flipped = r_b !== nr_b; // a flag if normalize caused a flip or not
 
         // find a next board
         let lowest_depth_in_database = 4;
-        let [depth, [nr_nb]] = this.search_core(nr_b, lowest_depth_in_database);
+        let [depth, nr_nbs] = this.search_core(nr_b, lowest_depth_in_database);
 
         // invert the reverse and the normalization
-        let r_nb = flipped ? nr_nb.flip() : nr_nb;
-        let nb = r_nb.reverse();
+        let r_nbs = nr_nbs.map(nr_nb => flipped ? nr_nb.flip() : nr_nb);
+        let nbs = r_nbs.map(r_nb => r_nb.reverse());
 
         // we should go from b to nb
-        return [depth, nb];
+        return [depth, nbs];
     }
 
     supports_best_move_only(): boolean {
@@ -237,8 +237,4 @@ function binary_search(arr: BigUint64Array, x: bigint): number {
         else hi = mid;
     }
     return (arr[lo] === x) ? lo : -1;
-}
-
-function random_choice<T>(arr: readonly T[]): T | undefined {
-  return arr[Math.floor(Math.random() * arr.length)];
 }

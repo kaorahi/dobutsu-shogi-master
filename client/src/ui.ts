@@ -494,7 +494,8 @@ export class UI {
         let nb = move.new_board
         let r_nb = this.revflip_maybe(nb, master_p);
         let gameover = nb.gameover_status();
-        let [depth, r_nnb] = (gameover === 0) ? this.ai.search(r_nb) : [-2, null];
+        let [depth, r_nnbs] = (gameover === 0) ? this.ai.search(r_nb) : [-2, [null]];
+        let r_nnb = random_choice(r_nnbs) || null;
         let nnb = r_nnb && this.revflip_maybe(r_nnb, master_p);
         let nmove = nnb && !this.analysis_mode && Move.detect_move(nb, nnb);
         this.clear_future(true);
@@ -518,9 +519,9 @@ export class UI {
 
     do_master_turn_leave_or_callback(callback: (() => void) | null = null) {
         const fin = callback || (() => this.leave());
-        let [depth, nmove] = this.get_depth_and_best_move();
-        if (depth === null || nmove === null )
-            return callback ? callback() : this.leave();
+        let [depth, nmoves] = this.get_depth_and_best_moves();
+        let nmove = random_choice(nmoves);
+        if (depth === null || nmoves.length === 0 || !nmove) return fin();
         this.clear_future(true);
         this.history.push([this.ui_state, null, nmove]);
 
@@ -531,24 +532,25 @@ export class UI {
         });
     }
 
-    get_depth_and_best_move(): [number, Move] | [null, null] {
+    get_depth_and_best_moves(): [number, Move[]] | [null, Move[]] {
         try {
             let rev = !this.is_white_turn();
             let b = this.revflip_maybe(this.ui_state.board, rev);
-            let [depth, nnb] = this.ai.search(b);
-            return [depth, this.revflip_maybe(Move.detect_move(b, nnb), rev)];
+            let [depth, nnbs] = this.ai.search(b);
+            return [depth, nnbs.map(nnb => this.revflip_maybe(Move.detect_move(b, nnb), rev))];
         } catch {
-            return [null, null];
+            return [null, []];
         }
     }
 
     highlight_best_move_piece() {
         if (!this.enter()) return;
-        const [_, move] = this.get_depth_and_best_move();
-        if (!move) return this.leave();
-        const [place, piece] = (move instanceof Normal) ?
-              this.get_cell_piece(move.x, move.y) : this.get_hand_piece(move.p);
-        piece.addClass("best-move");
+        const [_, moves] = this.get_depth_and_best_moves();
+        moves.forEach(move => {
+            const [place, piece] = (move instanceof Normal) ?
+                  this.get_cell_piece(move.x, move.y) : this.get_hand_piece(move.p);
+            piece.addClass("best-move");
+        });
         this.leave();
     }
 
@@ -883,6 +885,10 @@ export class UI {
         const f = (m: Move | null | false): number => (m ? 1 : 0);
         return this.history.reduce((acc, [_s, m, nm]) => acc + f(m) + f(nm), 0);
     }
+}
+
+function random_choice<T>(arr: readonly T[]): T | undefined {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 // テストしたい手順
