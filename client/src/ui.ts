@@ -165,12 +165,11 @@ export class UI {
         $("button#prev-board").click((e) => this.rotate_snapshot(true));
         $("button#next-board").click((e) => this.rotate_snapshot());
 
-        $("button#new-game").click((e) => this.restore_positions(false));
+        $("button#new-game").click((e) => this.restore_positions());
         $("button#enter-edit-mode").click((e) => this.edit_controller.enterEditMode());
         $("button#confirm-edit-mode").click((e) => this.edit_controller.confirmEditMode());
         $("button#edit-revflip").click((e) => this.edit_controller.revflipBoard());
         $("button#edit-flip").click((e) => this.edit_controller.flipBoard());
-        $("button#swap").click((e) => this.restore_positions(true));
         $("#analysis-ckbox").on("change", () => {
             if (!this.enter()) return;
             this.analysis_mode = $("#analysis-ckbox").prop("checked");
@@ -253,12 +252,13 @@ export class UI {
         lis.remove();
     }
 
-    restore_positions(swap_side: boolean) {
+    restore_positions() {
         if (!this.enter()) return;
+        const swap_p = this.swap_side_p;
         this.edit_controller.closeContextMenu();
-        this.set_board(this.revflip_maybe(this.initial_board(), swap_side));
-        this.swap_side_p = swap_side;
-        swap_side ? this.do_master_turn_leave() : this.leave();
+        this.set_board(this.revflip_maybe(this.initial_board(), swap_p));
+        this.swap_side_p = swap_p;  // reset by set_board
+        swap_p ? this.do_master_turn_leave() : this.leave();
     }
 
     initial_board(): Board {
