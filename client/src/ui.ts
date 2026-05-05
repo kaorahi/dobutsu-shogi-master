@@ -70,6 +70,8 @@ export class UI {
             zIndex: 1000,
             scroll: false
         });
+        $("span.piece").on("pointerover", e => this.hover_on_piece($(e.currentTarget) as JQuery<HTMLElement>));
+        $("span.piece").on("pointerleave pointercancel lostpointercapture", e => this.unhover_on_piece($(e.currentTarget) as JQuery<HTMLElement>));
         $("div.cell").droppable({
             tolerance: "pointer",
             drop: (event, ui) => { this.drop(ui.draggable, $(event.target) as JQuery<HTMLElement>, event); },
@@ -465,11 +467,24 @@ export class UI {
 
     // Event handlers
 
+    hover_on_piece(piece: JQuery) {
+        this.analysis_mode && !this.edit_mode &&
+            this.highlight_droppable_cells(piece);
+    }
+
+    unhover_on_piece(piece: JQuery) {
+        this.unhighlight_droppable_cells();
+    }
+
     dragstart(piece: JQuery) {
         if (this.edit_mode) {
             this.edit_controller.dragstart(piece);
             return;
         }
+        this.highlight_droppable_cells(piece);
+    }
+
+    highlight_droppable_cells(piece: JQuery) {
         const is_master_turn = this.is_white_turn();
         const turn = is_master_turn ? "master" : "player";
         if (!piece.hasClass(turn)) return;
@@ -498,14 +513,17 @@ export class UI {
 
     dragstop(piece?: JQuery) {
         // make all cells undroppable
-        $("div.cell, div.hand")
-            .removeClass("possible drop-current winning draw best")
-            .droppable("disable");
-        $("span.hint").text("");
+        this.unhighlight_droppable_cells();
+        $("div.cell, div.hand").droppable("disable");
         if (this.edit_mode && piece) {
             const place = piece.parent();
             piece.css("fontSize", place.hasClass("hand") ? "0.5em" : "1em");
         }
+    }
+
+    unhighlight_droppable_cells() {
+        $("div.cell, div.hand").removeClass("possible drop-current winning draw best");
+        $("span.hint").text("");
     }
 
     drop(piece: JQuery, new_cell: JQuery, e: JQueryEventObject) { // mouse drop
