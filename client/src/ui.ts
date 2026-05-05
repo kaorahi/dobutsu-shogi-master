@@ -42,6 +42,7 @@ export class UI {
     analysis_mode = false;
     edit_mode = false;
     swap_side_p = false;
+    pv_hover_move: Move | null = null;
     puzzle_depth = -1;
     autorun_timer: number | null = null;
     autorun_running = false;
@@ -215,6 +216,7 @@ export class UI {
         this.analysis_mode = false;
         this.edit_mode = false;
         this.swap_side_p = false;
+        this.pv_hover_move = null;
         this.ui_state = { board: Board.init(), depth: null };
         this.history = [];
         this.clear_future();
@@ -482,6 +484,8 @@ export class UI {
         if (this.analysis_mode && !this.edit_mode && !this.locked && piece.hasClass("to-play")) {
             this.highlight_droppable_cells(piece);
             this.highlight_best_move_piece();
+            this.pv_hover_move = this.get_hover_pv_move(piece);
+            this.update_principal_variation_display();
         }
     }
 
@@ -555,6 +559,8 @@ export class UI {
         $(".piece").removeClass("best-move");
         $("div.cell, div.hand").removeClass("possible drop-current winning draw best");
         $("span.hint").text("");
+        this.pv_hover_move = null;
+        this.update_principal_variation_display();
     }
 
     drop(piece: JQuery, new_cell: JQuery, e: JQueryEventObject) { // mouse drop
@@ -634,10 +640,19 @@ export class UI {
     }
 
     get_principal_variation(board = this.ui_state.board, white_p = this.is_white_turn(), max_plies = 12): Move[] {
+        return this.get_principal_variation_from_move(board, white_p, max_plies, null);
+    }
+
+    get_principal_variation_from_move(board = this.ui_state.board, white_p = this.is_white_turn(), max_plies = 12, first_move: Move | null = null): Move[] {
         const pv: Move[] = [];
         const seen = new Set<string>();
         let cur_board = board;
         let cur_white_p = white_p;
+        if (first_move) {
+            pv.push(first_move);
+            cur_board = first_move.new_board;
+            cur_white_p = !cur_white_p;
+        }
         for (let ply = 0; ply < max_plies; ply++) {
             const key = `${cur_white_p ? "w" : "b"}:${cur_board.hashstr()}`;
             if (seen.has(key)) break;
@@ -653,7 +668,7 @@ export class UI {
         return pv;
     }
 
-    format_principal_variation(board = this.ui_state.board, white_p = this.is_white_turn(), max_plies = 12): string {
+    format_principal_variation(board = this.ui_state.board, white_p = this.is_white_turn(), max_plies = 12, first_move: Move | null = null): string {
         const names: Record<string, string> = {
             "ライオン": "ラ",
             "ぞう": "ぞ",
@@ -664,7 +679,7 @@ export class UI {
         const abbreviate = (s: string): string =>
               s.replace(/ライオン|ぞう|きりん|ひよこ|にわとり/g, name => names[name]);
         let prev_text = "";
-        return this.get_principal_variation(board, white_p, max_plies)
+        return this.get_principal_variation_from_move(board, white_p, max_plies, first_move)
             .map(move => {
                 const full_text = this.revflip_maybe(move, this.swap_side_p).toString();
                 let text = full_text;
@@ -674,6 +689,29 @@ export class UI {
                 return abbreviate(text);
             })
             .join("");
+    }
+
+    get_hover_pv_move(piece: JQuery): Move | null {
+        const legal_moves: Move[] = [];
+        this.query_move(piece, {}, (move) => legal_moves.push(move));
+        if (legal_moves.length === 0) return null;
+        const [_, best_moves] = this.get_depth_and_best_moves();
+        const best_keys = new Set(best_moves.map(move => this.move_key(move)));
+        return legal_moves.find(move => best_keys.has(this.move_key(move))) || legal_moves[0];
+    }
+
+    move_key(move: Move): string {
+        return move instanceof Normal ?
+              `N:${move.x},${move.y},${move.nx},${move.ny}` :
+              `D:${move.p},${move.nx},${move.ny}`;
+    }
+
+    update_principal_variation_display() {
+        const pv_text = this.analysis_mode ?
+              this.format_principal_variation(this.ui_state.board, this.is_white_turn(), 12, this.pv_hover_move) :
+              "";
+        $("p#pv").prop("hidden", !this.analysis_mode);
+        $("p#pv #pv-text").text(pv_text);
     }
 
     highlight_best_move_piece() {
@@ -882,9 +920,6 @@ export class UI {
             $("button#next-board").prop("disabled", this.snapshots.length === 0);
             $("button#best-move").prop("disabled", gameover !== 0);
             $("#puzzle-container").toggle(this.puzzle_depth > 0);
-            const pv_text = this.analysis_mode ? this.format_principal_variation() : "";
-            $("p#pv").toggle(this.analysis_mode);
-            $("p#pv #pv-text").text(pv_text);
         }
         $("button#autorun").prop("disabled", gameover !== 0);
         $("button#copy, button#download").prop("disabled", this.fresh_game_p(Board.init()));
@@ -892,6 +927,7 @@ export class UI {
         $("#move-count").text(this.history.length);
         $("#analysis-ckbox").prop("checked", this.analysis_mode);
         $("#swap-ckbox").prop("checked", this.swap_side_p);
+        this.update_principal_variation_display();
         this.update_coord_labels();
         const hl = this.history.length
         const v = hl === 0 ? $("li#record-before-first") : $("ol#record").children().eq(hl - 1);
