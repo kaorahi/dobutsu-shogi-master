@@ -116,6 +116,8 @@ export class UI {
         $("button#swap").click((e) => this.restore_positions(true));
         $("button#analysis-mode").click((e) => {
             if (!this.enter()) return;
+            if (!this.analysis_mode)
+                this.take_snapshot();
             this.analysis_mode = true;
             this.leave();
         });
@@ -311,6 +313,7 @@ export class UI {
             else
                 this.stop_autorun_now_and_leave_actually();
         }
+        this.take_snapshot();
         this.analysis_mode = true;
         this.autorun_running = true;
         autorun();
