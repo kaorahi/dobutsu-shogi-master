@@ -120,7 +120,8 @@ export class UI {
         $("button#hint").click((e) => this.highlight_best_move_piece());
         $("button#undo").click((e) => this.undo_turn());
         $("button#redo").click((e) => this.redo_turn());
-        $("button#best-move").click((e) => this.enter() && this.do_master_turn_leave());
+        $("button#best-move").click((e) =>
+            this.enter() && (this.do_master_turn_now(), this.leave()));
         $("span#msg").click((e) => $("span#msg").removeClass("censored"));
         $("#record-before-first").click((e) => this.goto_history_len(0));
         $("button#about").click((e) => {
