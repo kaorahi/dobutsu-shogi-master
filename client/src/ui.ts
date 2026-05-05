@@ -120,8 +120,7 @@ export class UI {
         $("button#hint").click((e) => this.highlight_best_move_piece());
         $("button#undo").click((e) => this.undo_turn());
         $("button#redo").click((e) => this.redo_turn());
-        $("button#best-move").click((e) =>
-            this.enter() && (this.do_master_turn_now(), this.leave()));
+        $("button#best-move").click((e) => this.play_best_move());
         $("span#msg").click((e) => $("span#msg").removeClass("censored"));
         $("#record-before-first").click((e) => this.goto_history_len(0));
         $("button#about").click((e) => {
@@ -636,13 +635,20 @@ export class UI {
         this.dragstop();
     }
 
+    play_best_move() {
+        const [_, best_moves] = this.get_depth_and_best_moves();
+        const move = random_choice(best_moves);
+        move && this.do_turn(move);
+    }
+
     // execute the player's turn, decide and execute the master's turn
-    do_turn(move: Move, piece: JQuery) {
+    do_turn(move: Move, piece: JQuery | undefined = undefined) {
         if (!this.enter()) return;
+        let next_white_p = piece ? piece.hasClass("player") : !this.is_white_turn();
         let nb = move.new_board;
         let gameover = nb.gameover_status();
         let [depth, nmoves] = (gameover === 0) ?
-            this.get_depth_and_best_moves(nb, piece.hasClass("player")) : [-1, []];
+            this.get_depth_and_best_moves(nb, next_white_p) : [-1, []];
         let nmove = random_choice(nmoves) || null;
         this.clear_future(true);
         this.history.push([this.ui_state, move, depth]);
