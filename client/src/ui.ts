@@ -83,8 +83,12 @@ export class UI {
             over: (event, ui) => {
                 $("div.cell, div.hand").removeClass("drop-current");
                 $(event.target).addClass("drop-current");
+                this.update_drag_pv(ui.draggable as JQuery<HTMLElement>, $(event.target) as JQuery<HTMLElement>);
             },
-            out: (event, ui) => { $(event.target).removeClass("drop-current"); },
+            out: (event, ui) => {
+                $(event.target).removeClass("drop-current");
+                this.clear_drag_p(ui.draggable as JQuery<HTMLElement>);
+            },
         });
         $("div.hand").droppable({
             tolerance: "pointer",
@@ -495,6 +499,11 @@ export class UI {
             return;
         }
         this.highlight_droppable_cells(piece);
+        if (this.analysis_mode && !this.locked && piece.hasClass("to-play")) {
+            this.highlight_best_move_piece();
+            this.pv_hover_move = null;
+            this.update_principal_variation_display();
+        }
     }
 
     highlight_droppable_cells(piece: JQuery) {
@@ -559,6 +568,22 @@ export class UI {
         $(".piece").removeClass("best-move");
         $("div.cell, div.hand").removeClass("possible drop-current winning draw best");
         $("span.hint").text("");
+        this.pv_hover_move = null;
+        this.update_principal_variation_display();
+    }
+
+    update_drag_pv(piece: JQuery, target: JQuery<HTMLElement>) {
+        if (!this.analysis_mode || this.edit_mode || !piece.hasClass("to-play")) return;
+        if (!target.hasClass("cell")) return;
+        const [nx, ny] = this.get_position_from_cell(target);
+        const moves: Move[] = [];
+        this.query_move(piece, {nx, ny}, (move) => moves.push(move));
+        this.pv_hover_move = moves[0] || null;
+        this.update_principal_variation_display();
+    }
+
+    clear_drag_p(piece: JQuery) {
+        if (!this.analysis_mode || this.edit_mode || !piece.hasClass("to-play")) return;
         this.pv_hover_move = null;
         this.update_principal_variation_display();
     }
