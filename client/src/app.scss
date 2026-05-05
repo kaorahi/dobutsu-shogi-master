@@ -40,16 +40,34 @@ div#record-box {
   padding: 0em;
   ol {
     padding: 0em 0em 0em 3.6em;
-    li.future-move {
-      color: rgba(0,0,0,0.2);
-    }
-    li.future-move:hover {
-      color: #990000;
+    li {
+      height: 1.1em;
+      &.future-move {
+        color: rgba(0,0,0,0.2);
+      }
+      &.future-move:hover {
+        color: #990000;
+      }
+      .depth {
+        display: inline-block;
+        width: 0.3em;
+        height: 100%;
+        margin-right: 0.1em;
+      }
+      .move {
+        display: inline-block;
+        &.outcome-loss::first-letter {
+            background-color: #f86;
+        }
+        &.moves-loss::first-letter {
+            background-color: #fc6;
+        }
+      }
     }
   }
   ol li:hover {
     background-color: rgba(255, 153, 153, 0.5);
-    box-shadow: -1px 1px 2px black;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     cursor: pointer;
   }
   button {
@@ -506,4 +524,18 @@ span#msg {
     user-select: none;
     font-size: 1em;
   }
+}
+
+.ui-tooltip {
+  font-size: 0.75em;
+  background: #eee;
+  color: #111;
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.ui-tooltip .ui-tooltip-content {
+  padding: 0;
+  line-height: 1.4;
 }

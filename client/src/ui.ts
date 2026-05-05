@@ -2,6 +2,7 @@ import "jquery-ui/dist/jquery-ui";
 import "jquery-ui/themes/base/core.css";
 import "jquery-ui/themes/base/button.css";
 import "jquery-ui/themes/base/draggable.css";
+import "jquery-ui/themes/base/tooltip.css";
 
 // Hack to enable touch-punch for pointer device (e.g., Surface)
 if ('onpointerenter' in window) {
@@ -221,7 +222,9 @@ export class UI {
         if (snapshot_p && this.future.length > 0)
             this.take_snapshot();
         this.future = [];
-        $("ol#record").children().slice(this.history.length).remove();
+        const lis = $("ol#record").children().slice(this.history.length);
+        lis.filter(":data(ui-tooltip)").tooltip("destroy");
+        lis.remove();
     }
 
     restore_positions(swap_side: boolean) {
@@ -346,6 +349,7 @@ export class UI {
             if (this.autorun_running &&
                 this.ui_state.board.gameover_status() === 0) {
                 this.update_ui();
+                this.update_records();
                 // "window" to avoid this TS error.
                 // error TS2322: Type 'Timeout' is not assignable to type 'number'.
                 this.autorun_timer = window.setTimeout(recur);
@@ -403,10 +407,9 @@ export class UI {
         this.set_board(this.ui_state.board, true);
         let prev_li: JQuery<HTMLElement> | null = null;
         const hs = [...this.history, ...this.future.toReversed()];
-        hs.forEach(([_, move]) => {
+        hs.forEach(([_s, move, _d]) => {
             move && (prev_li = this.add_to_record(move, prev_li));
         });
-        this.update_records();
         this.leave();
     }
 
@@ -555,16 +558,21 @@ export class UI {
         this.clear_future(true);
         this.history.push([this.ui_state, move, depth]);
 
-        this.do_move(move, piece);
+        // state & history must be updated before do_move
         const state_before_nmove = { board: nb, depth: depth };
         this.ui_state = state_before_nmove;
+        this.do_move(move, piece);
         if (!nmove || this.analysis_mode) return this.leave();
+        this.update_ui();
+        this.update_records();
         $("span.piece").delay(300).promise().done(() => {
-            // history must be updated before do_move
+            // state & history must be updated before do_move
             let depth_after_nmove = Math.max(-1, depth - 1);
+            let state_after_nmove = { board: nmove.new_board, depth: depth_after_nmove };
             this.history.push([state_before_nmove, nmove, depth_after_nmove]);
+            this.ui_state = state_after_nmove;
             this.do_move(nmove);
-            this.leave({ board: nmove.new_board, depth: depth_after_nmove });
+            this.leave();
         });
     }
 
@@ -586,8 +594,9 @@ export class UI {
         this.history.push([this.ui_state, nmove, depth_after_nmove]);
 
         $("span.piece").delay(300).promise().done(() => {
-            this.do_move(nmove);
+            // state & history must be updated before do_move
             this.ui_state = { board: nmove.new_board, depth: depth_after_nmove};
+            this.do_move(nmove);
             fin();
         });
     }
@@ -676,7 +685,6 @@ export class UI {
         if (!b) return this.leave();
         this.set_board(b, true);
         $("span.piece").promise().done(() => {
-            this.update_records();
             n > 0 ? this.redo_turn_leave() : this.leave();
         });
     }
@@ -726,6 +734,7 @@ export class UI {
     leave(s: UIState | undefined = undefined) {
         if (s) this.ui_state = s;
         this.update_ui();
+        this.update_records();
         this.locked = false;
     }
 
@@ -864,14 +873,15 @@ export class UI {
         let s = s1;
         if (s1.substring(1, 3) === s2.substring(1, 3))
             s = s1[0] + "同" + s1.substr(3);
-        const li = $("<li>").text(s).data("full-text", s1);
+        const dp = $("<div>").addClass("depth");
+        const mv = $("<div>").addClass("move").text(s);
+        const li = $("<li>").append(dp).append(mv).data("full-text", s1);
         $("ol#record").append(li);
         return li;
     }
 
     redo_move(move: Move) {
         this.do_move_sub(move);
-        this.update_records();
     }
 
     do_move_sub(move: Move, piece: JQuery | undefined = undefined) {
@@ -929,16 +939,67 @@ export class UI {
             let hand = this.get_empty_hand(piece.hasClass("player"));
             this.animate_piece(piece, new_cell, hand, true);
         }
-
-        this.update_records();
     }
 
     update_records() {
-        if (this.history.length + this.future.length > 10000) return;
+        if (this.history.length + this.future.length > 10000) {
+            $("li#record-before-first").css("border-left-color", "transparent");
+            return;
+        }
         const mc = this.history.length;
         const records = $("ol#record").children();
         records.slice(0, mc).removeClass("future-move");
         records.slice(mc).addClass("future-move");
+        const hs = [...this.history, ...this.future.toReversed()];
+        const max_depth = Math.max(this.ui_state.depth || 0, hs[0]?.[0].depth || 0, ...hs.map(h => h[2] || 0));
+        this.update_record_item(-1, $("li#record-before-first")[0], max_depth, hs);
+        $("ol#record").children()
+            .each((i, elem) => this.update_record_item(i, elem, max_depth, hs));
+    }
+
+    update_record_item(i: number, elem: HTMLElement, max_depth: number, hs: [UIState, Move, number | null][]) {
+        let [{depth}, move, next_depth] = hs[i] || hs[0] || [this.ui_state, null, -1];
+        if (i < 0)
+            next_depth = depth;
+        if (next_depth === null) return;
+        // abs_ = "from the first player", rel_ = "from the player of the move"
+        const player_sign = i % 2 === 0 ? +1 : -1;  // + = first player
+        const abs_next_gos = move === null ? 0 : move.new_board.gameover_status();  // + = the first player wins
+        const rel_next_gos = player_sign * abs_next_gos;  // + = the move player wins
+        if (rel_next_gos !== 0)
+            next_depth = 0;
+        // [rest moves]
+        const min_l = 70;  // 50 = pure color
+        const max_l = 90;  // 100 = white
+        const l = Math.round(Math.min(min_l + (next_depth / max_depth) * (max_l - min_l), max_l))
+        const abs_leading_p = abs_next_gos > 0 ? true : abs_next_gos < 0 ? false :
+              (next_depth % 2 === Math.abs(i) % 2);  // true = the first player wins
+        const depth_color = next_depth < 0 ? "hsl(60deg 100% 75%)" :
+              `hsl(${abs_leading_p ? 0: 240}deg 100% ${l}%)`;
+        const li = $(elem);
+        const dp = li.children(".depth");
+        dp.css("background-color", depth_color);
+        // [bad move marks]
+        const mv = li.children(".move");
+        if (mv.length === 0 || depth === null) return;
+        const outcome = (d: number): number => d < 0 ? 0 : d % 2 === 0 ? -1 : +1;
+        const rel_o0 = outcome(depth);  // + = the move player wins
+        const rel_o1 = rel_next_gos !== 0 ? Math.sign(rel_next_gos) : - outcome(next_depth);  // + = the move player wins
+        const rel_outcome_loss = rel_o0 - rel_o1;  // + = loss for the move player
+        const rel_moves_loss = - rel_o0 * (depth - next_depth - 1);  // + = loss for the move player
+        mv.toggleClass("outcome-loss", rel_outcome_loss > 0)
+            .toggleClass("moves-loss", rel_outcome_loss === 0 && rel_moves_loss > 0);
+        // [tooltips]
+        const outcome_text = (o: number, d: number): string =>
+              [`${Math.max(d, 0)}手負`, "引分", `${Math.max(d, 0)}手勝`][o + 1];
+        const rel_ot0 = outcome_text(rel_o0, depth);
+        const rel_ot1 = rel_next_gos < 0 ? "負" : rel_next_gos > 0 ? "勝" : outcome_text(rel_o1, next_depth + 1);
+        const tooltip: string | false =
+              (rel_outcome_loss > 0 || rel_moves_loss > 0) && `${rel_ot0}→${rel_ot1}`;
+        tooltip && li.attr("title", tooltip).tooltip({
+            show: 100, hide: 100,
+            position: { my: "left top", at: "left+50 bottom+50", collision: "flipfit" },
+        });
     }
 }
 
