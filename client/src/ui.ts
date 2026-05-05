@@ -117,7 +117,6 @@ export class UI {
         $("button#edit-revflip").click((e) => this.edit_controller.revflipBoard());
         $("button#edit-flip").click((e) => this.edit_controller.flipBoard());
         $("button#swap").click((e) => this.restore_positions(true));
-        $("button#swap-view").click((e) => this.swap_view());
         $("button#analysis-mode").click((e) => {
             if (!this.enter()) return;
             if (!this.analysis_mode)
@@ -130,6 +129,7 @@ export class UI {
             this.show_depth_p = $("#depth-ckbox").prop("checked");
             this.leave();
         });
+        $("#swap-ckbox").on("change", () => this.swap_view($("#swap-ckbox").prop("checked")));
         $("button#autorun").click((e) => this.start_autorun());
         // click anywhere to stop autorun
         document.addEventListener("click", (e) => this.stop_autorun(), {capture: true});
@@ -293,14 +293,15 @@ export class UI {
         this.leave();
     }
 
-    swap_view() {
+    swap_view(swap_p: boolean) {
+        if (this.swap_side_p === swap_p) return;
         if (!this.enter()) return;
         const swap_s = (s: UIState): UIState => ({...s, board: s.board.revflip()});
         const swap_m = (m: Move | null | false): Move | null | false => m ? m.revflip() : m;
         const swap_h = ([s, m, nm]: [UIState, Move | null | false, Move | null | false]): [UIState, Move | null | false, Move | null | false] => [swap_s(s), swap_m(m), swap_m(nm)];
         this.history = this.history.map(swap_h);
         this.future = this.future.map(swap_h);
-        this.swap_side_p = !this.swap_side_p;
+        this.swap_side_p = swap_p;
         this.set_board(this.ui_state.board.revflip(), true);
         this.leave();
     }
@@ -738,6 +739,7 @@ export class UI {
         const puzzle_label = $("button#puzzle" + this.puzzle_depth).text();
         $("button#puzzle").text(`次問（${puzzle_label}）`);
         $("#depth-ckbox").prop("checked", this.show_depth_p);
+        $("#swap-ckbox").prop("checked", this.swap_side_p);
     }
 
     // move a span element of a piece with animation
