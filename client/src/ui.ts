@@ -22,6 +22,7 @@ export class UI {
 
     // (the previous state, player's (black) move, master's (white) move)*
     history: [UIState, Move | null | false, Move | null | false][];
+    future: [UIState, Move | null | false, Move | null | false][];
 
     // a mutex to change the state
     locked: boolean;
@@ -59,6 +60,7 @@ export class UI {
 
         $("button").button();
         $("button#undo").click((e) => this.undo_turn());
+        $("button#redo").click((e) => this.redo_turn());
         $("button#about").click((e) => {
             $("#about-dialog").click((e) => e.stopPropagation());
             $("#about-overlay").fadeIn("fast").off().click(() => {
@@ -100,6 +102,7 @@ export class UI {
         this.swap_side_p = false;
         this.ui_state = { board: Board.init(), depth: -1 };
         this.history = [];
+        this.future = [];
         $("ol#record").children().detach();
         $("#player-side-mark").text("▲");
         $("#master-side-mark").text("△");
@@ -308,6 +311,7 @@ export class UI {
         let [depth, nnb] = (gameover === 0) ? this.ai.search(r_nb) : [-2, null];
         let nmove = nnb && !this.analysis_mode && Move.detect_move(nb, nnb);
         this.history.push([this.ui_state, move, nmove]);
+        this.future = [];
 
         this.do_move(move, piece);
         if (!nmove || this.analysis_mode) return this.leave({ board: nb, depth: depth})
@@ -323,6 +327,7 @@ export class UI {
         let [depth, nnb] = this.ai.search(b);
         let nmove = this.revflip_maybe(Move.detect_move(b, nnb), rev);
         this.history.push([this.ui_state, null, nmove]);
+        this.future = [];
 
         $("span.piece").delay(300).promise().done(() => {
             this.do_move(nmove);
@@ -337,6 +342,7 @@ export class UI {
         if (!this.enter()) return;
         let prev = this.history.pop();
         if (!prev) return this.leave();
+        this.future.push(prev);
         let [prev_state, move, nmove] = prev;
 
         if (nmove) this.undo_move(nmove);
@@ -349,6 +355,27 @@ export class UI {
                 this.swap_side_p && !this.analysis_mode ?
                     this.do_master_turn_leave() : this.leave();
             }
+        });
+    }
+
+    redo_turn() {
+        if (!this.enter()) return;
+        let next = this.future.pop();
+        if (!next) return this.leave();
+        this.history.push(next);
+        let [_cur_state, move, nmove] = next;
+
+        if (move) {
+            this.do_move(move);
+            this.ui_state = { board: move.new_board, depth: -1 };
+        }
+        $("span.piece").promise().done(() => {
+            if (nmove) {
+                this.do_move(nmove);
+                this.ui_state = { board: nmove.new_board, depth: -1 };
+            }
+            this.update_depth();
+            this.leave();
         });
     }
 
@@ -447,6 +474,8 @@ export class UI {
         const r_board = this.revflip_maybe(this.ui_state.board, this.is_white_turn());
         url.searchParams.set("board", r_board.hashstr());
         $("a#permalink").attr("href", url.toString());
+        $("button#undo").prop("disabled", this.history.length === 0);
+        $("button#redo").prop("disabled", this.future.length === 0);
         if (dont_leave_actually) return;
         this.locked = false;
     }
@@ -497,7 +526,7 @@ export class UI {
         let s = s1;
         if (s1.substring(1, 3) === s2.substring(1, 3))
             s = s1[0] + "同" + s1.substr(3);
-        $("ol#record").append($("<li>").addClass(piece ? "player-text" : "master-text").text(s).data("full-text", s1));
+        $("ol#record").append($("<li>").text(s).data("full-text", s1));
     }
 
     // perform a move backward
