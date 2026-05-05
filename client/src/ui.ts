@@ -117,11 +117,9 @@ export class UI {
         $("button#edit-revflip").click((e) => this.edit_controller.revflipBoard());
         $("button#edit-flip").click((e) => this.edit_controller.flipBoard());
         $("button#swap").click((e) => this.restore_positions(true));
-        $("button#analysis-mode").click((e) => {
+        $("#analysis-ckbox").on("change", () => {
             if (!this.enter()) return;
-            if (!this.analysis_mode)
-                this.take_snapshot();
-            this.analysis_mode = true;
+            this.analysis_mode = $("#analysis-ckbox").prop("checked");
             this.leave();
         });
         $("#depth-ckbox").on("change", () => {
@@ -724,7 +722,7 @@ export class UI {
             $("#record-controls").children().show();
             $("#record-controls .edit-mode-only").hide();
             if (this.ai.supports_best_move_only())
-                $("button#swap, button#puzzle, .puzzle-button, button#analysis-mode, button#autorun").hide();
+                $("button#swap, button#puzzle, .puzzle-button, #analysis-ckbox, button#autorun").hide();
             $("button").prop("disabled", false);
             $("button#matta").prop("disabled", this.history.length === 0);
             $("button#undo").prop("disabled", this.history.length === 0);
@@ -738,6 +736,7 @@ export class UI {
         $("#move-count").text(this.current_move_count());
         const puzzle_label = $("button#puzzle" + this.puzzle_depth).text();
         $("button#puzzle").text(`次問（${puzzle_label}）`);
+        $("#analysis-ckbox").prop("checked", this.analysis_mode);
         $("#depth-ckbox").prop("checked", this.show_depth_p);
         $("#swap-ckbox").prop("checked", this.swap_side_p);
         this.update_coord_labels();
