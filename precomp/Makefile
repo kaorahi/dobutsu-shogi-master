@@ -5,7 +5,7 @@ PRE = r_$(RULES)
 
 .DELETE_ON_ERROR:
 
-.PHONY: all build clean distclean analyze small large smalldocs largedocs docs docs_only update_rules images
+.PHONY: all build clean distclean analyze small large smalldocs largedocs docs docs_only update_rules images test
 
 all: largedocs
 
@@ -44,6 +44,9 @@ PUB = ../client/src/public
 
 RULES_OPT = --rules=$(RULES)
 XZ = xz
+
+test:
+	cd ../client && npm test
 
 build:
 	cargo build --release
