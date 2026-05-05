@@ -78,7 +78,7 @@ export class UI {
             zIndex: 1000,
             scroll: false
         });
-        $("span.piece").on("pointerover", e => this.hover_on_piece($(e.currentTarget) as JQuery<HTMLElement>));
+        $("span.piece").on("pointerenter", e => this.hover_on_piece($(e.currentTarget) as JQuery<HTMLElement>));
         $("span.piece").on("pointerleave pointercancel lostpointercapture", e => {
             if ($(".ui-draggable-dragging").length > 0) return;
             this.hide_hints();

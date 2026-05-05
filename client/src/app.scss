@@ -296,6 +296,7 @@ td.cell {
       position: absolute;
       right: 0.05em;
       top: 0em;
+      pointer-events: none;
     }
   }
   div.cell.drop-current span.hint {
