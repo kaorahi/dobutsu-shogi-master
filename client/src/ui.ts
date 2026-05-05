@@ -502,18 +502,38 @@ export class UI {
             cell.addClass("possible");
             let r_nb = this.revflip_maybe(move.new_board, is_master_turn);
             let depth = this.ai.search(r_nb)[0];
+            let status = r_nb.gameover_status();
             const depth_text =
                   !this.analysis_mode ? "" :
-                  depth < 0 ? "-" :
-                  depth === 0 ? "!" :
-                  depth === 1 ? "x" :
+                  status > 0 ? "!" : // win
+                  status < 0 || depth === 1 ? "x" :  // lose
+                  depth < 0 ? "-" :  // draw
                   depth + 1;
+            // (note) check gameover_status in depth_text because losing
+            // positions can have depth = 0 in special cases:
+            // +B4C3LI
+            // -B1A2LI
+            // +C3C2LI
+            // -A2A3LI
+            // +C2B1LI
+            // > ui.ui_state.board.toString()
+            // gLe 
+            // .c.
+            // lC.
+            // E.G 
+            // next move "-A1A2KI" causes "depth = 0" (immediate "try")
+            // .Le 
+            // gc.
+            // lC.
+            // E.G 
             cell.children().first().text(depth_text);
             const set_c = (klass: string, flag: boolean) =>
                   cell.toggleClass(klass, this.analysis_mode && flag);
-            set_c("winning", depth % 2 === 0);
+            set_c("winning", depth % 2 === 0 && status >= 0);
             set_c("draw", depth < 0);
-            set_c("best", depth + (depth < 0 ? 0 : 1) === this.ui_state.depth);
+            const best_p = this.ui_state.depth === 1 ? status > 0 :
+                  depth + (depth < 0 ? 0 : 1) === this.ui_state.depth;
+            set_c("best", best_p);
         });
     }
 
