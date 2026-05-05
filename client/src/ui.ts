@@ -40,7 +40,7 @@ export class UI {
     analysis_mode = false;
     edit_mode = false;
     swap_side_p = false;
-    show_depth_p = true;
+    show_depth_p = false;
     puzzle_depth = -1;
     autorun_timer: number | null = null;
     autorun_running = false;
@@ -120,6 +120,7 @@ export class UI {
         $("#analysis-ckbox").on("change", () => {
             if (!this.enter()) return;
             this.analysis_mode = $("#analysis-ckbox").prop("checked");
+            this.show_depth_p = this.analysis_mode;
             this.leave();
         });
         $("#depth-ckbox").on("change", () => {
