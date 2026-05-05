@@ -54,9 +54,9 @@ export class EditModeController {
         }
     }
 
-    drop(piece: JQuery, new_place: JQuery) {
+    drop(piece: JQuery, new_place: JQuery, e: JQueryEventObject) {
         if (!this.host.enter()) return;
-        this.closeContextMenu();
+        this.openContextMenu(piece, new_place, e);
         if (new_place.hasClass("hand") && this.host.get_piece_id_from_piece(piece) === Piece.Lion)
             return this.host.leave();
         const old_place = piece.parent();
@@ -106,10 +106,8 @@ export class EditModeController {
             $("div.cell, div.hand").removeClass("drop-current");
     }
 
-    openContextMenu(piece: JQuery, e: JQuery.TriggeredEvent) {
-        if (!this.host.edit_mode || piece.parent().hasClass("hand")) return;
-        e.preventDefault();
-        e.stopPropagation();
+    openContextMenu(piece: JQuery, new_place: JQuery, e: JQueryEventObject) {
+        if (!this.host.edit_mode || new_place.hasClass("hand")) return;
         this.closeContextMenu();
         const kind = this.host.get_piece_id_from_piece(piece);
         if (kind === Piece.Lion) return;

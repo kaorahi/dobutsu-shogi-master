@@ -72,12 +72,12 @@ export class UI {
             scroll: false
         });
         $("div.cell").droppable({
-            drop: (event, ui) => { this.drop(ui.draggable, $(event.target) as JQuery<HTMLElement>); },
+            drop: (event, ui) => { this.drop(ui.draggable, $(event.target) as JQuery<HTMLElement>, event); },
             over: (event, ui) => { this.edit_controller.highlightDropTarget($(event.target) as JQuery<HTMLElement>); },
             out: (event, ui) => { this.edit_controller.clearDropTarget($(event.target) as JQuery<HTMLElement>); },
         });
         $("div.hand").droppable({
-            drop: (event, ui) => { this.drop(ui.draggable, $(event.target) as JQuery<HTMLElement>); },
+            drop: (event, ui) => { this.drop(ui.draggable, $(event.target) as JQuery<HTMLElement>, event); },
             over: (event, ui) => { this.edit_controller.highlightDropTarget($(event.target) as JQuery<HTMLElement>); },
             out: (event, ui) => { this.edit_controller.clearDropTarget($(event.target) as JQuery<HTMLElement>); },
         });
@@ -149,7 +149,6 @@ export class UI {
             if (!(target instanceof Element) || !target.closest("#piece-menu"))
                 this.edit_controller.closeContextMenu();
         });
-        $("span.piece").on("contextmenu", (e) => this.edit_controller.openContextMenu($(e.currentTarget), e));
         $("#piece-menu").on("click", "button", (e) => {
             const action = String($(e.currentTarget).data("action"));
             this.edit_controller.applyContextMenuAction(action);
@@ -470,9 +469,9 @@ export class UI {
         }
     }
 
-    drop(piece: JQuery, new_cell: JQuery) { // mouse drop
+    drop(piece: JQuery, new_cell: JQuery, e: JQueryEventObject) { // mouse drop
         if (this.edit_mode) {
-            this.edit_controller.drop(piece, new_cell);
+            this.edit_controller.drop(piece, new_cell, e);
             this.dragstop();
             return;
         }
