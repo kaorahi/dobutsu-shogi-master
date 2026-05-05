@@ -69,8 +69,13 @@ div#record-box {
   button {
     width: 100%;
   }
+  #prevnext-board-container {
+    display: flex;
+    gap: 0.5em;
+  }
   button#prev-board, button#next-board, button#reveal-eval {
-    width: 48%;
+    width: auto;
+    flex: 1;
   }
   button#reveal-eval {
     width: auto;
