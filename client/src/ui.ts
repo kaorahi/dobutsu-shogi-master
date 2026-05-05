@@ -457,8 +457,7 @@ export class UI {
                   depth < 0 ? "-" :
                   depth === 0 ? "!" :
                   depth === 1 ? "x" :
-                  (typeof depth === 'number') ? depth + 1 :
-                  "?"
+                  depth + 1;
             cell.children().first().text(depth_text);
         });
     }
