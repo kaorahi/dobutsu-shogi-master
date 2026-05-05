@@ -1,0 +1,60 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+ <meta charset="UTF-8" />
+ <title>ログの見方</title>
+<style>
+.rule-table {
+  border-collapse: collapse;
+}
+.rule-table th, .rule-table td {
+  border: 1px solid #999;
+  padding: 0.2em;
+  text-align: center;
+}
+.rule-table td:nth-child(4) {
+  text-align: left;
+}
+.caution {
+  color: red;
+}
+</style>
+</head>
+
+<body>
+<h1>ログの見方</h1>
+<p>次のようなブロックが連続して書かれている.</p>
+<pre><code>3,▲B3きりん,+C3B3KI,410b0029031a000,41000029b01a003
+gle c
+...
+.G.
+EL. C</code></pre>
+<p>1行目:</p>
+<ul>
+<li><code>3</code> → 3 手目</li>
+<li><code>▲B3きりん</code> → ▲は先手, △は後手の着手. 筋は左からABC,
+段は上から1234.</li>
+<li><code>+C3B3KI</code> → <a
+href="https://www.computer-shogi.org/protocol/record_v22.html">csa棋譜形式</a>風の着手表記.
+<code>+</code>は先手, <code>-</code>は後手の着手.
+C3からB3へきりんを移動した. (LI=ライオン, KI=きりん, ZO=ぞう, HI=ひよこ,
+NI=にわとり. 駒を打つ場合は <code>-00A4HI</code> のように
+<code>00</code> と表記)</li>
+<li><code>410b0029031a000</code> → 着手後局面を表すハッシュ文字列
+(盤面の向きは「先手側から見て」に固定). 詳しくは <a
+href="https://github.com/kaorahi/dobutsu-shogi-master/blob/master/INSTRUCTIONS.md">INSTRACTIONS.md</a>
+を参照.</li>
+<li><code>41000029b01a003</code> →
+同じ局面を「次に指す手番側」から見たもの.
+左右反転を同一視する正規化も適用.</li>
+</ul>
+<p>その下4行: 先手側から見た着手後局面</p>
+<ul>
+<li>左 3 列が盤面. 大文字は先手駒, 小文字は後手駒. l=ライオン (lion),
+e=象 (elephant), g=きりん (giraffe), c=ひよこ (chick), h=にわとり
+(hen).</li>
+<li>盤面の右側は持駒. 大文字は先手持駒, 小文字は後手持駒.</li>
+</ul>
+
+</body>
+</html>

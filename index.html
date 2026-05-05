@@ -55,10 +55,47 @@
 
 <table class="rule-table">
  <tr><th>ルールコード</th><th>初期局面から</th><th>最長局面から</th><th>コメント</th></tr>
- <tr><th>val1n</th><td><a href="val1n">78手で後手勝</a></td><td><a href="val1n?board=0009a13b00ac00c">173手で先手勝</a></td><td>現行ルール</td></tr>
- <tr><th>vqpeu</th><td><a href="vqpeu">153手で先手勝</a></td><td></td><td>現行ルールの2倍近い長さ</td></tr>
- <tr><th>vqp2a</th><td><a href="vqp2a">40手で後手勝</a></td><td><a href="vqp2a?board=00000b2903ad015">451手で先手勝</a></td><td>決着まで400手以上かかる局面が存在. <a href="vqp2a?board=0019b120030d005">最長局面はもう一つあり</a></td></tr>
+ <tr><th>val1n</th><td><a href="variations/val1n">78手で後手勝</a></td><td><a href="variations/val1n?board=0009a13b00ac00c">173手で先手勝</a></td><td>現行ルール</td></tr>
+ <tr><th>vqpeu</th><td><a href="variations/vqpeu">153手で先手勝</a></td><td></td><td>現行ルールの2倍近い長さ</td></tr>
+ <tr><th>vqp2a</th><td><a href="variations/vqp2a">40手で後手勝</a></td><td><a href="variations/vqp2a?board=00000b2903ad015">451手で先手勝</a></td><td>決着まで400手以上かかる局面が存在. <a href="variations/vqp2a?board=0019b120030d005">最長局面はもう一つあり</a></td></tr>
 </table>
+
+<hr>
+
+<h2>おまけ: 現行ルールの長周期千日手など</h2>
+
+<p class="caution">
+各デモは内部で数十MBのデータをダウンロードします
+</p>
+
+<h3>周期83834手の千日手</h3>
+
+<p>
+「3手目を指したあとの局面」から出発して, 41917手指すと「出発局面の手番違い」になる. つまり, 先手後手が入れかわっていて, 手番側から見た局面は実質同じ. そこから再度同様の手順を指せば, もう41917手で出発局面に戻る. 手番まで含めた同一局面の周期は, 41917×2 = 83834手.
+<ul>
+ <li>デモ: <a href="variations/val1n?tmp_load_initial_game_record_txt_xz=1">冒頭500手</a>, <a href="variations/val1n?tmp_load_initial_game_record_txt_xz=2">半周</a>, <a href="variations/val1n?tmp_load_initial_game_record_txt_xz=3">全周</a>
+ <li>棋譜: <a href="longcycle/moves_83834_first500.txt">冒頭500手</a>, <a href="longcycle/moves_83834_half.txt">半周</a>, <a href="longcycle/moves_83834_full.txt">全周</a> (<a href="variations/val1n">現行ルールのデモ</a>で読み込めます)</li>
+ <li>ログ: <a href="longcycle/log_83834_half.txt">半周</a>, <a href="longcycle/log_83834_full.txt">全周</a> (<a href="longcycle/about_log.html">ログの見方</a>)</li>
+</ul>
+<a href="longcycle/gray_code_shogi.html">グレイコードによる長周期手順</a>とは違い, 周期中の着手はすべて最善手の一つ (引分を保つ).
+</p>
+
+<p>
+Tips: 「<」「>」キーでも手を戻したり進めたりできます (「,」「.」キーでも同じ)
+</p>
+
+<h3>周期84730手の千日手</h3>
+
+<p>
+上と同様のさらに長い例
+<ul>
+ <li>デモ: <a href="variations/val1n?tmp_load_initial_game_record_txt_xz=4">半周</a>, <a href="variations/val1n?tmp_load_initial_game_record_txt_xz=5">全周</a>
+ <li>棋譜: <a href="longcycle/moves_84730_half.txt">半周</a>, <a href="longcycle/moves_84730_full.txt">全周</a>
+ <li>ログ: <a href="longcycle/log_84730_half.txt">半周</a>, <a href="longcycle/log_84730_full.txt">全周</a>
+</ul>
+</p>
+
+<hr>
 
 <h2>リンク</h2>
 <p>

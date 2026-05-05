@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gray Code Shogi Demo</title>
+  <style>
+    :root {
+      --cell: 56px;
+      --dur: 520ms;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --board-border: #6b4f2a;
+      --cell-bg: #f3d9a4;
+      --cell-line: #7a5a2f;
+      --piece-sente: #111;
+      --piece-gote: #111;
+      --panel-bg: #f7f7f7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+      color: #222;
+      background: #fff;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin: 0 0 12px;
+    }
+
+    p {
+      margin: 0 0 12px;
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: auto 300px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .board-wrap {
+      display: inline-block;
+    }
+
+    .hands {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .hands.bottom {
+      margin-top: 10px;
+      margin-bottom: 0;
+    }
+
+    .board {
+      position: relative;
+      width: calc(var(--cell) * 9);
+      height: calc(var(--cell) * 9);
+      border: 2px solid var(--board-border);
+      background:
+        repeating-linear-gradient(
+          to right,
+          var(--cell-line) 0,
+          var(--cell-line) 1px,
+          transparent 1px,
+          transparent var(--cell)
+        ),
+        repeating-linear-gradient(
+          to bottom,
+          var(--cell-line) 0,
+          var(--cell-line) 1px,
+          transparent 1px,
+          transparent var(--cell)
+        ),
+        var(--cell-bg);
+      overflow: hidden;
+    }
+
+    .piece {
+      position: absolute;
+      width: var(--cell);
+      height: var(--cell);
+      left: calc(var(--x) * var(--cell));
+      top: calc(var(--y) * var(--cell));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      font-weight: 700;
+      user-select: none;
+      transition: transform var(--dur) var(--ease), filter var(--dur) var(--ease);
+      transform: translate(0, 0);
+    }
+
+    .piece.gote {
+      transform: rotate(180deg) translate(0, 0);
+      color: var(--piece-gote);
+    }
+
+    .piece.sente {
+      color: var(--piece-sente);
+    }
+
+    .piece.on.sente {
+      transform: translate(calc(var(--dx) * var(--cell)), calc(var(--dy) * var(--cell)));
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.18));
+    }
+
+    .piece.on.gote {
+      transform: rotate(180deg) translate(calc(var(--dx) * var(--cell)), calc(var(--dy) * var(--cell)));
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.18));
+    }
+
+    .side {
+      display: grid;
+      gap: 14px;
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    .controls {
+      display: grid;
+      gap: 10px;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid #bbb;
+      background: white;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover { background: #fafafa; }
+    button:active { transform: translateY(1px); }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+    }
+
+    .grayline {
+      word-break: break-all;
+      line-height: 1.7;
+      padding: 10px;
+      background: white;
+      border: 1px solid #e1e1e1;
+      border-radius: 10px;
+      min-height: 48px;
+    }
+
+    .legend {
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .legend ul {
+      margin: 8px 0 0 1.2em;
+      padding: 0;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .board-wrap {
+        margin: 0 auto;
+      }
+
+      .side {
+        max-width: 540px;
+        width: 100%;
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>グレイコードによる将棋の長周期手順デモ</h1>
+    <p>
+      20ビットの循環グレイコードを用い、先手玉を最下位ビット、後手の19枚を残り19ビットに対応させています。
+      各ビットは 0/1 に応じて対応する駒が1歩だけ前後し、各手では1枚だけが動きます。
+    </p>
+
+    <div class="layout">
+      <div class="board-wrap">
+        <div class="hands">後手持駒：なし</div>
+        <div class="board" id="board"></div>
+        <div class="hands bottom">先手持駒：残りすべて</div>
+      </div>
+
+      <div class="side">
+        <div class="panel">
+          <h2>操作</h2>
+          <div class="controls">
+            <div class="row">
+              <button id="playBtn">再生</button>
+              <button id="stepBtn">1手進める</button>
+              <button id="resetBtn">初期化</button>
+            </div>
+            <div>
+              <label for="speed">速度</label>
+              <input id="speed" type="range" min="10" max="1000" step="10" value="500" />
+            </div>
+            <div class="mono" id="speedLabel">transition: 520ms</div>
+            <div>
+              <label for="plySlider">手数</label>
+              <input id="plySlider" type="range" min="0" max="1048575" step="1" value="0" />
+            </div>
+            <div class="mono" id="plySliderLabel">ply: 0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>状態</h2>
+          <div class="mono">手数: <span id="ply">0</span></div>
+          <div class="mono">反転ビット: <span id="flipped">-</span></div>
+          <div class="mono">局面ビット列: <span id="bits">00000000000000000000</span></div>
+        </div>
+
+        <div class="panel">
+          <h2>直近のグレイコード遷移</h2>
+          <div class="grayline mono" id="grayText"></div>
+        </div>
+
+        <div class="panel legend">
+          <h2>対応</h2>
+          <ul>
+            <li>bit 0: 先手玉</li>
+            <li>bit 1〜19: 後手駒19枚</li>
+            <li>bit = 0: 図の位置</li>
+            <li>bit = 1: そこから1歩前進した位置</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const board = document.getElementById('board');
+    const playBtn = document.getElementById('playBtn');
+    const stepBtn = document.getElementById('stepBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const speedInput = document.getElementById('speed');
+    const speedLabel = document.getElementById('speedLabel');
+    const plyEl = document.getElementById('ply');
+    const flippedEl = document.getElementById('flipped');
+    const bitsEl = document.getElementById('bits');
+    const grayTextEl = document.getElementById('grayText');
+    const plySlider = document.getElementById('plySlider');
+    const plySliderLabel = document.getElementById('plySliderLabel');
+
+    const PIECES = [
+      { id: 's-king', label: '玉', side: 'sente', x: 0, y: 8, dx: 0, dy: -1, bit: 0 },
+      { id: 'g-01', label: 'と', side: 'gote', x: 0, y: 2, dx: 0, dy: -1, bit: 1 },
+      { id: 'g-02', label: 'と', side: 'gote', x: 1, y: 2, dx: 0, dy: -1, bit: 2 },
+      { id: 'g-03', label: 'と', side: 'gote', x: 2, y: 2, dx: 0, dy: -1, bit: 3 },
+      { id: 'g-04', label: 'と', side: 'gote', x: 3, y: 2, dx: 0, dy: -1, bit: 4 },
+      { id: 'g-05', label: 'と', side: 'gote', x: 4, y: 2, dx: 0, dy: -1, bit: 5 },
+      { id: 'g-06', label: 'と', side: 'gote', x: 5, y: 2, dx: 0, dy: -1, bit: 6 },
+      { id: 'g-07', label: 'と', side: 'gote', x: 6, y: 2, dx: 0, dy: -1, bit: 7 },
+      { id: 'g-08', label: 'と', side: 'gote', x: 7, y: 2, dx: 0, dy: -1, bit: 8 },
+      { id: 'g-09', label: 'と', side: 'gote', x: 8, y: 2, dx: 0, dy: -1, bit: 9 },
+      { id: 'g-10', label: 'と', side: 'gote', x: 0, y: 4, dx: 0, dy: -1, bit: 10 },
+      { id: 'g-11', label: 'と', side: 'gote', x: 1, y: 4, dx: 0, dy: -1, bit: 11 },
+      { id: 'g-12', label: 'と', side: 'gote', x: 2, y: 4, dx: 0, dy: -1, bit: 12 },
+      { id: 'g-13', label: 'と', side: 'gote', x: 3, y: 4, dx: 0, dy: -1, bit: 13 },
+      { id: 'g-14', label: 'と', side: 'gote', x: 4, y: 4, dx: 0, dy: -1, bit: 14 },
+      { id: 'g-15', label: 'と', side: 'gote', x: 5, y: 4, dx: 0, dy: -1, bit: 15 },
+      { id: 'g-16', label: 'と', side: 'gote', x: 6, y: 4, dx: 0, dy: -1, bit: 16 },
+      { id: 'g-17', label: 'と', side: 'gote', x: 7, y: 4, dx: 0, dy: -1, bit: 17 },
+      { id: 'g-18', label: 'と', side: 'gote', x: 8, y: 4, dx: 0, dy: -1, bit: 18 },
+      { id: 'g-king', label: '玉', side: 'gote', x: 8, y: 0, dx: 0, dy: -1, bit: 19 }
+    ];
+
+    const state = {
+      bits: new Array(20).fill(0),
+      index: 0,
+      playing: false,
+      timer: null
+    };
+
+    function createPiece(piece) {
+      const el = document.createElement('div');
+      el.className = `piece ${piece.side}`;
+      el.id = piece.id;
+      el.textContent = piece.label;
+      el.style.setProperty('--x', piece.x);
+      el.style.setProperty('--y', piece.y);
+      el.style.setProperty('--dx', piece.dx);
+      el.style.setProperty('--dy', piece.dy);
+      el.style.setProperty('--dur', `${speedInput.value}ms`);
+      board.appendChild(el);
+      piece.el = el;
+    }
+
+    function gray(n) {
+      return n ^ (n >> 1);
+    }
+
+    function bitsFromGrayValue(g) {
+      return g.toString(2).padStart(20, '0').split('').reverse().map(Number);
+    }
+
+    function updatePieces() {
+      for (const piece of PIECES) {
+        piece.el.classList.toggle('on', !!state.bits[piece.bit]);
+      }
+    }
+
+    function formatBits() {
+      return [...state.bits].reverse().join('');
+    }
+
+    function changedBit(a, b) {
+      const x = a ^ b;
+      if (x === 0) return -1;
+      let i = 0;
+      let t = x;
+      while ((t & 1) === 0) {
+        t >>= 1;
+        i += 1;
+      }
+      return i;
+    }
+
+    function updateInfo(prevGray, nextGray, bitIndex) {
+      plyEl.textContent = String(state.index);
+      plySlider.value = String(state.index);
+      plySliderLabel.textContent = `ply: ${state.index}`;
+      flippedEl.textContent = bitIndex >= 0 ? `bit ${bitIndex}` : '-';
+      bitsEl.textContent = formatBits();
+      const prev = prevGray.toString(2).padStart(20, '0');
+      const next = nextGray.toString(2).padStart(20, '0');
+      grayTextEl.textContent = `${prev} → ${next}`;
+    }
+
+    function applyIndex(newIndex) {
+      const mod = 1 << 20;
+      const prevIndex = ((state.index % mod) + mod) % mod;
+      const prevGray = gray(prevIndex);
+      const nextIndex = ((newIndex % mod) + mod) % mod;
+      const nextGray = gray(nextIndex);
+      const bitIndex = changedBit(prevGray, nextGray);
+
+      state.index = nextIndex;
+      state.bits = bitsFromGrayValue(nextGray);
+      updatePieces();
+      updateInfo(prevGray, nextGray, bitIndex);
+    }
+
+    function step() {
+      applyIndex(state.index + 1);
+    }
+
+    function reset() {
+      stop();
+      state.index = 0;
+      state.bits = new Array(20).fill(0);
+      updatePieces();
+      updateInfo(0, 0, -1);
+    }
+
+    function tick() {
+      step();
+      if (state.playing) {
+        state.timer = window.setTimeout(tick, Number(speedInput.value));
+      }
+    }
+
+    function play() {
+      if (state.playing) return;
+      state.playing = true;
+      playBtn.textContent = '停止';
+      tick();
+    }
+
+    function stop() {
+      state.playing = false;
+      playBtn.textContent = '再生';
+      if (state.timer !== null) {
+        clearTimeout(state.timer);
+        state.timer = null;
+      }
+    }
+
+    function togglePlay() {
+      if (state.playing) stop();
+      else play();
+    }
+
+    function updateSpeed() {
+      const ms = Number(speedInput.value);
+      speedLabel.textContent = `transition: ${ms}ms`;
+      document.documentElement.style.setProperty('--dur', `${ms}ms`);
+      for (const piece of PIECES) {
+        piece.el.style.setProperty('--dur', `${ms}ms`);
+      }
+      if (state.playing) {
+        stop();
+        play();
+      }
+    }
+
+    for (const piece of PIECES) createPiece(piece);
+
+    playBtn.addEventListener('click', togglePlay);
+    stepBtn.addEventListener('click', () => {
+      if (state.playing) stop();
+      step();
+    });
+    resetBtn.addEventListener('click', reset);
+    speedInput.addEventListener('input', updateSpeed);
+    plySlider.addEventListener('input', () => {
+      if (state.playing) stop();
+      applyIndex(Number(plySlider.value));
+    });
+
+    reset();
+  </script>
+</body>
+</html>
