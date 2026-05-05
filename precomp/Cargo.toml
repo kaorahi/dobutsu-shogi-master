@@ -15,10 +15,6 @@ name = "2-analyze"
 path = "src/2-analyze.rs"
 
 [[bin]]
-name = "3-extract"
-path = "src/3-extract.rs"
-
-[[bin]]
 name = "longcycle_1-next"
 path = "src/longcycle_1-next.rs"
 
