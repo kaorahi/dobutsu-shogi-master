@@ -41,18 +41,14 @@ div#record-box {
   ol {
     padding: 0em 0em 0em 3.6em;
     li {
-      height: 1.1em;
+      box-sizing: border-box;
+      border-left: 0.3em solid transparent;
+      padding-left: -1em;
       &.future-move {
         color: rgba(0,0,0,0.2);
       }
       &.future-move:hover {
         color: #990000;
-      }
-      .depth {
-        display: inline-block;
-        width: 0.3em;
-        height: 100%;
-        margin-right: 0.1em;
       }
       .move {
         display: inline-block;

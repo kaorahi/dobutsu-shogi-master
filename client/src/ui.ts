@@ -959,9 +959,9 @@ export class UI {
                 .each((i, elem) => this.update_record_item(i, elem, max_depth, hs));
         } else {
             const lis = $("li#record-before-first, ol#record li");
+            lis.css("border-left-color", "transparent");
             lis.children(".outcome-loss, .moves-loss").parent().removeAttr("title").tooltip("destroy");
             lis.children(".move").removeClass("outcome-loss moves-loss")
-            lis.children(".depth").css("background-color", "");
         }
     }
 
@@ -985,8 +985,7 @@ export class UI {
         const depth_color = next_depth < 0 ? "hsl(60deg 100% 75%)" :
               `hsl(${abs_leading_p ? 0: 240}deg 100% ${l}%)`;
         const li = $(elem);
-        const dp = li.children(".depth");
-        dp.css("background-color", depth_color);
+        li.css("border-left-color", depth_color);
         // [bad move marks]
         const mv = li.children(".move");
         if (mv.length === 0 || depth === null) return;
