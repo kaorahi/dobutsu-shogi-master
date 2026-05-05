@@ -41,7 +41,7 @@ export class UI {
     edit_mode = false;
     swap_side_p = false;
     show_depth_p = true;
-    puzzle_depth = 5;
+    puzzle_depth = -1;
     autorun_timer: number | null = null;
     autorun_running = false;
     snapshots: Snapshot[] = [];
@@ -705,6 +705,7 @@ export class UI {
             $("button#redo").prop("disabled", this.future.length === 0);
             $("button#prev-board").prop("disabled", this.snapshots.length === 0);
             $("button#next-board").prop("disabled", this.snapshots.length === 0);
+            $("#puzzle-container").toggle(this.puzzle_depth > 0);
         }
         $("#move-count").text(this.current_move_count());
         const puzzle_label = $("button#puzzle" + this.puzzle_depth).text();
