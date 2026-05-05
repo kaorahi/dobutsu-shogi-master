@@ -134,7 +134,6 @@ export class EditModeController {
 
     private syncBoardFromDom() {
         this.host.ui_state = { board: this.buildBoardFromDom(), depth: null };
-        this.host.update_depth();
     }
 
     private transformBoard(transform: (board: Board) => Board) {

@@ -646,7 +646,7 @@ export class UI {
     }
 
     update_ui() {
-        if (!this.edit_mode && this.ui_state.depth === null) this.update_depth();
+        if (this.ui_state.depth === null) this.update_depth();
         let d = this.ui_state.depth as number;
         const gameover = this.ui_state.board.gameover_status();
         $("span#player").removeClass();
