@@ -312,9 +312,12 @@ export class UI {
     }
 
     csa_kifu_text(): string {
+        const b = this.history[0]?.[0].board || this.ui_state.board;
+        const is_standard = b.hashstr() === Board.init().hashstr();
+        const board_text = is_standard ? "" : this.board2csa(b, true);
         const hs = [...this.history, ...this.future.toReversed()];
         const moves = hs.flatMap(z => z.slice(1)).filter(m => m) as Move[];
-        return moves.map(m => this.move2csa(m) + "\n").join("");
+        return board_text + moves.map(m => this.move2csa(m) + "\n").join("");
     }
 
     load_csa_kifu_text(text: string) {
@@ -323,9 +326,9 @@ export class UI {
         // needs requestAnimationFrame twice in my environment to show "loading"
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                this.set_board(this.initial_board());
-                this.analysis_mode = true;
                 try {
+                    this.set_board(this.csa2board(text));
+                    this.analysis_mode = true;
                     let prev_li: JQuery<HTMLElement> | null = null;
                     let is_white_turn = false;
                     text.split(/\r?\n/).forEach(line => {
@@ -342,6 +345,73 @@ export class UI {
                 }
             });
         });
+    }
+
+    board2csa(board: Board, is_black_turn: boolean): string {
+        // ref. http://www2.computer-shogi.org/protocol/record_v3.html
+        const seq = (n: number): number[] => Array.from({ length: n }, (_, k) => k);
+        const piece_name = ["", "LI", "ZO", "KI", "HI", "NI"];
+        const csa_piece_kind = (p: Piece): string => piece_name[Piece.kind(p)];
+        const csa_piece_sign = (p: Piece): string =>
+              p === Piece.Empty ? " " : Piece.mine_p(p) ? "+" : "-";
+        const csa_piece = (p: Piece): string =>
+              csa_piece_sign(p) + (csa_piece_kind(p) || "* ");
+        const my_pieces = [Piece.Elephant, Piece.Giraffe, Piece.Chick];
+        const opponent_pieces = my_pieces.map((p: Piece) => Piece.opponent[p]);
+        // board
+        const csa_row = (y: number) =>
+              `P${y + 1}` + seq(3).map(x => csa_piece(board.get(2 - x, 3 - y))).join("") + "\n";
+        const board_text = seq(4).map(csa_row).join("");
+        // hands
+        const csa_hands = (ps: Piece[]) => {
+            const body = ps.map(p => ("00" + csa_piece_kind(p)).repeat(board.hand(p))).join("");
+            return (body === "") ? "" : "P" + csa_piece_sign(ps[0]) + body + "\n";
+        }
+        const hands_text = csa_hands(my_pieces) + csa_hands(opponent_pieces);
+        // turn
+        const turn_text = (is_black_turn ? "+" : "-") + "\n";
+        return board_text + hands_text + turn_text;
+    }
+
+    csa2board(text: string): Board {
+        const piece_name = ["", "LI", "ZO", "KI", "HI", "NI"];
+        const c2mypiece = (t: string) => piece_name.indexOf(t) as Piece;
+        const opp = (p: Piece, sign: string) => (sign === "+") ? p : Piece.opponent[p];
+        const c2p = (piece_str: string): Piece | null => {
+            const m = piece_str.match(/^([-+])(..)$/);
+            return m ?  opp(c2mypiece(m[2]), m[1]) : null;
+        };
+        let board = Board.init();
+        let white_turn_p = false;
+        const parse_line = (s: string) => {
+            if (s === "-")
+                white_turn_p = true;
+            const m_row = s.match(/^P([1-4])(...)(...)(...)$/);
+            if (m_row) {
+                const y = 4 - Number(m_row[1]);
+                m_row.slice(2, 5).forEach((piece_str: string, idx: number) => {
+                    const x = 2 - idx;
+                    const p = c2p(piece_str);
+                    board = board.del(x, y);
+                    if (p !== null)
+                        board = board.put(x, y, p);
+                });
+            }
+            const m_hands = s.match(/^P([-+])((00..)+)$/);
+            if (m_hands) {
+                const sign = m_hands[1];
+                let rest = m_hands[2];
+                let m: RegExpMatchArray | null;
+                while (m = rest.match(/^00(..)(.*)$/)) {
+                    rest = m[2];
+                    const myp = c2mypiece(m[1]);
+                    board = (sign === "+") ? board.inc_hand(myp) :
+                        board.revflip().inc_hand(myp).revflip();
+                }
+            }
+        };
+        text.split(/\r?\n/).forEach(line => parse_line(line));
+        return white_turn_p ? board.revflip() : board;
     }
 
     move2csa(m: Move): string {
