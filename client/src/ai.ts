@@ -2,6 +2,8 @@ import {Board, Piece, Result, isResult} from "./board";
 
 // Fake AI
 
+const lowest_depth_in_db = 4;
+
 export class AI {
     rules: string = 'val1n';
     // An oracle data base that maps a possible board to a move that AI should
@@ -32,16 +34,16 @@ export class AI {
     // Get the move indexes for a depth-4 (or more) boards
     lookup_db(b: Board): [number, number[]] {
         const nbs = b.next_boards();
+        if (nbs === Result.Lose) return [0, []];
+        if (nbs === Result.Win) return [1, []];
         // lookup db
         const v = this.db[b.hashstr()];
         if (v) return [v[0], [v[1]]];
         // lookup key-value
         const depth = this.lookup_depth(b);
-        const target_depth = depth > 0 ? depth - 1 : depth;
-        if (nbs === Result.Lose) return [0, []];
-        if (nbs === Result.Win) return [1, []];
+        if (depth <= lowest_depth_in_db) return [depth, []];
         const targets = nbs.filter(b2 =>
-            this.lookup_depth(b2.reverse().normalize()) === target_depth);
+            this.lookup_depth(b2.reverse().normalize()) === depth - 1);
         return [depth, targets.map(b2 => nbs.indexOf(b2))];
     }
 
@@ -114,8 +116,7 @@ export class AI {
         let flipped = r_b !== nr_b; // a flag if normalize caused a flip or not
 
         // find a next board
-        let lowest_depth_in_database = 4;
-        let [depth, nr_nbs] = this.search_core(nr_b, lowest_depth_in_database);
+        let [depth, nr_nbs] = this.search_core(nr_b, lowest_depth_in_db);
 
         // invert the reverse and the normalization
         let r_nbs = nr_nbs.map(nr_nb => flipped ? nr_nb.flip() : nr_nb);
