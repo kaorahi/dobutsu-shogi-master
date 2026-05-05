@@ -34,12 +34,12 @@ async function main(): Promise<{ ai: AI; ui: UI }> {
         "8": "initial_game_record8.txt.xz",
         "9": "initial_game_record9.txt.xz",
     }[init_game_file_switch || ""];
-    const [abuf, kbuf, vbuf, ibuf] = await Promise.all([
+    const [abuf, ibuf] = await Promise.all([
         fetch_gunzip("unpruned_ai.txt.gz"),
-        fetch_xz("keys.xz"),
-        fetch_xz("vals.xz"),
         init_game_file ? fetch_xz(init_game_file) : undefined,
     ]);
+    const kbuf = await fetch_xz("keys.xz");
+    const vbuf = await fetch_xz("vals.xz");
     const ai_txt = new TextDecoder("utf-8").decode(abuf);
     const init_game_txt = new TextDecoder("utf-8").decode(ibuf);
     const keys = new BigUint64Array(kbuf);
